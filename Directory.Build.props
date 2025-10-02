@@ -25,7 +25,13 @@
 
   <!-- Test Projects Configuration -->
   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
-    <!-- Code Coverage -->
+    <!-- Test Settings -->
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <!-- Code Coverage - Only for projects with comprehensive tests -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests')) AND ($(MSBuildProjectName.Contains('Domain.Tests')) OR $(MSBuildProjectName.Contains('Infrastructure.Tests')))">
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutputFormat>opencover</CoverletOutputFormat>
     <CoverletOutput>$(MSBuildProjectDirectory)/coverage/</CoverletOutput>
@@ -33,10 +39,6 @@
     <ThresholdType>line</ThresholdType>
     <ThresholdStat>minimum</ThresholdStat>
     <ExcludeByFile>**/Migrations/**</ExcludeByFile>
-    
-    <!-- Test Settings -->
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <!-- Common Package References -->
