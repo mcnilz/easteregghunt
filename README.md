@@ -72,6 +72,9 @@ dotnet ef database update
 
 # Anwendung starten
 dotnet run --project src/EasterEggHunt.Web
+
+# Oder mit Docker Compose (verwendet automatisch compose.yaml)
+docker compose up
 ```
 
 ### Tests ausführen

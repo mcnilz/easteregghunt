@@ -1,0 +1,39 @@
+services:
+  # Web API Backend
+  easteregghunt-api:
+    image: easteregghunt/api:latest
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/easteregghunt.db
+    volumes:
+      - sqlite-data:/app/data
+    networks:
+      - easteregghunt-network
+    restart: unless-stopped
+
+  # Web Frontend
+  easteregghunt-web:
+    image: easteregghunt/web:latest
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ApiSettings__BaseUrl=http://easteregghunt-api:8080
+    depends_on:
+      - easteregghunt-api
+    networks:
+      - easteregghunt-network
+    restart: unless-stopped
+
+
+volumes:
+  sqlite-data:
+    driver: local
+
+networks:
+  easteregghunt-network:
+    driver: bridge

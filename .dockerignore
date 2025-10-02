@@ -1,0 +1,94 @@
+# Globale .dockerignore für Easter Egg Hunt Projekt
+# Verbessert Build-Performance durch Ausschluss unnötiger Dateien
+
+# Build-Ausgaben
+bin/
+obj/
+out/
+publish/
+build/
+
+# IDE und Editor Dateien
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test-Ergebnisse
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Logs
+logs/
+*.log
+
+# Temporäre Dateien
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*
+compose.yaml
+compose.override.yaml
+.dockerignore
+docker-bake.hcl
+
+# Dokumentation
+README.md
+*.md
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+azure-pipelines.yml
+
+# Package Manager
+packages/
+*.nupkg
+*.snupkg
+
+# Node.js (falls vorhanden)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (falls vorhanden)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Andere Projekt-spezifische Ausschlüsse
+*.pdb
+*.exe
+*.dll.config
+appsettings.Development.json
+appsettings.Local.json
+
+# Scripts (werden nicht in Container benötigt)
+scripts/
+
+# Features (Gherkin-Dateien)
+features/
+
+# Architektur-Dokumentation
+ARCHITECTURE.md
+SPRINT_PLANNING.md
+CODING_GUIDELINES.md
+CONTRIBUTING.md
+SECURITY.md
+CHANGELOG.md
+LICENSE

@@ -1,0 +1,43 @@
+# Development-spezifische Docker Compose Konfiguration
+services:
+  easteregghunt-api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_LOGGING__LOGLEVEL__DEFAULT=Debug
+      - ASPNETCORE_LOGGING__LOGLEVEL__MICROSOFT.ASPNETCORE=Warning
+    volumes:
+      # Nur SQLite Datenbank persistent machen
+      - sqlite-data:/app/data
+    ports:
+      - "5001:8080"
+    # Für Remote Debugging (optional)
+    # ports:
+    #   - "5001:8080"
+    #   - "5011:5011"  # Debug Port
+
+  easteregghunt-web:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_LOGGING__LOGLEVEL__DEFAULT=Debug
+      - ASPNETCORE_LOGGING__LOGLEVEL__MICROSOFT.ASPNETCORE=Warning
+    ports:
+      - "5000:8080"
+    # Für Remote Debugging (optional)
+    # ports:
+    #   - "5000:8080"
+    #   - "5010:5010"  # Debug Port
+
+  # Development Database Browser (optional)
+  sqlite-browser:
+    image: coleifer/sqlite-web
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqlite-data:/data
+    command: sqlite_web -H 0.0.0.0 -x /data/easteregghunt.db
+    depends_on:
+      - easteregghunt-api  # Warten bis API die DB erstellt hat
+    networks:
+      - easteregghunt-network
+    profiles:
+      - tools  # Nur starten mit: docker-compose --profile tools up
