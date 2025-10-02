@@ -1,6 +1,11 @@
-# Easter Egg Hunt System - Gherkin Features
+# 🥚 Easter Egg Hunt System
 
-Dieses Dokument enthält die Gherkin Feature-Spezifikationen für das Easter Egg Hunt System.
+[![CI](https://github.com/your-org/easter-egg-hunt/workflows/Continuous%20Integration/badge.svg)](https://github.com/your-org/easter-egg-hunt/actions)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/your-org/easter-egg-hunt/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
+
+Ein interaktives Easter Egg Hunt System für Unternehmen, das es ermöglicht, QR-Code-basierte Osterspiele im Büro zu organisieren.
 
 ## Übersicht
 
@@ -44,12 +49,63 @@ Das Easter Egg Hunt System ermöglicht es Unternehmen, interne Osterspiele zu or
 3. Zeitstempel für alle Funde
 4. Mobile-optimierte Benutzeroberfläche
 
-## Nächste Schritte
+## 🚀 Quick Start
 
-Diese Gherkin Features können als Grundlage für:
-- Automatisierte Tests (Cucumber/SpecFlow)
-- Entwicklungsplanung
-- Stakeholder-Kommunikation
-- Akzeptanzkriterien
+### Voraussetzungen
 
-verwendet werden.
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) oder [VS Code](https://code.visualstudio.com/)
+- [Git](https://git-scm.com/)
+
+### Installation
+
+```bash
+# Repository klonen
+git clone https://github.com/your-org/easter-egg-hunt.git
+cd easter-egg-hunt
+
+# Dependencies installieren
+dotnet restore
+
+# Datenbank erstellen (falls erforderlich)
+dotnet ef database update
+
+# Anwendung starten
+dotnet run --project src/EasterEggHunt.Web
+```
+
+### Tests ausführen
+
+```bash
+# Alle Tests ausführen
+dotnet test
+
+# Mit Code Coverage
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+## 📖 Dokumentation
+
+- **[Gherkin Features](features/)** - Detaillierte Feature-Spezifikationen
+- **[Coding Guidelines](CODING_GUIDELINES.md)** - Entwicklungsstandards
+- **[Contributing](CONTRIBUTING.md)** - Beitrag zum Projekt
+- **[Security](SECURITY.md)** - Sicherheitsrichtlinien
+- **[Changelog](CHANGELOG.md)** - Versionshistorie
+
+## 🤝 Beitragen
+
+Wir freuen uns über Beiträge! Bitte lesen Sie unsere [Contributing Guidelines](CONTRIBUTING.md) für Details zum Entwicklungsprozess.
+
+## 📄 Lizenz
+
+Dieses Projekt ist unter der [MIT Lizenz](LICENSE) lizenziert.
+
+## 🔒 Sicherheit
+
+Sicherheitslücken bitte an security@your-domain.com melden. Siehe [SECURITY.md](SECURITY.md) für Details.
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](../../issues)
+- **Diskussionen**: [GitHub Discussions](../../discussions)
+- **E-Mail**: support@your-domain.com

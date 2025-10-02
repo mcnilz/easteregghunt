@@ -1,0 +1,168 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🛒 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: 📦 Restore Dependencies
+      run: dotnet restore
+    
+    - name: 🏗️ Build Solution
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: 🧪 Run Tests
+      run: |
+        dotnet test --configuration Release --no-build --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage \
+          --logger trx \
+          --logger "console;verbosity=detailed"
+    
+    - name: 📊 Generate Coverage Report
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.2.0
+      with:
+        reports: 'coverage/**/coverage.cobertura.xml'
+        targetdir: 'coverage/report'
+        reporttypes: 'Html;Cobertura;MarkdownSummaryGithub'
+        verbosity: 'Info'
+        title: 'Easter Egg Hunt - Code Coverage'
+        tag: '${{ github.run_number }}_${{ github.run_id }}'
+    
+    - name: 📈 Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: coverage/report/SummaryGithub.md
+    
+    - name: 🔍 Check Coverage Threshold
+      run: |
+        # Extract coverage percentage from Cobertura XML
+        COVERAGE=$(grep -oP 'line-rate="\K[^"]*' coverage/report/Cobertura.xml | head -1)
+        COVERAGE_PERCENT=$(echo "$COVERAGE * 100" | bc -l | cut -d. -f1)
+        echo "Current coverage: $COVERAGE_PERCENT%"
+        
+        if [ "$COVERAGE_PERCENT" -lt 90 ]; then
+          echo "❌ Coverage $COVERAGE_PERCENT% is below minimum threshold of 90%"
+          exit 1
+        else
+          echo "✅ Coverage $COVERAGE_PERCENT% meets minimum threshold of 90%"
+        fi
+    
+    - name: 📤 Upload Coverage Reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/report/
+        retention-days: 30
+    
+    - name: 📤 Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          **/*.trx
+          coverage/**/coverage.cobertura.xml
+        retention-days: 30
+
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🛒 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: 📦 Restore Dependencies
+      run: dotnet restore
+    
+    - name: 🔍 Run Code Analysis
+      run: |
+        dotnet build --configuration Release --verbosity normal \
+          /p:TreatWarningsAsErrors=true \
+          /p:WarningsAsErrors="" \
+          /p:RunAnalyzersDuringBuild=true
+    
+    - name: 🎨 Check Code Formatting
+      run: |
+        dotnet format --verify-no-changes --verbosity diagnostic
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🛒 Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: 🔒 Run Security Scan
+      run: |
+        dotnet list package --vulnerable --include-transitive 2>&1 | tee security-scan.log
+        if grep -q "has the following vulnerable packages" security-scan.log; then
+          echo "❌ Vulnerable packages found!"
+          cat security-scan.log
+          exit 1
+        else
+          echo "✅ No vulnerable packages found"
+        fi
+
+  build-status:
+    name: Build Status
+    runs-on: ubuntu-latest
+    needs: [build-and-test, code-quality, security-scan]
+    if: always()
+    
+    steps:
+    - name: ✅ Success
+      if: ${{ needs.build-and-test.result == 'success' && needs.code-quality.result == 'success' && needs.security-scan.result == 'success' }}
+      run: |
+        echo "🎉 All checks passed successfully!"
+        echo "✅ Build and Tests: ${{ needs.build-and-test.result }}"
+        echo "✅ Code Quality: ${{ needs.code-quality.result }}"
+        echo "✅ Security Scan: ${{ needs.security-scan.result }}"
+    
+    - name: ❌ Failure
+      if: ${{ needs.build-and-test.result != 'success' || needs.code-quality.result != 'success' || needs.security-scan.result != 'success' }}
+      run: |
+        echo "❌ Some checks failed!"
+        echo "Build and Tests: ${{ needs.build-and-test.result }}"
+        echo "Code Quality: ${{ needs.code-quality.result }}"
+        echo "Security Scan: ${{ needs.security-scan.result }}"
+        exit 1
