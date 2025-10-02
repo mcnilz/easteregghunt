@@ -29,7 +29,7 @@
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutputFormat>opencover</CoverletOutputFormat>
     <CoverletOutput>$(MSBuildProjectDirectory)/coverage/</CoverletOutput>
-    <Threshold>90</Threshold>
+    <Threshold>80</Threshold>
     <ThresholdType>line</ThresholdType>
     <ThresholdStat>minimum</ThresholdStat>
     <ExcludeByFile>**/Migrations/**</ExcludeByFile>

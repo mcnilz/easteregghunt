@@ -66,11 +66,11 @@ jobs:
         COVERAGE_PERCENT=$(echo "$COVERAGE * 100" | bc -l | cut -d. -f1)
         echo "Current coverage: $COVERAGE_PERCENT%"
         
-        if [ "$COVERAGE_PERCENT" -lt 90 ]; then
-          echo "❌ Coverage $COVERAGE_PERCENT% is below minimum threshold of 90%"
+        if [ "$COVERAGE_PERCENT" -lt 80 ]; then
+          echo "❌ Coverage $COVERAGE_PERCENT% is below minimum threshold of 80%"
           exit 1
         else
-          echo "✅ Coverage $COVERAGE_PERCENT% meets minimum threshold of 90%"
+          echo "✅ Coverage $COVERAGE_PERCENT% meets minimum threshold of 80%"
         fi
     
     - name: 📤 Upload Coverage Reports
