@@ -4,6 +4,104 @@
 
 Diese Guidelines gelten für das gesamte Easter Egg Hunt System (.NET Core Projekt) und sind von allen Entwicklern einzuhalten.
 
+### Clean Code Prinzipien
+
+Wir folgen strikt den **Clean Code** Prinzipien von Robert C. Martin:
+
+#### 🏗️ Komponenten-Aufteilung
+- **Single Responsibility Principle (SRP)**: Jede Klasse hat nur einen Grund zur Änderung
+- **Separation of Concerns**: Verschiedene Aspekte in separate Komponenten trennen
+- **Dependency Inversion**: Abhängigkeiten zu Abstraktionen, nicht zu Konkretionen
+- **Interface Segregation**: Kleine, spezifische Interfaces statt große, monolithische
+
+```csharp
+// ✅ Korrekt - Klare Verantwortlichkeiten
+public interface ICampaignRepository
+{
+    Task<Campaign> GetByIdAsync(int id);
+    Task<Campaign> SaveAsync(Campaign campaign);
+}
+
+public interface ICampaignValidator
+{
+    ValidationResult Validate(Campaign campaign);
+}
+
+public class CampaignService
+{
+    private readonly ICampaignRepository _repository;
+    private readonly ICampaignValidator _validator;
+    
+    // Klare, fokussierte Verantwortlichkeit
+    public async Task<Campaign> CreateCampaignAsync(CreateCampaignRequest request)
+    {
+        // Validierung delegieren
+        var validationResult = _validator.Validate(request);
+        if (!validationResult.IsValid)
+            throw new ValidationException(validationResult.Errors);
+            
+        // Persistierung delegieren
+        var campaign = new Campaign(request.Name, request.Description);
+        return await _repository.SaveAsync(campaign);
+    }
+}
+```
+
+#### ♻️ Kontinuierliches Refactoring
+- **Refactoring ist PFLICHT, nicht optional**
+- **Red-Green-Refactor Zyklus** bei jedem Feature
+- **Code Smells** sofort beseitigen
+- **Maximale Methodenlänge**: 20 Zeilen
+- **Maximale Klassenlänge**: 200 Zeilen
+- **Maximale Parameter**: 3 pro Methode
+
+```csharp
+// ❌ Falsch - Zu lange Methode, zu viele Verantwortlichkeiten
+public async Task<QrCodeDto> CreateQrCodeWithValidationAndLoggingAndNotification(
+    string title, string note, int campaignId, string userEmail, bool sendEmail, 
+    string logLevel, DateTime createdAt, string ipAddress)
+{
+    // 50+ Zeilen Code...
+}
+
+// ✅ Korrekt - Aufgeteilt in kleinere, fokussierte Methoden
+public async Task<QrCodeDto> CreateQrCodeAsync(CreateQrCodeRequest request)
+{
+    await ValidateRequestAsync(request);
+    var qrCode = await CreateQrCodeEntityAsync(request);
+    await LogQrCodeCreationAsync(qrCode, request.UserContext);
+    await SendNotificationIfRequestedAsync(qrCode, request.NotificationSettings);
+    return _mapper.Map<QrCodeDto>(qrCode);
+}
+```
+
+#### 🧪 Test-First Development (MANDATORY)
+- **KEIN Code ohne Test** - Ausnahmslos!
+- **Tests ZUERST schreiben** (TDD Red-Green-Refactor)
+- **100% Test Coverage** ist das Ziel, 90% das Minimum
+- **Tests sind First-Class Citizens** - genauso wichtig wie Produktionscode
+
+```csharp
+// ✅ Korrekt - Test zuerst schreiben
+[Test]
+public async Task CreateCampaign_WithValidData_ShouldReturnCampaignWithGeneratedId()
+{
+    // Arrange - Test definiert das gewünschte Verhalten
+    var request = new CreateCampaignRequest("Ostern 2025", "Büro Hamburg");
+    
+    // Act - Noch nicht implementierte Methode aufrufen
+    var result = await _campaignService.CreateCampaignAsync(request);
+    
+    // Assert - Erwartetes Verhalten definieren
+    result.Should().NotBeNull();
+    result.Id.Should().BeGreaterThan(0);
+    result.Name.Should().Be("Ostern 2025");
+    result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+}
+
+// Dann erst die Implementierung schreiben!
+```
+
 ## 📝 Sprache und Kommentare
 
 ### Variablen und Code
@@ -45,12 +143,69 @@ public class CampaignService
 }
 ```
 
-## 🧪 Test-Driven Development (TDD)
+## 🧪 Test-Driven Development (TDD) - MANDATORY
+
+### Grundsätze (NICHT VERHANDELBAR)
+- **JEDE Zeile Code MUSS getestet werden**
+- **Tests werden ZUERST geschrieben** (Red-Green-Refactor)
+- **Kein Merge ohne Tests** - Pull Requests werden abgelehnt
+- **Refactoring nur mit grünen Tests**
 
 ### Test Coverage Ziel
-- **Minimum**: 90% Code Coverage
+- **Minimum**: 90% Code Coverage (Build schlägt fehl bei weniger)
 - **Ziel**: 100% Code Coverage soweit technisch möglich
 - **Ausnahmen**: Nur nach expliziter Begründung und Team-Absprache
+
+### Clean Code in Tests
+Tests müssen genauso sauber sein wie Produktionscode:
+
+```csharp
+// ❌ Falsch - Unklarer, langer Test
+[Test]
+public async Task Test1()
+{
+    var service = new CampaignService(new Mock<ICampaignRepository>().Object, 
+        new Mock<ICampaignValidator>().Object, new Mock<ILogger<CampaignService>>().Object);
+    var result = await service.CreateCampaignAsync(new CreateCampaignRequest("Test", "Test"));
+    Assert.IsNotNull(result);
+    Assert.AreEqual("Test", result.Name);
+}
+
+// ✅ Korrekt - Klarer, strukturierter Test
+[Test]
+public async Task CreateCampaign_WithValidRequest_ShouldReturnCampaignWithCorrectProperties()
+{
+    // Arrange - Testdaten und Mocks klar strukturiert
+    var expectedCampaign = CampaignTestDataBuilder
+        .New()
+        .WithName("Ostern 2025")
+        .WithDescription("Büro Hamburg")
+        .Build();
+        
+    _mockRepository
+        .Setup(r => r.SaveAsync(It.IsAny<Campaign>()))
+        .ReturnsAsync(expectedCampaign);
+        
+    _mockValidator
+        .Setup(v => v.Validate(It.IsAny<Campaign>()))
+        .Returns(ValidationResult.Success);
+        
+    var request = new CreateCampaignRequest("Ostern 2025", "Büro Hamburg");
+    
+    // Act - Eine klare Aktion
+    var result = await _campaignService.CreateCampaignAsync(request);
+    
+    // Assert - Spezifische, aussagekräftige Assertions
+    result.Should().NotBeNull();
+    result.Name.Should().Be("Ostern 2025");
+    result.Description.Should().Be("Büro Hamburg");
+    result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    
+    // Verify - Interaktionen überprüfen
+    _mockRepository.Verify(r => r.SaveAsync(It.IsAny<Campaign>()), Times.Once);
+    _mockValidator.Verify(v => v.Validate(It.IsAny<Campaign>()), Times.Once);
+}
+```
 
 ### Test Struktur
 ```
@@ -149,6 +304,117 @@ public class CampaignNotFoundException : Exception
     
     public int CampaignId { get; }
 }
+```
+
+## 🚨 Code Smells und Refactoring Triggers
+
+### Wann MUSS refactoriert werden?
+
+#### Sofortige Refactoring-Pflicht:
+- **Methode > 20 Zeilen** → Aufteilen
+- **Klasse > 200 Zeilen** → Single Responsibility prüfen
+- **Mehr als 3 Parameter** → Parameter Object einführen
+- **Duplizierter Code** → DRY Prinzip anwenden
+- **Tiefe Verschachtelung (> 3 Ebenen)** → Guard Clauses verwenden
+- **Magische Zahlen** → Konstanten definieren
+- **Lange Parameterlisten** → Builder Pattern oder DTOs
+
+```csharp
+// ❌ Code Smell - Zu viele Parameter, zu lang
+public async Task<QrCode> CreateQrCode(string title, string note, int campaignId, 
+    string createdBy, DateTime createdAt, bool isActive, string description, 
+    int sortOrder, string category, bool sendNotification)
+{
+    if (string.IsNullOrEmpty(title)) throw new ArgumentException("Title required");
+    if (string.IsNullOrEmpty(note)) throw new ArgumentException("Note required");
+    if (campaignId <= 0) throw new ArgumentException("Invalid campaign");
+    if (string.IsNullOrEmpty(createdBy)) throw new ArgumentException("Creator required");
+    
+    var campaign = await _campaignRepository.GetByIdAsync(campaignId);
+    if (campaign == null) throw new NotFoundException("Campaign not found");
+    if (!campaign.IsActive) throw new InvalidOperationException("Campaign inactive");
+    
+    var qrCode = new QrCode
+    {
+        Title = title,
+        Note = note,
+        CampaignId = campaignId,
+        CreatedBy = createdBy,
+        CreatedAt = createdAt,
+        IsActive = isActive,
+        Description = description,
+        SortOrder = sortOrder,
+        Category = category
+    };
+    
+    await _qrCodeRepository.SaveAsync(qrCode);
+    
+    if (sendNotification)
+    {
+        await _notificationService.SendQrCodeCreatedNotification(qrCode);
+    }
+    
+    return qrCode;
+}
+
+// ✅ Nach Refactoring - Klare Struktur, Single Responsibility
+public async Task<QrCode> CreateQrCodeAsync(CreateQrCodeRequest request)
+{
+    await _validator.ValidateAndThrowAsync(request);
+    await _campaignValidator.EnsureCampaignIsActiveAsync(request.CampaignId);
+    
+    var qrCode = await _qrCodeFactory.CreateAsync(request);
+    var savedQrCode = await _qrCodeRepository.SaveAsync(qrCode);
+    
+    await _notificationService.NotifyIfRequestedAsync(savedQrCode, request.NotificationSettings);
+    
+    return savedQrCode;
+}
+```
+
+### Refactoring-Techniken (MANDATORY)
+
+#### 1. Extract Method
+```csharp
+// ❌ Vorher - Alles in einer Methode
+public async Task ProcessQrCodeScan(string qrCodeId, string userId)
+{
+    // Validierung (5 Zeilen)
+    // QR-Code laden (3 Zeilen)  
+    // Benutzer validieren (4 Zeilen)
+    // Fund erstellen (6 Zeilen)
+    // Statistiken aktualisieren (4 Zeilen)
+    // Benachrichtigung senden (3 Zeilen)
+}
+
+// ✅ Nachher - Aufgeteilt in fokussierte Methoden
+public async Task ProcessQrCodeScanAsync(string qrCodeId, string userId)
+{
+    await ValidateScanRequestAsync(qrCodeId, userId);
+    var qrCode = await LoadAndValidateQrCodeAsync(qrCodeId);
+    var user = await LoadAndValidateUserAsync(userId);
+    var find = await CreateFindRecordAsync(qrCode, user);
+    await UpdateStatisticsAsync(find);
+    await SendNotificationAsync(find);
+}
+```
+
+#### 2. Extract Class (bei > 200 Zeilen)
+```csharp
+// ❌ Zu große Klasse mit mehreren Verantwortlichkeiten
+public class CampaignService
+{
+    // Campaign CRUD (50 Zeilen)
+    // QR-Code Management (80 Zeilen)
+    // Statistics (60 Zeilen)
+    // Notifications (40 Zeilen)
+}
+
+// ✅ Aufgeteilt in fokussierte Services
+public class CampaignService { /* Nur Campaign CRUD */ }
+public class QrCodeService { /* Nur QR-Code Management */ }
+public class CampaignStatisticsService { /* Nur Statistics */ }
+public class CampaignNotificationService { /* Nur Notifications */ }
 ```
 
 ## 📋 Code Style Guidelines
@@ -251,20 +517,59 @@ csharp_new_line_before_finally = true
 
 ## 📊 Code Review Checklist
 
-### Vor jedem Commit
+### Clean Code Checklist (MANDATORY)
+
+#### Vor jedem Commit
+- [ ] **Tests ZUERST geschrieben** (TDD Red-Green-Refactor befolgt)
 - [ ] Alle Tests laufen durch (`dotnet test`)
 - [ ] Code Coverage mindestens 90% (`dotnet test --collect:"XPlat Code Coverage"`)
+- [ ] **Keine Methode > 20 Zeilen**
+- [ ] **Keine Klasse > 200 Zeilen**
+- [ ] **Maximal 3 Parameter pro Methode**
+- [ ] **Keine Code-Duplikation**
+- [ ] **Keine magischen Zahlen** (Konstanten verwenden)
+- [ ] **Single Responsibility Principle** eingehalten
 - [ ] Keine Compiler Warnings
 - [ ] Alle neuen Methoden haben deutsche XML-Dokumentation
 - [ ] Variablen und Methoden auf Englisch
 - [ ] Kommentare auf Deutsch
 
+#### Refactoring Checklist
+- [ ] **Code Smells identifiziert und beseitigt**
+- [ ] **Lange Methoden aufgeteilt** (Extract Method)
+- [ ] **Große Klassen aufgeteilt** (Extract Class)
+- [ ] **Parameter Objects** für lange Parameterlisten
+- [ ] **Guard Clauses** statt tiefer Verschachtelung
+- [ ] **Dependency Injection** korrekt verwendet
+- [ ] **Interface Segregation** beachtet
+
+#### Test Quality Checklist
+- [ ] **Tests sind selbsterklärend** (kein Kommentar nötig)
+- [ ] **Arrange-Act-Assert** Struktur befolgt
+- [ ] **Test Data Builder** für komplexe Objekte
+- [ ] **FluentAssertions** für bessere Lesbarkeit
+- [ ] **Mocks korrekt konfiguriert** und verifiziert
+- [ ] **Edge Cases getestet**
+- [ ] **Negative Tests** für Fehlerbehandlung
+
 ### Vor jedem Pull Request
+- [ ] **Alle Clean Code Regeln befolgt**
 - [ ] Feature Tests geschrieben (basierend auf Gherkin Features)
 - [ ] Integration Tests für neue Endpoints
 - [ ] Performance Tests bei kritischen Pfaden
 - [ ] Security Tests bei Authentication/Authorization
+- [ ] **Refactoring durchgeführt** wo nötig
 - [ ] Dokumentation aktualisiert
+
+### Code Review Kriterien (für Reviewer)
+- [ ] **Clean Code Prinzipien eingehalten**
+- [ ] **SOLID Prinzipien befolgt**
+- [ ] **DRY Prinzip** (Don't Repeat Yourself)
+- [ ] **YAGNI Prinzip** (You Aren't Gonna Need It)
+- [ ] **Tests sind aussagekräftig** und vollständig
+- [ ] **Naming ist selbsterklärend**
+- [ ] **Keine Premature Optimization**
+- [ ] **Error Handling** korrekt implementiert
 
 ## 🚀 Continuous Integration
 
@@ -332,4 +637,42 @@ public class CampaignsController : ControllerBase
 }
 ```
 
-Diese Guidelines sind verbindlich und werden bei jedem Code Review überprüft. Bei Fragen oder Unklarheiten bitte im Team besprechen.
+## ⚡ Clean Code Enforcement
+
+### Automatische Überprüfung
+- **Build schlägt fehl** bei Code Coverage < 90%
+- **Pull Requests werden automatisch abgelehnt** bei:
+  - Fehlenden Tests
+  - Code Smells (lange Methoden/Klassen)
+  - Compiler Warnings
+  - Sicherheitslücken
+
+### Team-Verantwortung
+- **Jeder Entwickler** ist für Clean Code verantwortlich
+- **Code Reviews** sind MANDATORY - kein Merge ohne Review
+- **Pair Programming** bei komplexen Features empfohlen
+- **Refactoring Sessions** regelmäßig im Team
+
+### Konsequenzen bei Nicht-Einhaltung
+1. **Erste Warnung**: Coaching und Pair Programming
+2. **Zweite Warnung**: Zusätzliche Code Review Runden
+3. **Dritte Warnung**: Eskalation an Team Lead
+
+## 📚 Empfohlene Literatur
+
+### Pflichtlektüre für alle Entwickler:
+- **"Clean Code"** von Robert C. Martin
+- **"Refactoring"** von Martin Fowler
+- **"Test Driven Development"** von Kent Beck
+- **"Clean Architecture"** von Robert C. Martin
+
+### Online-Ressourcen:
+- [Clean Code Cheat Sheet](https://www.planetgeek.ch/wp-content/uploads/2014/11/Clean-Code-V2.4.pdf)
+- [SOLID Principles](https://www.digitalocean.com/community/conceptual_articles/s-o-l-i-d-the-first-five-principles-of-object-oriented-design)
+- [Refactoring Guru](https://refactoring.guru/)
+
+---
+
+**Diese Guidelines sind VERBINDLICH und werden bei jedem Code Review strikt überprüft. Clean Code ist nicht optional - es ist die Grundlage für wartbaren, testbaren und erweiterbaren Code.**
+
+Bei Fragen oder Unklarheiten bitte im Team besprechen. **Unwissenheit schützt nicht vor Code Review Ablehnung!** 😉
