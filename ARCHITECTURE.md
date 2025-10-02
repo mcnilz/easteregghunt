@@ -161,68 +161,99 @@ public class CampaignsController : ControllerBase
 
 ```mermaid
 erDiagram
-    CAMPAIGNS ||--o{ QR_CODES : contains
-    QR_CODES ||--o{ FINDS : found_in
-    USERS ||--o{ FINDS : makes
-    USERS ||--o{ SESSIONS : has
+    CAMPAIGNS ||--o{ QR_CODES : "1:N"
+    QR_CODES ||--o{ FINDS : "1:N"
+    USERS ||--o{ FINDS : "1:N"
+    USERS ||--o{ SESSIONS : "1:N"
     
     CAMPAIGNS {
-        int Id PK
-        string Name
-        string Description
-        datetime CreatedAt
-        datetime UpdatedAt
-        bool IsActive
-        string CreatedBy
+        int Id PK "Primary Key"
+        string Name "Campaign Name (200 chars)"
+        string Description "Campaign Description (1000 chars)"
+        datetime CreatedAt "Creation Timestamp"
+        datetime UpdatedAt "Last Update Timestamp"
+        bool IsActive "Active Status (default: true)"
+        string CreatedBy "Creator Name (100 chars)"
     }
     
     QR_CODES {
-        int Id PK
-        int CampaignId FK
-        string Title
-        string InternalNote
-        string UniqueUrl
-        datetime CreatedAt
-        datetime UpdatedAt
-        bool IsActive
-        int SortOrder
+        int Id PK "Primary Key"
+        int CampaignId FK "Foreign Key to Campaigns"
+        string Title "QR Code Title (200 chars)"
+        string InternalNote "Admin Note (1000 chars)"
+        string UniqueUrl "Unique QR Code URL"
+        datetime CreatedAt "Creation Timestamp"
+        datetime UpdatedAt "Last Update Timestamp"
+        bool IsActive "Active Status (default: true)"
+        int SortOrder "Display Order (default: 0)"
     }
     
     USERS {
-        int Id PK
-        string Name
-        datetime FirstSeen
-        datetime LastSeen
-        bool IsActive
+        int Id PK "Primary Key"
+        string Name "User Name (100 chars)"
+        datetime FirstSeen "First Registration"
+        datetime LastSeen "Last Activity"
+        bool IsActive "Active Status (default: true)"
     }
     
     FINDS {
-        int Id PK
-        int QrCodeId FK
-        int UserId FK
-        datetime FoundAt
-        string IpAddress
-        string UserAgent
+        int Id PK "Primary Key"
+        int QrCodeId FK "Foreign Key to QR Codes"
+        int UserId FK "Foreign Key to Users"
+        datetime FoundAt "Discovery Timestamp"
+        string IpAddress "User IP Address"
+        string UserAgent "Browser User Agent"
     }
     
     SESSIONS {
-        string Id PK
-        int UserId FK
-        datetime CreatedAt
-        datetime ExpiresAt
-        string Data
-        bool IsActive
+        string Id PK "Session ID (GUID)"
+        int UserId FK "Foreign Key to Users"
+        datetime CreatedAt "Session Creation"
+        datetime ExpiresAt "Session Expiration"
+        string Data "Session Data (JSON)"
+        bool IsActive "Session Status"
     }
     
     ADMIN_USERS {
-        int Id PK
-        string Username
-        string PasswordHash
-        string Email
-        datetime CreatedAt
-        datetime LastLogin
-        bool IsActive
+        int Id PK "Primary Key"
+        string Username "Login Username (50 chars)"
+        string PasswordHash "Hashed Password (255 chars)"
+        string Email "Email Address"
+        datetime CreatedAt "Account Creation"
+        datetime LastLogin "Last Login (nullable)"
+        bool IsActive "Account Status"
     }
+```
+
+### Datenbank-Indizes
+
+```sql
+-- Performance-Indizes für häufige Abfragen
+CREATE INDEX IX_Campaigns_IsActive ON Campaigns(IsActive);
+CREATE INDEX IX_Campaigns_CreatedAt ON Campaigns(CreatedAt);
+CREATE INDEX IX_Campaigns_Name ON Campaigns(Name);
+
+CREATE INDEX IX_QrCodes_CampaignId ON QrCodes(CampaignId);
+CREATE INDEX IX_QrCodes_IsActive ON QrCodes(IsActive);
+CREATE INDEX IX_QrCodes_SortOrder ON QrCodes(SortOrder);
+CREATE UNIQUE INDEX IX_QrCodes_UniqueUrl ON QrCodes(UniqueUrl);
+
+CREATE INDEX IX_Users_IsActive ON Users(IsActive);
+CREATE INDEX IX_Users_FirstSeen ON Users(FirstSeen);
+CREATE INDEX IX_Users_LastSeen ON Users(LastSeen);
+CREATE INDEX IX_Users_Name ON Users(Name);
+
+CREATE INDEX IX_Finds_QrCodeId ON Finds(QrCodeId);
+CREATE INDEX IX_Finds_UserId ON Finds(UserId);
+CREATE INDEX IX_Finds_FoundAt ON Finds(FoundAt);
+CREATE INDEX IX_Finds_QrCodeId_UserId ON Finds(QrCodeId, UserId);
+
+CREATE INDEX IX_Sessions_UserId ON Sessions(UserId);
+CREATE INDEX IX_Sessions_CreatedAt ON Sessions(CreatedAt);
+CREATE INDEX IX_Sessions_ExpiresAt ON Sessions(ExpiresAt);
+
+CREATE UNIQUE INDEX IX_AdminUsers_Username ON AdminUsers(Username);
+CREATE INDEX IX_AdminUsers_CreatedAt ON AdminUsers(CreatedAt);
 ```
 
 ### EF Core Entities

@@ -89,8 +89,12 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ## 📖 Dokumentation
 
+- **[Architektur](ARCHITECTURE.md)** - Technische Architektur und Design-Entscheidungen
+- **[Datenbank-Schema](DATABASE_SCHEMA.md)** - ER-Diagramm und Datenbankdokumentation
+- **[Sprint-Planung](SPRINT_PLANNING.md)** - Detaillierte Sprint-Planung und User Stories
 - **[Gherkin Features](features/)** - Detaillierte Feature-Spezifikationen
 - **[Coding Guidelines](CODING_GUIDELINES.md)** - Entwicklungsstandards
+- **[Docker Build](README-BUILD.md)** - Docker Buildx Bake Dokumentation
 - **[Contributing](CONTRIBUTING.md)** - Beitrag zum Projekt
 - **[Security](SECURITY.md)** - Sicherheitsrichtlinien
 - **[Changelog](CHANGELOG.md)** - Versionshistorie
