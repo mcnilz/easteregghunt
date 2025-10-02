@@ -39,33 +39,14 @@ Write-LogInfo "Starting Easter Egg Hunt System"
 Write-LogInfo "Environment: $Environment"
 Write-LogInfo "Tag: $Tag"
 
-# Prüfen ob Images existieren
-$apiImageExists = $false
-$webImageExists = $false
-
-# Prüfe API Image
-$apiResult = docker image inspect "easteregghunt/api:$Tag" 2>&1
-if ($LASTEXITCODE -eq 0 -and $apiResult -notmatch "Error response from daemon") {
-    $apiImageExists = $true
+# Immer neu bauen für Development
+Write-LogInfo "Building fresh images with Buildx Bake..."
+& ".\scripts\build.ps1" $Environment $Tag
+if ($LASTEXITCODE -ne 0) {
+    Write-LogError "Build failed!"
+    exit 1
 }
-
-# Prüfe Web Image
-$webResult = docker image inspect "easteregghunt/web:$Tag" 2>&1
-if ($LASTEXITCODE -eq 0 -and $webResult -notmatch "Error response from daemon") {
-    $webImageExists = $true
-}
-
-if ($apiImageExists -and $webImageExists) {
-    Write-LogInfo "Using existing images"
-} else {
-    Write-LogWarning "Images not found. Building with Buildx Bake..."
-    & ".\scripts\build.ps1" $Environment $Tag
-    if ($LASTEXITCODE -ne 0) {
-        Write-LogError "Build failed!"
-        exit 1
-    }
-    Write-LogSuccess "Images built successfully"
-}
+Write-LogSuccess "Images built successfully"
 
 # Services starten
 Write-LogInfo "Starting services with Docker Compose..."

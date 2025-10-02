@@ -1,6 +1,6 @@
 namespace EasterEggHunt.Domain.Tests;
 
-public class Tests
+public class DomainTests
 {
     [SetUp]
     public void Setup()

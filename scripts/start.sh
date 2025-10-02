@@ -37,13 +37,14 @@ log_info "Starting Easter Egg Hunt System"
 log_info "Environment: $ENVIRONMENT"
 log_info "Tag: $TAG"
 
-# Prüfen ob Images existieren
-if ! docker image inspect easteregghunt/api:$TAG >/dev/null 2>&1 || ! docker image inspect easteregghunt/web:$TAG >/dev/null 2>&1; then
-    log_warning "Images not found. Building with Buildx Bake..."
-    ./scripts/build.sh $ENVIRONMENT $TAG
-else
-    log_info "Using existing images"
+# Immer neu bauen für Development
+log_info "Building fresh images with Buildx Bake..."
+./scripts/build.sh $ENVIRONMENT $TAG
+if [ $? -ne 0 ]; then
+    log_error "Build failed!"
+    exit 1
 fi
+log_success "Images built successfully"
 
 # Services starten
 log_info "Starting services with Docker Compose..."

@@ -1,6 +1,6 @@
 namespace EasterEggHunt.Api.Tests;
 
-public class Tests
+public class ApiTests
 {
     [SetUp]
     public void Setup()

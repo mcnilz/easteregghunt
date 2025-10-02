@@ -1,6 +1,6 @@
 namespace EasterEggHunt.Application.Tests;
 
-public class Tests
+public class ApplicationTests
 {
     [SetUp]
     public void Setup()

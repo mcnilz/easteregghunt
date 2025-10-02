@@ -1,6 +1,6 @@
 namespace EasterEggHunt.Infrastructure.Tests;
 
-public class Tests
+public class InfrastructureTests
 {
     [SetUp]
     public void Setup()
