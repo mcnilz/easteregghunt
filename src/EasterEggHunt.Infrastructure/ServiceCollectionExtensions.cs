@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using EasterEggHunt.Infrastructure.Data;
 using EasterEggHunt.Infrastructure.Configuration;
+using EasterEggHunt.Infrastructure.Repositories;
+using EasterEggHunt.Domain.Repositories;
 
 namespace EasterEggHunt.Infrastructure;
 
@@ -48,6 +50,24 @@ public static class ServiceCollectionExtensions
 
         // DbContext als Scoped Service registrieren
         services.AddScoped<EasterEggHuntDbContext>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registriert alle Repository Services
+    /// </summary>
+    /// <param name="services">Service-Collection</param>
+    /// <returns>Service-Collection für Method-Chaining</returns>
+    public static IServiceCollection AddRepositories(this IServiceCollection services)
+    {
+        // Repository Interfaces mit Implementierungen registrieren
+        services.AddScoped<ICampaignRepository, CampaignRepository>();
+        services.AddScoped<IQrCodeRepository, QrCodeRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IFindRepository, FindRepository>();
+        services.AddScoped<ISessionRepository, SessionRepository>();
+        services.AddScoped<IAdminUserRepository, AdminUserRepository>();
 
         return services;
     }
