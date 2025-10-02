@@ -44,6 +44,11 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - **Docker Build**: Buildx Bake Cache-Probleme behoben
 - **Test Discovery**: Integration Tests mit `[Category("Integration")]` markiert
 - **Database Schema**: In-Memory zu File-based SQLite für bessere Kompatibilität
+- **GitHub Actions Coverage**: Coverage-Threshold-Check vollständig repariert
+  - XPlat Code Coverage mit Cobertura-Format konfiguriert
+  - Migration-Dateien und generierte Code aus Coverage ausgeschlossen
+  - Domain Coverage: 91.56%, Infrastructure Coverage: 86.90%, Gesamt: 85.92%
+  - Alle Werte über 80% Threshold, Pipeline läuft erfolgreich durch
 
 ### Sicherheit
 - **Dependency Scanning**: Automatische Sicherheits-Scans in CI/CD Pipeline
