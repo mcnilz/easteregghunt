@@ -11,7 +11,7 @@ namespace EasterEggHunt.Infrastructure.Tests.Integration;
 [Category("Integration")]
 public class SessionRepositoryIntegrationTests : IntegrationTestBase
 {
-    private User _testUser;
+    private User _testUser = null!;
 
     [SetUp]
     public async Task SetUp()

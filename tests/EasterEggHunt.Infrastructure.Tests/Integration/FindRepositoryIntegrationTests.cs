@@ -11,9 +11,9 @@ namespace EasterEggHunt.Infrastructure.Tests.Integration;
 [Category("Integration")]
 public class FindRepositoryIntegrationTests : IntegrationTestBase
 {
-    private Campaign _testCampaign;
-    private User _testUser;
-    private QrCode _testQrCode;
+    private Campaign _testCampaign = null!;
+    private User _testUser = null!;
+    private QrCode _testQrCode = null!;
 
     [SetUp]
     public async Task SetUp()
