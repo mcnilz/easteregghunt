@@ -70,7 +70,7 @@
     <Rule Id="CA1702" Action="Warning" /> <!-- Compound words should be cased correctly -->
     <Rule Id="CA1703" Action="Warning" /> <!-- Resource strings should be spelled correctly -->
     <Rule Id="CA1704" Action="Warning" /> <!-- Identifiers should be spelled correctly -->
-    <Rule Id="CA1707" Action="Warning" /> <!-- Identifiers should not contain underscores -->
+    <!-- CA1707 disabled - Allow underscores in test method names -->
     <Rule Id="CA1708" Action="Warning" /> <!-- Identifiers should differ by more than case -->
     <Rule Id="CA1709" Action="Warning" /> <!-- Identifiers should be cased correctly -->
     <Rule Id="CA1710" Action="Warning" /> <!-- Identifiers should have correct suffix -->
@@ -226,6 +226,8 @@
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
     <!-- Allow public methods without XML documentation in test projects -->
     <Rule Id="CS1591" Action="None" />
+    <!-- Allow underscores in test method names (NUnit convention) -->
+    <Rule Id="CA1707" Action="None" />
   </Rules>
 
 </RuleSet>

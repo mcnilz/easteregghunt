@@ -77,7 +77,7 @@ public class Session
     /// <param name="days">Anzahl Tage zur Verlängerung</param>
     public void Extend(int days)
     {
-        ExpiresAt = DateTime.UtcNow.AddDays(days);
+        ExpiresAt = ExpiresAt.AddDays(days);
     }
 
     /// <summary>
