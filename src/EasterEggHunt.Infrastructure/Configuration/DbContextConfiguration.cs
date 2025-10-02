@@ -16,7 +16,7 @@ public static class DbContextConfiguration
     public static void ConfigureDbContext(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
         // Connection String aus Konfiguration laden
-        var connectionString = configuration.GetConnectionString("DefaultConnection") 
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? "Data Source=easteregghunt.db";
 
         optionsBuilder.UseSqlite(connectionString);
@@ -37,7 +37,7 @@ public static class DbContextConfiguration
     public static void ConfigureDbContext(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration, bool isDesignTime)
     {
         // Connection String aus Konfiguration laden
-        var connectionString = configuration.GetConnectionString("DefaultConnection") 
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? "Data Source=easteregghunt.db";
 
         optionsBuilder.UseSqlite(connectionString);

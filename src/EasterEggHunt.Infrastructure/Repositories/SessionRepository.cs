@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Repositories;
 using EasterEggHunt.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasterEggHunt.Infrastructure.Repositories;
 

@@ -1,4 +1,4 @@
-﻿namespace EasterEggHunt.Infrastructure;
+namespace EasterEggHunt.Infrastructure;
 
 public class Class1
 {

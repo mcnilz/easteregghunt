@@ -1,10 +1,10 @@
+using EasterEggHunt.Domain.Repositories;
+using EasterEggHunt.Infrastructure.Configuration;
+using EasterEggHunt.Infrastructure.Data;
+using EasterEggHunt.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using EasterEggHunt.Infrastructure.Data;
-using EasterEggHunt.Infrastructure.Configuration;
-using EasterEggHunt.Infrastructure.Repositories;
-using EasterEggHunt.Domain.Repositories;
 
 namespace EasterEggHunt.Infrastructure;
 
@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configuration">Konfiguration</param>
     /// <returns>Service-Collection für Method-Chaining</returns>
     public static IServiceCollection AddEasterEggHuntDbContext(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration)
     {
         // DbContext registrieren mit zentraler Konfiguration

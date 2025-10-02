@@ -1,11 +1,11 @@
+using System.IO;
+using EasterEggHunt.Domain.Entities; // Hinzugefügt für SeedTestDataAsync
+using EasterEggHunt.Domain.Repositories;
+using EasterEggHunt.Infrastructure.Data;
+using EasterEggHunt.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using EasterEggHunt.Infrastructure.Data;
-using EasterEggHunt.Infrastructure.Repositories;
-using EasterEggHunt.Domain.Repositories;
-using EasterEggHunt.Domain.Entities; // Hinzugefügt für SeedTestDataAsync
-using System.IO;
 
 namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
@@ -32,14 +32,14 @@ public abstract class IntegrationTestBase : IDisposable
         // Service Collection für Tests erstellen
         var services = new ServiceCollection();
 
-           // SQLite-Datenbank für Tests konfigurieren (echte Datei für bessere Kompatibilität)
-           var testDbPath = Path.GetTempFileName();
-           services.AddDbContext<EasterEggHuntDbContext>(options =>
-           {
-               options.UseSqlite($"Data Source={testDbPath}");
-               options.EnableSensitiveDataLogging();
-               options.EnableDetailedErrors();
-           });
+        // SQLite-Datenbank für Tests konfigurieren (echte Datei für bessere Kompatibilität)
+        var testDbPath = Path.GetTempFileName();
+        services.AddDbContext<EasterEggHuntDbContext>(options =>
+        {
+            options.UseSqlite($"Data Source={testDbPath}");
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+        });
 
         // Repository Services registrieren
         services.AddRepositories();
@@ -59,8 +59,8 @@ public abstract class IntegrationTestBase : IDisposable
         SessionRepository = ServiceProvider.GetRequiredService<ISessionRepository>();
         AdminUserRepository = ServiceProvider.GetRequiredService<IAdminUserRepository>();
 
-           // Datenbank synchron erstellen und Migrationen anwenden
-           Context.Database.EnsureCreated();
+        // Datenbank synchron erstellen und Migrationen anwenden
+        Context.Database.EnsureCreated();
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract class IntegrationTestBase : IDisposable
     {
         // Alle Entitäten aus dem Change Tracker entfernen
         Context.ChangeTracker.Clear();
-        
+
         // Alle Tabellen leeren
         await Context.Database.ExecuteSqlRawAsync("DELETE FROM Finds");
         await Context.Database.ExecuteSqlRawAsync("DELETE FROM Sessions");
@@ -87,21 +87,21 @@ public abstract class IntegrationTestBase : IDisposable
     {
         // Test-Kampagne erstellen
         var campaign = new EasterEggHunt.Domain.Entities.Campaign(
-            "Test Kampagne 2025", 
-            "Eine Test-Kampagne für Integration Tests", 
+            "Test Kampagne 2025",
+            "Eine Test-Kampagne für Integration Tests",
             "TestAdmin");
 
         await CampaignRepository.AddAsync(campaign);
 
         // Test-QR-Codes erstellen
         var qrCode1 = new EasterEggHunt.Domain.Entities.QrCode(
-            campaign.Id, 
-            "QR Code 1", 
+            campaign.Id,
+            "QR Code 1",
             "Interner Hinweis für QR Code 1");
 
         var qrCode2 = new EasterEggHunt.Domain.Entities.QrCode(
-            campaign.Id, 
-            "QR Code 2", 
+            campaign.Id,
+            "QR Code 2",
             "Interner Hinweis für QR Code 2");
 
         await QrCodeRepository.AddAsync(qrCode1);
@@ -116,15 +116,15 @@ public abstract class IntegrationTestBase : IDisposable
 
         // Test-Funde erstellen
         var find1 = new EasterEggHunt.Domain.Entities.Find(
-            qrCode1.Id, 
-            user1.Id, 
-            "192.168.1.100", 
+            qrCode1.Id,
+            user1.Id,
+            "192.168.1.100",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
 
         var find2 = new EasterEggHunt.Domain.Entities.Find(
-            qrCode1.Id, 
-            user2.Id, 
-            "192.168.1.101", 
+            qrCode1.Id,
+            user2.Id,
+            "192.168.1.101",
             "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)");
 
         await FindRepository.AddAsync(find1);
@@ -136,8 +136,8 @@ public abstract class IntegrationTestBase : IDisposable
 
         // Test-Admin-Benutzer erstellen
         var adminUser = new EasterEggHunt.Domain.Entities.AdminUser(
-            "admin", 
-            "hashedpassword", 
+            "admin",
+            "hashedpassword",
             "admin@test.com");
 
         await AdminUserRepository.AddAsync(adminUser);

@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using EasterEggHunt.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasterEggHunt.Infrastructure.Data;
 
@@ -53,7 +53,7 @@ public class EasterEggHuntDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
-        
+
         base.OnModelCreating(modelBuilder);
 
         // Kampagne-Konfiguration

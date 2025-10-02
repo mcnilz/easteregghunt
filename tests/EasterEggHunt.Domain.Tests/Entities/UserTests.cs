@@ -42,7 +42,7 @@ public class UserTests
         // Arrange
         var user = new User(ValidName);
         var originalLastSeen = user.LastSeen;
-        
+
         // Warten, damit sich der Zeitstempel ändert
         Thread.Sleep(10);
 

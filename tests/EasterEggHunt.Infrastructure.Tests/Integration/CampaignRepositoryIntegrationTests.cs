@@ -1,6 +1,6 @@
+using EasterEggHunt.Domain.Entities;
 using FluentAssertions;
 using NUnit.Framework;
-using EasterEggHunt.Domain.Entities;
 
 namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
@@ -34,8 +34,8 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
     {
         // Arrange - Inaktive Kampagne hinzufügen
         var inactiveCampaign = new Campaign(
-            "Inaktive Kampagne", 
-            "Diese Kampagne ist inaktiv", 
+            "Inaktive Kampagne",
+            "Diese Kampagne ist inaktiv",
             "TestAdmin");
         inactiveCampaign.Deactivate();
         await CampaignRepository.AddAsync(inactiveCampaign);
@@ -82,8 +82,8 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var newCampaign = new Campaign(
-            "Neue Kampagne", 
-            "Eine neue Test-Kampagne", 
+            "Neue Kampagne",
+            "Eine neue Test-Kampagne",
             "TestAdmin");
 
         // Act

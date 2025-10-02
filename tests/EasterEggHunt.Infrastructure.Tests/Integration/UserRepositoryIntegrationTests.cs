@@ -1,9 +1,9 @@
-using NUnit.Framework;
-using FluentAssertions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using EasterEggHunt.Domain.Entities;
-using System.Linq;
+using FluentAssertions;
+using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
@@ -205,12 +205,12 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         // Arrange
         var user = new User("User with Finds");
         var campaign = new Campaign("Test Campaign", "Test Description", "Test Creator");
-        
+
         await CampaignRepository.AddAsync(campaign);
         await CampaignRepository.SaveChangesAsync();
         await UserRepository.AddAsync(user);
         await UserRepository.SaveChangesAsync();
-        
+
         var qrCode = new QrCode(campaign.Id, "Test QR Code", "Test Note");
         await QrCodeRepository.AddAsync(qrCode);
         await QrCodeRepository.SaveChangesAsync();

@@ -1,9 +1,9 @@
-using NUnit.Framework;
-using FluentAssertions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using EasterEggHunt.Domain.Entities;
-using System.Linq;
+using FluentAssertions;
+using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
@@ -17,7 +17,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
     public async Task SetUp()
     {
         await ResetDatabaseAsync();
-        
+
         // Test-Benutzer erstellen
         _testUser = new User("Test User");
         await UserRepository.AddAsync(_testUser);
@@ -208,7 +208,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var activeSession = new Session(_testUser.Id, 30);
         var inactiveSession = new Session(_testUser.Id, 30);
         inactiveSession.Deactivate();
-        
+
         await SessionRepository.AddAsync(activeSession);
         await SessionRepository.AddAsync(inactiveSession);
         await SessionRepository.SaveChangesAsync();
@@ -234,7 +234,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var activeSession2 = new Session(user2.Id, 30);
         var inactiveSession = new Session(_testUser.Id, 30);
         inactiveSession.Deactivate();
-        
+
         await SessionRepository.AddAsync(activeSession1);
         await SessionRepository.AddAsync(activeSession2);
         await SessionRepository.AddAsync(inactiveSession);
@@ -257,7 +257,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         // Arrange
         var validSession = new Session(_testUser.Id, 30);
         var expiredSession = new Session(_testUser.Id, -1); // Expired session
-        
+
         await SessionRepository.AddAsync(validSession);
         await SessionRepository.AddAsync(expiredSession);
         await SessionRepository.SaveChangesAsync();
@@ -298,7 +298,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var expiredSession = new Session(_testUser.Id, -1);
         var inactiveSession = new Session(_testUser.Id, 30);
         inactiveSession.Deactivate();
-        
+
         await SessionRepository.AddAsync(validSession);
         await SessionRepository.AddAsync(expiredSession);
         await SessionRepository.AddAsync(inactiveSession);

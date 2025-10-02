@@ -1,9 +1,9 @@
-using NUnit.Framework;
-using FluentAssertions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using EasterEggHunt.Domain.Entities;
-using System.Linq;
+using FluentAssertions;
+using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
@@ -19,17 +19,17 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
     public async Task SetUp()
     {
         await ResetDatabaseAsync();
-        
+
         // Test-Kampagne erstellen
         _testCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator");
         await CampaignRepository.AddAsync(_testCampaign);
         await CampaignRepository.SaveChangesAsync();
-        
+
         // Test-Benutzer erstellen
         _testUser = new User("Test User");
         await UserRepository.AddAsync(_testUser);
         await UserRepository.SaveChangesAsync();
-        
+
         // Test-QR-Code erstellen
         _testQrCode = new QrCode(_testCampaign.Id, "Test QR Code", "Test Note");
         await QrCodeRepository.AddAsync(_testQrCode);
