@@ -1,5 +1,4 @@
 using EasterEggHunt.Infrastructure.Data;
-using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -69,28 +68,28 @@ public class SeedDataServiceTests
         var finds = await _context.Finds.ToListAsync();
         var sessions = await _context.Sessions.ToListAsync();
 
-        adminUsers.Should().HaveCount(1);
-        adminUsers[0].Username.Should().Be("admin");
-        adminUsers[0].Email.Should().Be("admin@easteregghunt.local");
+        Assert.That(adminUsers, Has.Count.EqualTo(1));
+        Assert.That(adminUsers[0].Username, Is.EqualTo("admin"));
+        Assert.That(adminUsers[0].Email, Is.EqualTo("admin@easteregghunt.local"));
 
-        campaigns.Should().HaveCount(3);
-        campaigns.Should().Contain(c => c.Name == "Ostern 2025");
-        campaigns.Should().Contain(c => c.Name == "Team Building");
-        campaigns.Should().Contain(c => c.Name == "Weihnachts-Special");
+        Assert.That(campaigns, Has.Count.EqualTo(3));
+        Assert.That(campaigns, Has.Some.Matches<Domain.Entities.Campaign>(c => c.Name == "Ostern 2025"));
+        Assert.That(campaigns, Has.Some.Matches<Domain.Entities.Campaign>(c => c.Name == "Team Building"));
+        Assert.That(campaigns, Has.Some.Matches<Domain.Entities.Campaign>(c => c.Name == "Weihnachts-Special"));
 
-        qrCodes.Should().HaveCount(15); // 10 für Ostern + 5 für Team Building
-        qrCodes.Should().Contain(q => q.Title == "Küche");
-        qrCodes.Should().Contain(q => q.Title == "Eingang");
+        Assert.That(qrCodes, Has.Count.EqualTo(15)); // 10 für Ostern + 5 für Team Building
+        Assert.That(qrCodes, Has.Some.Matches<Domain.Entities.QrCode>(q => q.Title == "Küche"));
+        Assert.That(qrCodes, Has.Some.Matches<Domain.Entities.QrCode>(q => q.Title == "Eingang"));
 
-        users.Should().HaveCount(5);
-        users.Should().Contain(u => u.Name == "Max Mustermann");
-        users.Should().Contain(u => u.Name == "Anna Schmidt");
-        users.Should().Contain(u => u.Name == "Tom Weber");
+        Assert.That(users, Has.Count.EqualTo(5));
+        Assert.That(users, Has.Some.Matches<Domain.Entities.User>(u => u.Name == "Max Mustermann"));
+        Assert.That(users, Has.Some.Matches<Domain.Entities.User>(u => u.Name == "Anna Schmidt"));
+        Assert.That(users, Has.Some.Matches<Domain.Entities.User>(u => u.Name == "Tom Weber"));
 
-        finds.Should().NotBeEmpty();
-        finds.Should().HaveCountGreaterThan(0);
+        Assert.That(finds, Is.Not.Empty);
+        Assert.That(finds, Has.Count.GreaterThan(0));
 
-        sessions.Should().HaveCount(3);
+        Assert.That(sessions, Has.Count.EqualTo(3));
     }
 
     [Test]
@@ -106,11 +105,11 @@ public class SeedDataServiceTests
 
         // Assert - Nur die ursprünglichen Daten sollten vorhanden sein
         var campaigns = await _context.Campaigns.ToListAsync();
-        campaigns.Should().HaveCount(1);
-        campaigns[0].Name.Should().Be("Existing");
+        Assert.That(campaigns, Has.Count.EqualTo(1));
+        Assert.That(campaigns[0].Name, Is.EqualTo("Existing"));
 
         var adminUsers = await _context.AdminUsers.ToListAsync();
-        adminUsers.Should().BeEmpty();
+        Assert.That(adminUsers, Is.Empty);
     }
 
     [Test]
@@ -124,21 +123,18 @@ public class SeedDataServiceTests
             .Include(c => c.QrCodes)
             .FirstAsync(c => c.Name == "Ostern 2025");
 
-        easterCampaign.QrCodes.Should().HaveCount(10);
-        easterCampaign.QrCodes.Should().AllSatisfy(qr => 
-            qr.CampaignId.Should().Be(easterCampaign.Id));
+        Assert.That(easterCampaign.QrCodes, Has.Count.EqualTo(10));
+        Assert.That(easterCampaign.QrCodes, Has.All.Matches<Domain.Entities.QrCode>(qr => 
+            qr.CampaignId == easterCampaign.Id));
 
         var qrCodeWithFinds = await _context.QrCodes
             .Include(q => q.Finds)
             .ThenInclude(f => f.User)
             .FirstAsync(q => q.Finds.Any());
 
-        qrCodeWithFinds.Finds.Should().NotBeEmpty();
-        qrCodeWithFinds.Finds.Should().AllSatisfy(find =>
-        {
-            find.QrCodeId.Should().Be(qrCodeWithFinds.Id);
-            find.User.Should().NotBeNull();
-        });
+        Assert.That(qrCodeWithFinds.Finds, Is.Not.Empty);
+        Assert.That(qrCodeWithFinds.Finds, Has.All.Matches<Domain.Entities.Find>(find =>
+            find.QrCodeId == qrCodeWithFinds.Id && find.User != null));
     }
 
     [Test]
@@ -152,13 +148,11 @@ public class SeedDataServiceTests
             .Include(s => s.User)
             .ToListAsync();
 
-        sessions.Should().HaveCount(3);
-        sessions.Should().AllSatisfy(session =>
-        {
-            session.User.Should().NotBeNull();
-            session.ExpiresAt.Should().BeAfter(DateTime.UtcNow);
-            session.CreatedAt.Should().BeBefore(DateTime.UtcNow);
-        });
+        Assert.That(sessions, Has.Count.EqualTo(3));
+        Assert.That(sessions, Has.All.Matches<Domain.Entities.Session>(session =>
+            session.User != null && 
+            session.ExpiresAt > DateTime.UtcNow && 
+            session.CreatedAt < DateTime.UtcNow));
     }
 
     [Test]
@@ -178,6 +172,6 @@ public class SeedDataServiceTests
         var service = new SeedDataService(_serviceProvider, mockLogger.Object);
 
         // Assert
-        service.Should().NotBeNull();
+        Assert.That(service, Is.Not.Null);
     }
 }

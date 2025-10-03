@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Integration\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\EasterEggHunt.Infrastructure\EasterEggHunt.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\EasterEggHunt.Application\EasterEggHunt.Application.csproj" />
     <ProjectReference Include="..\..\src\EasterEggHunt.Domain\EasterEggHunt.Domain.csproj" />

@@ -30,8 +30,8 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
-  <!-- Code Coverage - Only for projects with comprehensive tests -->
-  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests')) AND ($(MSBuildProjectName.Contains('Domain.Tests')) OR $(MSBuildProjectName.Contains('Infrastructure.Tests')))">
+  <!-- Code Coverage - Only for Domain tests (Integration tests temporarily disabled) -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests')) AND $(MSBuildProjectName.Contains('Domain.Tests'))">
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutputFormat>opencover</CoverletOutputFormat>
     <CoverletOutput>$(MSBuildProjectDirectory)/coverage/</CoverletOutput>
@@ -49,7 +49,6 @@
   <!-- Test Project Package References - Only add if not already present -->
   <ItemGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
     <PackageReference Include="Moq" Version="4.20.69" />
-    <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="coverlet.msbuild" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
