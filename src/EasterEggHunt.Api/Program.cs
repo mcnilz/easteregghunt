@@ -1,4 +1,5 @@
 using EasterEggHunt.Infrastructure;
+using EasterEggHunt.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,9 @@ builder.Services.AddEasterEggHuntDbContext(builder.Configuration);
 
 // Add Repositories
 builder.Services.AddRepositories();
+
+// Add Application Services
+builder.Services.AddApplicationServices();
 
 // Add Seed Data Service (Development only)
 builder.Services.AddSeedDataService(builder.Environment);

@@ -29,11 +29,11 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var retrievedUser = await UserRepository.GetByIdAsync(user.Id);
-        retrievedUser.Should().NotBeNull();
-        retrievedUser!.Name.Should().Be("Test User");
-        retrievedUser.IsActive.Should().BeTrue();
-        retrievedUser.FirstSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
-        retrievedUser.LastSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        Assert.That(retrievedUser, Is.Not.Null);
+        Assert.That(retrievedUser!.Name, Is.EqualTo("Test User"));
+        Assert.That(retrievedUser.IsActive, Is.True);
+        Assert.That(retrievedUser.FirstSeen, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromMinutes(1)));
+        Assert.That(retrievedUser.LastSeen, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromMinutes(1)));
     }
 
     [Test]
@@ -48,9 +48,9 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedUser = await UserRepository.GetByIdAsync(user.Id);
 
         // Assert
-        retrievedUser.Should().NotBeNull();
-        retrievedUser!.Id.Should().Be(user.Id);
-        retrievedUser.Name.Should().Be("Existing User");
+        Assert.That(retrievedUser, Is.Not.Null);
+        Assert.That(retrievedUser!.Id, Is.EqualTo(user.Id));
+        Assert.That(retrievedUser.Name, Is.EqualTo("Existing User"));
     }
 
     [Test]
@@ -60,7 +60,7 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedUser = await UserRepository.GetByIdAsync(999);
 
         // Assert
-        retrievedUser.Should().BeNull();
+        Assert.That(retrievedUser, Is.Null);
     }
 
     [Test]
@@ -107,7 +107,7 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedUser = await UserRepository.GetByNameAsync("Non Existing Name");
 
         // Assert
-        retrievedUser.Should().BeNull();
+        Assert.That(retrievedUser, Is.Null);
     }
 
     [Test]

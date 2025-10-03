@@ -22,11 +22,11 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var campaigns = await CampaignRepository.GetAllAsync();
 
         // Assert
-        campaigns.Should().HaveCount(1);
-        campaigns.First().Name.Should().Be("Test Kampagne 2025");
-        campaigns.First().Description.Should().Be("Eine Test-Kampagne für Integration Tests");
-        campaigns.First().CreatedBy.Should().Be("TestAdmin");
-        campaigns.First().IsActive.Should().BeTrue();
+        Assert.That(campaigns, Has.Count.EqualTo(1));
+        Assert.That(campaigns.First().Name, Is.EqualTo("Test Kampagne 2025"));
+        Assert.That(campaigns.First().Description, Is.EqualTo("Eine Test-Kampagne für Integration Tests"));
+        Assert.That(campaigns.First().CreatedBy, Is.EqualTo("TestAdmin"));
+        Assert.That(campaigns.First().IsActive, Is.True);
     }
 
     [Test]
@@ -44,9 +44,9 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var activeCampaigns = await CampaignRepository.GetActiveAsync();
 
         // Assert
-        activeCampaigns.Should().HaveCount(1);
-        activeCampaigns.First().Name.Should().Be("Test Kampagne 2025");
-        activeCampaigns.First().IsActive.Should().BeTrue();
+        Assert.That(activeCampaigns, Has.Count.EqualTo(1));
+        Assert.That(activeCampaigns.First().Name, Is.EqualTo("Test Kampagne 2025"));
+        Assert.That(activeCampaigns.First().IsActive, Is.True);
     }
 
     [Test]
@@ -60,11 +60,11 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var campaign = await CampaignRepository.GetByIdAsync(campaignId);
 
         // Assert
-        campaign.Should().NotBeNull();
-        campaign!.Name.Should().Be("Test Kampagne 2025");
-        campaign.Description.Should().Be("Eine Test-Kampagne für Integration Tests");
-        campaign.CreatedBy.Should().Be("TestAdmin");
-        campaign.QrCodes.Should().HaveCount(2);
+        Assert.That(campaign, Is.Not.Null);
+        Assert.That(campaign!.Name, Is.EqualTo("Test Kampagne 2025"));
+        Assert.That(campaign.Description, Is.EqualTo("Eine Test-Kampagne für Integration Tests"));
+        Assert.That(campaign.CreatedBy, Is.EqualTo("TestAdmin"));
+        Assert.That(campaign.QrCodes, Has.Count.EqualTo(2));
     }
 
     [Test]
@@ -74,7 +74,7 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var campaign = await CampaignRepository.GetByIdAsync(999);
 
         // Assert
-        campaign.Should().BeNull();
+        Assert.That(campaign, Is.Null);
     }
 
     [Test]
@@ -117,15 +117,15 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var updatedCampaign = await CampaignRepository.UpdateAsync(campaign);
 
         // Assert
-        updatedCampaign.Should().NotBeNull();
-        updatedCampaign.Name.Should().Be("Aktualisierte Kampagne");
-        updatedCampaign.Description.Should().Be("Aktualisierte Beschreibung");
-        updatedCampaign.UpdatedAt.Should().BeAfter(originalUpdatedAt);
+        Assert.That(updatedCampaign, Is.Not.Null);
+        Assert.That(updatedCampaign.Name, Is.EqualTo("Aktualisierte Kampagne"));
+        Assert.That(updatedCampaign.Description, Is.EqualTo("Aktualisierte Beschreibung"));
+        Assert.That(updatedCampaign.UpdatedAt, Is.GreaterThan(originalUpdatedAt));
 
         // Verify in database
         var retrievedCampaign = await CampaignRepository.GetByIdAsync(campaign.Id);
-        retrievedCampaign!.Name.Should().Be("Aktualisierte Kampagne");
-        retrievedCampaign.Description.Should().Be("Aktualisierte Beschreibung");
+        Assert.That(retrievedCampaign!.Name, Is.EqualTo("Aktualisierte Kampagne"));
+        Assert.That(retrievedCampaign.Description, Is.EqualTo("Aktualisierte Beschreibung"));
     }
 
     [Test]
@@ -139,14 +139,14 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var result = await CampaignRepository.DeleteAsync(campaignId);
 
         // Assert
-        result.Should().BeTrue();
+        Assert.That(result, Is.True);
 
         // Verify in database
         var campaignsAfterDelete = await CampaignRepository.GetAllAsync();
-        campaignsAfterDelete.Should().BeEmpty();
+        Assert.That(campaignsAfterDelete, Is.Empty);
 
         var deletedCampaign = await CampaignRepository.GetByIdAsync(campaignId);
-        deletedCampaign.Should().BeNull();
+        Assert.That(deletedCampaign, Is.Null);
     }
 
     [Test]
@@ -156,11 +156,11 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var result = await CampaignRepository.DeleteAsync(999);
 
         // Assert
-        result.Should().BeFalse();
+        Assert.That(result, Is.False);
 
         // Verify database unchanged
         var campaigns = await CampaignRepository.GetAllAsync();
-        campaigns.Should().HaveCount(1);
+        Assert.That(campaigns, Has.Count.EqualTo(1));
     }
 
     [Test]
@@ -174,7 +174,7 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var exists = await CampaignRepository.ExistsAsync(campaignId);
 
         // Assert
-        exists.Should().BeTrue();
+        Assert.That(exists, Is.True);
     }
 
     [Test]
@@ -184,7 +184,7 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var exists = await CampaignRepository.ExistsAsync(999);
 
         // Assert
-        exists.Should().BeFalse();
+        Assert.That(exists, Is.False);
     }
 
     [Test]
@@ -200,13 +200,13 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var changesCount = await CampaignRepository.SaveChangesAsync();
 
         // Assert
-        changesCount.Should().BeGreaterThan(0);
+        Assert.That(changesCount, Is.GreaterThan(0));
 
         // Verify changes persisted
         var updatedCampaign = await CampaignRepository.GetByIdAsync(campaign.Id);
-        updatedCampaign!.Name.Should().Be("Test Update");
-        updatedCampaign.Description.Should().Be("Test Beschreibung");
-        updatedCampaign.UpdatedAt.Should().BeAfter(originalUpdatedAt);
+        Assert.That(updatedCampaign!.Name, Is.EqualTo("Test Update"));
+        Assert.That(updatedCampaign.Description, Is.EqualTo("Test Beschreibung"));
+        Assert.That(updatedCampaign.UpdatedAt, Is.GreaterThan(originalUpdatedAt));
     }
 
     [Test]
@@ -220,9 +220,9 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var campaignWithQrCodes = await CampaignRepository.GetByIdAsync(campaign.Id);
 
         // Assert
-        campaignWithQrCodes.Should().NotBeNull();
-        campaignWithQrCodes!.QrCodes.Should().HaveCount(2);
-        campaignWithQrCodes.QrCodes.Should().Contain(q => q.Title == "QR Code 1");
-        campaignWithQrCodes.QrCodes.Should().Contain(q => q.Title == "QR Code 2");
+        Assert.That(campaignWithQrCodes, Is.Not.Null);
+        Assert.That(campaignWithQrCodes!.QrCodes, Has.Count.EqualTo(2));
+        Assert.That(campaignWithQrCodes.QrCodes, Has.Some.Matches<Domain.Entities.QrCode>(q => q.Title == "QR Code 1"));
+        Assert.That(campaignWithQrCodes.QrCodes, Has.Some.Matches<Domain.Entities.QrCode>(q => q.Title == "QR Code 2"));
     }
 }
