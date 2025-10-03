@@ -1,5 +1,4 @@
 using EasterEggHunt.Domain.Entities;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Domain.Tests.Entities;
@@ -20,12 +19,12 @@ public class SessionTests
         var session = new Session(ValidUserId);
 
         // Assert
-        session.UserId.Should().Be(ValidUserId);
-        session.IsActive.Should().BeTrue();
-        session.Data.Should().Be("{}");
-        session.Id.Should().NotBeNullOrEmpty();
-        session.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        session.ExpiresAt.Should().BeCloseTo(DateTime.UtcNow.AddDays(DefaultExpirationDays), TimeSpan.FromSeconds(5));
+        Assert.That(session.UserId, Is.EqualTo(ValidUserId));
+        Assert.That(session.IsActive, Is.True);
+        Assert.That(session.Data, Is.EqualTo("{}"));
+        Assert.That(session.Id, Is.Not.Null.And.Not.Empty);
+        Assert.That(session.CreatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+        Assert.That(session.ExpiresAt, Is.EqualTo(DateTime.UtcNow.AddDays(DefaultExpirationDays)).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -38,7 +37,7 @@ public class SessionTests
         var session = new Session(ValidUserId, customExpirationDays);
 
         // Assert
-        session.ExpiresAt.Should().BeCloseTo(DateTime.UtcNow.AddDays(customExpirationDays), TimeSpan.FromSeconds(5));
+        Assert.That(session.ExpiresAt, Is.EqualTo(DateTime.UtcNow.AddDays(customExpirationDays)).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -49,9 +48,9 @@ public class SessionTests
         var session2 = new Session(ValidUserId);
 
         // Assert
-        session1.Id.Should().NotBe(session2.Id);
-        session1.Id.Should().NotBeNullOrEmpty();
-        session2.Id.Should().NotBeNullOrEmpty();
+        Assert.That(session1.Id, Is.Not.EqualTo(session2.Id));
+        Assert.That(session1.Id, Is.Not.Null.And.Not.Empty);
+        Assert.That(session2.Id, Is.Not.Null.And.Not.Empty);
     }
 
     [Test]
@@ -64,7 +63,7 @@ public class SessionTests
         var isValid = session.IsValid();
 
         // Assert
-        isValid.Should().BeTrue();
+        Assert.That(isValid, Is.True);
     }
 
     [Test]
@@ -78,7 +77,7 @@ public class SessionTests
         var isValid = session.IsValid();
 
         // Assert
-        isValid.Should().BeFalse();
+        Assert.That(isValid, Is.False);
     }
 
     [Test]
@@ -91,7 +90,7 @@ public class SessionTests
         var isValid = session.IsValid();
 
         // Assert
-        isValid.Should().BeFalse();
+        Assert.That(isValid, Is.False);
     }
 
     [Test]
@@ -106,8 +105,8 @@ public class SessionTests
         session.Extend(extensionDays);
 
         // Assert
-        session.ExpiresAt.Should().BeAfter(originalExpiration);
-        session.ExpiresAt.Should().BeCloseTo(DateTime.UtcNow.AddDays(7 + extensionDays), TimeSpan.FromSeconds(5));
+        Assert.That(session.ExpiresAt, Is.GreaterThan(originalExpiration));
+        Assert.That(session.ExpiresAt, Is.EqualTo(DateTime.UtcNow.AddDays(7 + extensionDays)).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -120,7 +119,7 @@ public class SessionTests
         session.Deactivate();
 
         // Assert
-        session.IsActive.Should().BeFalse();
+        Assert.That(session.IsActive, Is.False);
     }
 
     [Test]
@@ -134,7 +133,7 @@ public class SessionTests
         session.UpdateData(newData);
 
         // Assert
-        session.Data.Should().Be(newData);
+        Assert.That(session.Data, Is.EqualTo(newData));
     }
 
     [Test]
@@ -144,8 +143,7 @@ public class SessionTests
         var session = new Session(ValidUserId);
 
         // Act & Assert
-        var action = () => session.UpdateData(null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("data");
+        var ex = Assert.Throws<ArgumentNullException>(() => session.UpdateData(null!));
+        Assert.That(ex.ParamName, Is.EqualTo("data"));
     }
 }
