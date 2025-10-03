@@ -1,5 +1,4 @@
 using EasterEggHunt.Domain.Entities;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Domain.Tests.Entities;
@@ -21,40 +20,38 @@ public class CampaignTests
         var campaign = new Campaign(ValidName, ValidDescription, ValidCreatedBy);
 
         // Assert
-        campaign.Name.Should().Be(ValidName);
-        campaign.Description.Should().Be(ValidDescription);
-        campaign.CreatedBy.Should().Be(ValidCreatedBy);
-        campaign.IsActive.Should().BeTrue();
-        campaign.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        campaign.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        campaign.QrCodes.Should().NotBeNull().And.BeEmpty();
+        Assert.That(campaign.Name, Is.EqualTo(ValidName));
+        Assert.That(campaign.Description, Is.EqualTo(ValidDescription));
+        Assert.That(campaign.CreatedBy, Is.EqualTo(ValidCreatedBy));
+        Assert.That(campaign.IsActive, Is.True);
+        Assert.That(campaign.CreatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+        Assert.That(campaign.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+        Assert.That(campaign.QrCodes, Is.Not.Null);
+        Assert.That(campaign.QrCodes, Is.Empty);
     }
 
     [Test]
     public void Constructor_WithNullName_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new Campaign(null!, ValidDescription, ValidCreatedBy);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("name");
+        var ex = Assert.Throws<ArgumentNullException>(() => new Campaign(null!, ValidDescription, ValidCreatedBy));
+        Assert.That(ex.ParamName, Is.EqualTo("name"));
     }
 
     [Test]
     public void Constructor_WithNullDescription_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new Campaign(ValidName, null!, ValidCreatedBy);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("description");
+        var ex = Assert.Throws<ArgumentNullException>(() => new Campaign(ValidName, null!, ValidCreatedBy));
+        Assert.That(ex.ParamName, Is.EqualTo("description"));
     }
 
     [Test]
     public void Constructor_WithNullCreatedBy_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new Campaign(ValidName, ValidDescription, null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("createdBy");
+        var ex = Assert.Throws<ArgumentNullException>(() => new Campaign(ValidName, ValidDescription, null!));
+        Assert.That(ex.ParamName, Is.EqualTo("createdBy"));
     }
 
     [Test]
@@ -68,8 +65,8 @@ public class CampaignTests
         campaign.Activate();
 
         // Assert
-        campaign.IsActive.Should().BeTrue();
-        campaign.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(campaign.IsActive, Is.True);
+        Assert.That(campaign.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -82,8 +79,8 @@ public class CampaignTests
         campaign.Deactivate();
 
         // Assert
-        campaign.IsActive.Should().BeFalse();
-        campaign.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(campaign.IsActive, Is.False);
+        Assert.That(campaign.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -98,9 +95,9 @@ public class CampaignTests
         campaign.Update(newName, newDescription);
 
         // Assert
-        campaign.Name.Should().Be(newName);
-        campaign.Description.Should().Be(newDescription);
-        campaign.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(campaign.Name, Is.EqualTo(newName));
+        Assert.That(campaign.Description, Is.EqualTo(newDescription));
+        Assert.That(campaign.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -110,9 +107,8 @@ public class CampaignTests
         var campaign = new Campaign(ValidName, ValidDescription, ValidCreatedBy);
 
         // Act & Assert
-        var action = () => campaign.Update(null!, ValidDescription);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("name");
+        var ex = Assert.Throws<ArgumentNullException>(() => campaign.Update(null!, ValidDescription));
+        Assert.That(ex.ParamName, Is.EqualTo("name"));
     }
 
     [Test]
@@ -122,9 +118,8 @@ public class CampaignTests
         var campaign = new Campaign(ValidName, ValidDescription, ValidCreatedBy);
 
         // Act & Assert
-        var action = () => campaign.Update(ValidName, null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("description");
+        var ex = Assert.Throws<ArgumentNullException>(() => campaign.Update(ValidName, null!));
+        Assert.That(ex.ParamName, Is.EqualTo("description"));
     }
 
     [Test]
@@ -134,8 +129,8 @@ public class CampaignTests
         var campaign = new Campaign(ValidName, ValidDescription, ValidCreatedBy);
 
         // Act & Assert
-        campaign.QrCodes.Should().NotBeNull();
+        Assert.That(campaign.QrCodes, Is.Not.Null);
         // Die Collection sollte read-only sein (keine Add-Methode verfügbar)
-        campaign.QrCodes.Should().BeAssignableTo<ICollection<QrCode>>();
+        Assert.That(campaign.QrCodes, Is.InstanceOf<ICollection<QrCode>>());
     }
 }

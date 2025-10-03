@@ -1,5 +1,4 @@
 using EasterEggHunt.Domain.Entities;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Domain.Tests.Entities;
@@ -21,39 +20,36 @@ public class AdminUserTests
         var adminUser = new AdminUser(ValidUsername, ValidEmail, ValidPasswordHash);
 
         // Assert
-        adminUser.Username.Should().Be(ValidUsername);
-        adminUser.Email.Should().Be(ValidEmail);
-        adminUser.PasswordHash.Should().Be(ValidPasswordHash);
-        adminUser.IsActive.Should().BeTrue();
-        adminUser.LastLogin.Should().BeNull();
-        adminUser.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(adminUser.Username, Is.EqualTo(ValidUsername));
+        Assert.That(adminUser.Email, Is.EqualTo(ValidEmail));
+        Assert.That(adminUser.PasswordHash, Is.EqualTo(ValidPasswordHash));
+        Assert.That(adminUser.IsActive, Is.True);
+        Assert.That(adminUser.LastLogin, Is.Null);
+        Assert.That(adminUser.CreatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
     public void Constructor_WithNullUsername_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new AdminUser(null!, ValidEmail, ValidPasswordHash);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("username");
+        var ex = Assert.Throws<ArgumentNullException>(() => new AdminUser(null!, ValidEmail, ValidPasswordHash));
+        Assert.That(ex.ParamName, Is.EqualTo("username"));
     }
 
     [Test]
     public void Constructor_WithNullEmail_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new AdminUser(ValidUsername, null!, ValidPasswordHash);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("email");
+        var ex = Assert.Throws<ArgumentNullException>(() => new AdminUser(ValidUsername, null!, ValidPasswordHash));
+        Assert.That(ex.ParamName, Is.EqualTo("email"));
     }
 
     [Test]
     public void Constructor_WithNullPasswordHash_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new AdminUser(ValidUsername, ValidEmail, null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("passwordHash");
+        var ex = Assert.Throws<ArgumentNullException>(() => new AdminUser(ValidUsername, ValidEmail, null!));
+        Assert.That(ex.ParamName, Is.EqualTo("passwordHash"));
     }
 
     [Test]
@@ -66,7 +62,7 @@ public class AdminUserTests
         adminUser.UpdateLastLogin();
 
         // Assert
-        adminUser.LastLogin.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(adminUser.LastLogin, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -80,7 +76,7 @@ public class AdminUserTests
         adminUser.Activate();
 
         // Assert
-        adminUser.IsActive.Should().BeTrue();
+        Assert.That(adminUser.IsActive, Is.True);
     }
 
     [Test]
@@ -93,7 +89,7 @@ public class AdminUserTests
         adminUser.Deactivate();
 
         // Assert
-        adminUser.IsActive.Should().BeFalse();
+        Assert.That(adminUser.IsActive, Is.False);
     }
 
     [Test]
@@ -107,7 +103,7 @@ public class AdminUserTests
         adminUser.UpdatePassword(newPasswordHash);
 
         // Assert
-        adminUser.PasswordHash.Should().Be(newPasswordHash);
+        Assert.That(adminUser.PasswordHash, Is.EqualTo(newPasswordHash));
     }
 
     [Test]
@@ -117,8 +113,7 @@ public class AdminUserTests
         var adminUser = new AdminUser(ValidUsername, ValidEmail, ValidPasswordHash);
 
         // Act & Assert
-        var action = () => adminUser.UpdatePassword(null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("newPasswordHash");
+        var ex = Assert.Throws<ArgumentNullException>(() => adminUser.UpdatePassword(null!));
+        Assert.That(ex.ParamName, Is.EqualTo("newPasswordHash"));
     }
 }
