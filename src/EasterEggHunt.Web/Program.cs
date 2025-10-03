@@ -1,7 +1,18 @@
+using EasterEggHunt.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Add Easter Egg Hunt DbContext
+builder.Services.AddEasterEggHuntDbContext(builder.Configuration);
+
+// Add Repositories
+builder.Services.AddRepositories();
+
+// Add Seed Data Service (Development only)
+builder.Services.AddSeedDataService(builder.Environment);
 
 var app = builder.Build();
 

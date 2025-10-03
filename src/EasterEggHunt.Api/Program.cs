@@ -10,6 +10,12 @@ builder.Services.AddSwaggerGen();
 // Add Easter Egg Hunt DbContext
 builder.Services.AddEasterEggHuntDbContext(builder.Configuration);
 
+// Add Repositories
+builder.Services.AddRepositories();
+
+// Add Seed Data Service (Development only)
+builder.Services.AddSeedDataService(builder.Environment);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

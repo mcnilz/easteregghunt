@@ -5,6 +5,7 @@ using EasterEggHunt.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace EasterEggHunt.Infrastructure;
 
@@ -68,6 +69,25 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFindRepository, FindRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<IAdminUserRepository, AdminUserRepository>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registriert den SeedDataService für Entwicklungsdaten
+    /// </summary>
+    /// <param name="services">Service-Collection</param>
+    /// <param name="environment">Hosting Environment</param>
+    /// <returns>Service-Collection für Method-Chaining</returns>
+    public static IServiceCollection AddSeedDataService(
+        this IServiceCollection services,
+        IHostEnvironment environment)
+    {
+        // SeedDataService nur in Development registrieren
+        if (string.Equals(environment.EnvironmentName, "Development", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHostedService<SeedDataService>();
+        }
 
         return services;
     }
