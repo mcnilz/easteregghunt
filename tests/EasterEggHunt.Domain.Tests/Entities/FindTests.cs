@@ -1,5 +1,4 @@
 using EasterEggHunt.Domain.Entities;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Domain.Tests.Entities;
@@ -22,29 +21,27 @@ public class FindTests
         var find = new Find(ValidQrCodeId, ValidUserId, ValidIpAddress, ValidUserAgent);
 
         // Assert
-        find.QrCodeId.Should().Be(ValidQrCodeId);
-        find.UserId.Should().Be(ValidUserId);
-        find.IpAddress.Should().Be(ValidIpAddress);
-        find.UserAgent.Should().Be(ValidUserAgent);
-        find.FoundAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(find.QrCodeId, Is.EqualTo(ValidQrCodeId));
+        Assert.That(find.UserId, Is.EqualTo(ValidUserId));
+        Assert.That(find.IpAddress, Is.EqualTo(ValidIpAddress));
+        Assert.That(find.UserAgent, Is.EqualTo(ValidUserAgent));
+        Assert.That(find.FoundAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
     public void Constructor_WithNullIpAddress_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new Find(ValidQrCodeId, ValidUserId, null!, ValidUserAgent);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("ipAddress");
+        var ex = Assert.Throws<ArgumentNullException>(() => new Find(ValidQrCodeId, ValidUserId, null!, ValidUserAgent));
+        Assert.That(ex.ParamName, Is.EqualTo("ipAddress"));
     }
 
     [Test]
     public void Constructor_WithNullUserAgent_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new Find(ValidQrCodeId, ValidUserId, ValidIpAddress, null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("userAgent");
+        var ex = Assert.Throws<ArgumentNullException>(() => new Find(ValidQrCodeId, ValidUserId, ValidIpAddress, null!));
+        Assert.That(ex.ParamName, Is.EqualTo("userAgent"));
     }
 
     [Test]
@@ -58,7 +55,7 @@ public class FindTests
 
         // Assert
         var afterCreation = DateTime.UtcNow;
-        find.FoundAt.Should().BeOnOrAfter(beforeCreation);
-        find.FoundAt.Should().BeOnOrBefore(afterCreation);
+        Assert.That(find.FoundAt, Is.GreaterThanOrEqualTo(beforeCreation));
+        Assert.That(find.FoundAt, Is.LessThanOrEqualTo(afterCreation));
     }
 }
