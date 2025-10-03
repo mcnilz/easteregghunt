@@ -1,5 +1,4 @@
 using EasterEggHunt.Domain.Entities;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Domain.Tests.Entities;
@@ -19,21 +18,22 @@ public class UserTests
         var user = new User(ValidName);
 
         // Assert
-        user.Name.Should().Be(ValidName);
-        user.IsActive.Should().BeTrue();
-        user.FirstSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        user.LastSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        user.Finds.Should().NotBeNull().And.BeEmpty();
-        user.Sessions.Should().NotBeNull().And.BeEmpty();
+        Assert.That(user.Name, Is.EqualTo(ValidName));
+        Assert.That(user.IsActive, Is.True);
+        Assert.That(user.FirstSeen, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+        Assert.That(user.LastSeen, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+        Assert.That(user.Finds, Is.Not.Null);
+        Assert.That(user.Finds, Is.Empty);
+        Assert.That(user.Sessions, Is.Not.Null);
+        Assert.That(user.Sessions, Is.Empty);
     }
 
     [Test]
     public void Constructor_WithNullName_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new User(null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("name");
+        var ex = Assert.Throws<ArgumentNullException>(() => new User(null!));
+        Assert.That(ex.ParamName, Is.EqualTo("name"));
     }
 
     [Test]
@@ -50,8 +50,8 @@ public class UserTests
         user.UpdateLastSeen();
 
         // Assert
-        user.LastSeen.Should().BeAfter(originalLastSeen);
-        user.LastSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(user.LastSeen, Is.GreaterThan(originalLastSeen));
+        Assert.That(user.LastSeen, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -65,8 +65,8 @@ public class UserTests
         user.Activate();
 
         // Assert
-        user.IsActive.Should().BeTrue();
-        user.LastSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(user.IsActive, Is.True);
+        Assert.That(user.LastSeen, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -79,8 +79,8 @@ public class UserTests
         user.Deactivate();
 
         // Assert
-        user.IsActive.Should().BeFalse();
-        user.LastSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(user.IsActive, Is.False);
+        Assert.That(user.LastSeen, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -90,8 +90,8 @@ public class UserTests
         var user = new User(ValidName);
 
         // Act & Assert
-        user.Finds.Should().NotBeNull();
-        user.Finds.Should().BeAssignableTo<ICollection<Find>>();
+        Assert.That(user.Finds, Is.Not.Null);
+        Assert.That(user.Finds, Is.InstanceOf<ICollection<Find>>());
     }
 
     [Test]
@@ -101,7 +101,7 @@ public class UserTests
         var user = new User(ValidName);
 
         // Act & Assert
-        user.Sessions.Should().NotBeNull();
-        user.Sessions.Should().BeAssignableTo<ICollection<Session>>();
+        Assert.That(user.Sessions, Is.Not.Null);
+        Assert.That(user.Sessions, Is.InstanceOf<ICollection<Session>>());
     }
 }
