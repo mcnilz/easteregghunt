@@ -1,5 +1,4 @@
 using EasterEggHunt.Domain.Entities;
-using FluentAssertions;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Domain.Tests.Entities;
@@ -21,34 +20,33 @@ public class QrCodeTests
         var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
 
         // Assert
-        qrCode.CampaignId.Should().Be(ValidCampaignId);
-        qrCode.Title.Should().Be(ValidTitle);
-        qrCode.InternalNote.Should().Be(ValidInternalNote);
-        qrCode.IsActive.Should().BeTrue();
-        qrCode.SortOrder.Should().Be(0);
-        qrCode.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        qrCode.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        qrCode.UniqueUrl.Should().NotBeNull();
-        qrCode.UniqueUrl.Should().BeOfType<Uri>();
-        qrCode.Finds.Should().NotBeNull().And.BeEmpty();
+        Assert.That(qrCode.CampaignId, Is.EqualTo(ValidCampaignId));
+        Assert.That(qrCode.Title, Is.EqualTo(ValidTitle));
+        Assert.That(qrCode.InternalNote, Is.EqualTo(ValidInternalNote));
+        Assert.That(qrCode.IsActive, Is.True);
+        Assert.That(qrCode.SortOrder, Is.EqualTo(0));
+        Assert.That(qrCode.CreatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+        Assert.That(qrCode.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+        Assert.That(qrCode.UniqueUrl, Is.Not.Null);
+        Assert.That(qrCode.UniqueUrl, Is.InstanceOf<Uri>());
+        Assert.That(qrCode.Finds, Is.Not.Null);
+        Assert.That(qrCode.Finds, Is.Empty);
     }
 
     [Test]
     public void Constructor_WithNullTitle_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new QrCode(ValidCampaignId, null!, ValidInternalNote);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("title");
+        var ex = Assert.Throws<ArgumentNullException>(() => new QrCode(ValidCampaignId, null!, ValidInternalNote));
+        Assert.That(ex.ParamName, Is.EqualTo("title"));
     }
 
     [Test]
     public void Constructor_WithNullInternalNote_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var action = () => new QrCode(ValidCampaignId, ValidTitle, null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("internalNote");
+        var ex = Assert.Throws<ArgumentNullException>(() => new QrCode(ValidCampaignId, ValidTitle, null!));
+        Assert.That(ex.ParamName, Is.EqualTo("internalNote"));
     }
 
     [Test]
@@ -59,9 +57,9 @@ public class QrCodeTests
         var qrCode2 = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
 
         // Assert
-        qrCode1.UniqueUrl.Should().NotBe(qrCode2.UniqueUrl);
-        qrCode1.UniqueUrl.ToString().Should().StartWith("https://easteregghunt.local/qr/");
-        qrCode2.UniqueUrl.ToString().Should().StartWith("https://easteregghunt.local/qr/");
+        Assert.That(qrCode1.UniqueUrl, Is.Not.EqualTo(qrCode2.UniqueUrl));
+        Assert.That(qrCode1.UniqueUrl.ToString(), Does.StartWith("https://easteregghunt.local/qr/"));
+        Assert.That(qrCode2.UniqueUrl.ToString(), Does.StartWith("https://easteregghunt.local/qr/"));
     }
 
     [Test]
@@ -75,8 +73,8 @@ public class QrCodeTests
         qrCode.Activate();
 
         // Assert
-        qrCode.IsActive.Should().BeTrue();
-        qrCode.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(qrCode.IsActive, Is.True);
+        Assert.That(qrCode.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -89,8 +87,8 @@ public class QrCodeTests
         qrCode.Deactivate();
 
         // Assert
-        qrCode.IsActive.Should().BeFalse();
-        qrCode.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(qrCode.IsActive, Is.False);
+        Assert.That(qrCode.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -105,9 +103,9 @@ public class QrCodeTests
         qrCode.Update(newTitle, newNote);
 
         // Assert
-        qrCode.Title.Should().Be(newTitle);
-        qrCode.InternalNote.Should().Be(newNote);
-        qrCode.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(qrCode.Title, Is.EqualTo(newTitle));
+        Assert.That(qrCode.InternalNote, Is.EqualTo(newNote));
+        Assert.That(qrCode.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -117,9 +115,8 @@ public class QrCodeTests
         var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
 
         // Act & Assert
-        var action = () => qrCode.Update(null!, ValidInternalNote);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("title");
+        var ex = Assert.Throws<ArgumentNullException>(() => qrCode.Update(null!, ValidInternalNote));
+        Assert.That(ex.ParamName, Is.EqualTo("title"));
     }
 
     [Test]
@@ -129,9 +126,8 @@ public class QrCodeTests
         var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
 
         // Act & Assert
-        var action = () => qrCode.Update(ValidTitle, null!);
-        action.Should().Throw<ArgumentNullException>()
-            .WithParameterName("internalNote");
+        var ex = Assert.Throws<ArgumentNullException>(() => qrCode.Update(ValidTitle, null!));
+        Assert.That(ex.ParamName, Is.EqualTo("internalNote"));
     }
 
     [Test]
@@ -145,8 +141,8 @@ public class QrCodeTests
         qrCode.SetSortOrder(newSortOrder);
 
         // Assert
-        qrCode.SortOrder.Should().Be(newSortOrder);
-        qrCode.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        Assert.That(qrCode.SortOrder, Is.EqualTo(newSortOrder));
+        Assert.That(qrCode.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
     [Test]
@@ -156,7 +152,7 @@ public class QrCodeTests
         var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
 
         // Act & Assert
-        qrCode.Finds.Should().NotBeNull();
-        qrCode.Finds.Should().BeAssignableTo<ICollection<Find>>();
+        Assert.That(qrCode.Finds, Is.Not.Null);
+        Assert.That(qrCode.Finds, Is.InstanceOf<ICollection<Find>>());
     }
 }
