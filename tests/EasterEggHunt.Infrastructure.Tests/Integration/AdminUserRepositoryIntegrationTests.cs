@@ -8,7 +8,6 @@ namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
 [TestFixture]
 [Category("Integration")]
-[Ignore("Temporarily disabled - FluentAssertions conversion needed")]
 public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 {
     [SetUp]
@@ -30,10 +29,10 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var retrievedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        retrievedAdminUser.Should().NotBeNull();
-        retrievedAdminUser!.Username.Should().Be("Test Admin");
-        retrievedAdminUser.Email.Should().Be("test@admin.com");
-        retrievedAdminUser.IsActive.Should().BeTrue();
+        Assert.That(retrievedAdminUser, Is.Not.Null);
+        Assert.That(retrievedAdminUser!.Username, Is.EqualTo("Test Admin"));
+        Assert.That(retrievedAdminUser.Email, Is.EqualTo("test@admin.com"));
+        Assert.That(retrievedAdminUser.IsActive, Is.True);
     }
 
     [Test]
@@ -48,8 +47,8 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
 
         // Assert
-        retrievedAdminUser.Should().NotBeNull();
-        retrievedAdminUser!.Id.Should().Be(adminUser.Id);
+        Assert.That(retrievedAdminUser, Is.Not.Null);
+        Assert.That(retrievedAdminUser!.Id, Is.EqualTo(adminUser.Id));
     }
 
     [Test]
@@ -59,7 +58,7 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedAdminUser = await AdminUserRepository.GetByIdAsync(999);
 
         // Assert
-        retrievedAdminUser.Should().BeNull();
+        Assert.That(retrievedAdminUser, Is.Null);
     }
 
     [Test]
@@ -76,10 +75,10 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var adminUsers = await AdminUserRepository.GetAllAsync();
 
         // Assert
-        adminUsers.Should().NotBeNull();
-        adminUsers.Should().HaveCount(3); // Includes the one from SeedTestDataAsync
-        adminUsers.Should().Contain(a => a.Id == adminUser1.Id);
-        adminUsers.Should().Contain(a => a.Id == adminUser2.Id);
+        Assert.That(adminUsers, Is.Not.Null);
+        Assert.That(adminUsers.Count(), Is.EqualTo(3)); // Includes the one from SeedTestDataAsync
+        Assert.That(adminUsers, Has.Some.Matches<AdminUser>(a => a.Id == adminUser1.Id));
+        Assert.That(adminUsers, Has.Some.Matches<AdminUser>(a => a.Id == adminUser2.Id));
     }
 
     [Test]
@@ -94,8 +93,8 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedAdminUser = await AdminUserRepository.GetByUsernameAsync("Find Me");
 
         // Assert
-        retrievedAdminUser.Should().NotBeNull();
-        retrievedAdminUser!.Username.Should().Be("Find Me");
+        Assert.That(retrievedAdminUser, Is.Not.Null);
+        Assert.That(retrievedAdminUser!.Username, Is.EqualTo("Find Me"));
     }
 
     [Test]
@@ -105,7 +104,7 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedAdminUser = await AdminUserRepository.GetByUsernameAsync("Non Existing");
 
         // Assert
-        retrievedAdminUser.Should().BeNull();
+        Assert.That(retrievedAdminUser, Is.Null);
     }
 
     [Test]
@@ -120,8 +119,8 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedAdminUser = await AdminUserRepository.GetByEmailAsync("emailtest@admin.com");
 
         // Assert
-        retrievedAdminUser.Should().NotBeNull();
-        retrievedAdminUser!.Email.Should().Be("emailtest@admin.com");
+        Assert.That(retrievedAdminUser, Is.Not.Null);
+        Assert.That(retrievedAdminUser!.Email, Is.EqualTo("emailtest@admin.com"));
     }
 
     [Test]
@@ -131,7 +130,7 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedAdminUser = await AdminUserRepository.GetByEmailAsync("nonexisting@admin.com");
 
         // Assert
-        retrievedAdminUser.Should().BeNull();
+        Assert.That(retrievedAdminUser, Is.Null);
     }
 
     [Test]
@@ -150,8 +149,8 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var updatedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        updatedAdminUser.Should().NotBeNull();
-        updatedAdminUser!.Email.Should().Be("updated@admin.com");
+        Assert.That(updatedAdminUser, Is.Not.Null);
+        Assert.That(updatedAdminUser!.Email, Is.EqualTo("updated@admin.com"));
     }
 
     [Test]
@@ -167,9 +166,9 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         await AdminUserRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeTrue();
+        Assert.That(result, Is.True);
         var deletedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        deletedAdminUser.Should().BeNull();
+        Assert.That(deletedAdminUser, Is.Null);
     }
 
     [Test]
@@ -180,7 +179,7 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         await AdminUserRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeFalse();
+        Assert.That(result, Is.False);
     }
 
     [Test]
@@ -195,7 +194,7 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var exists = await AdminUserRepository.ExistsAsync(adminUser.Id);
 
         // Assert
-        exists.Should().BeTrue();
+        Assert.That(exists, Is.True);
     }
 
     [Test]
@@ -205,7 +204,7 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         var exists = await AdminUserRepository.ExistsAsync(999);
 
         // Assert
-        exists.Should().BeFalse();
+        Assert.That(exists, Is.False);
     }
 
     [Test]
@@ -220,7 +219,7 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var savedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        savedAdminUser.Should().NotBeNull();
+        Assert.That(savedAdminUser, Is.Not.Null);
     }
 
     [Test]
@@ -239,8 +238,8 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var activatedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        activatedAdminUser.Should().NotBeNull();
-        activatedAdminUser!.IsActive.Should().BeTrue();
+        Assert.That(activatedAdminUser, Is.Not.Null);
+        Assert.That(activatedAdminUser!.IsActive, Is.True);
     }
 
     [Test]
@@ -258,8 +257,8 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var deactivatedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        deactivatedAdminUser.Should().NotBeNull();
-        deactivatedAdminUser!.IsActive.Should().BeFalse();
+        Assert.That(deactivatedAdminUser, Is.Not.Null);
+        Assert.That(deactivatedAdminUser!.IsActive, Is.False);
     }
 
     [Test]
@@ -277,8 +276,8 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var updatedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        updatedAdminUser.Should().NotBeNull();
-        updatedAdminUser!.PasswordHash.Should().NotBeNullOrEmpty();
+        Assert.That(updatedAdminUser, Is.Not.Null);
+        Assert.That(updatedAdminUser!.PasswordHash, Is.Not.Null.And.Not.Empty);
     }
 
     [Test]
@@ -291,8 +290,8 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 
         // Act & Assert
         var retrievedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        retrievedAdminUser.Should().NotBeNull();
-        retrievedAdminUser!.PasswordHash.Should().Be("hashedPassword123");
+        Assert.That(retrievedAdminUser, Is.Not.Null);
+        Assert.That(retrievedAdminUser!.PasswordHash, Is.EqualTo("hashedPassword123"));
     }
 
     [Test]
@@ -312,7 +311,7 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var updatedAdminUser = await AdminUserRepository.GetByIdAsync(adminUser.Id);
-        updatedAdminUser.Should().NotBeNull();
-        updatedAdminUser!.LastLogin.Should().BeCloseTo(loginTime, TimeSpan.FromSeconds(5));
+        Assert.That(updatedAdminUser, Is.Not.Null);
+        Assert.That(updatedAdminUser!.LastLogin, Is.EqualTo(loginTime).Within(TimeSpan.FromSeconds(5)));
     }
 }

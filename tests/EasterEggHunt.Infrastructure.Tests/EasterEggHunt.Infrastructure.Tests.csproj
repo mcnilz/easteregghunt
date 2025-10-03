@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <Compile Remove="Integration\**" />
+    <Compile Include="Integration\IntegrationTestBase.cs" />
+    <Compile Include="Integration\AdminUserRepositoryIntegrationTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
