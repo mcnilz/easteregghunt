@@ -21,7 +21,7 @@ Die Sicherheit unserer Software ist uns sehr wichtig. Wenn Sie eine Sicherheitsl
 
 ### ✅ Bitte TUN:
 
-1. **E-Mail senden** an: security@your-domain.com
+1. **GitHub Issue erstellen** mit dem Label "security"
 2. **Detaillierte Beschreibung** der Sicherheitslücke bereitstellen
 3. **Schritte zur Reproduktion** angeben (falls möglich)
 4. **Potenzielle Auswirkungen** beschreiben
@@ -141,9 +141,9 @@ Dieses System wurde entwickelt unter Berücksichtigung von:
 
 ## Kontakt
 
-- **Sicherheitsteam**: security@your-domain.com
-- **Allgemeine Fragen**: support@your-domain.com
-- **Entwicklerteam**: dev-team@your-domain.com
+- **Sicherheitsteam**: [GitHub Issues](../../issues) mit Label "security"
+- **Allgemeine Fragen**: [GitHub Issues](../../issues)
+- **Entwicklerteam**: [GitHub Discussions](../../discussions)
 
 ## Anerkennung
 

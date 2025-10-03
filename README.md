@@ -1,7 +1,7 @@
 # 🥚 Easter Egg Hunt System
 
-[![CI](https://github.com/your-org/easter-egg-hunt/workflows/Continuous%20Integration/badge.svg)](https://github.com/your-org/easter-egg-hunt/actions)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/your-org/easter-egg-hunt/actions)
+[![CI](https://github.com/mcnilz/easteregghunt/workflows/Continuous%20Integration/badge.svg)](https://github.com/mcnilz/easteregghunt/actions)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](https://github.com/mcnilz/easteregghunt/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
 
@@ -61,8 +61,8 @@ Das Easter Egg Hunt System ermöglicht es Unternehmen, interne Osterspiele zu or
 
 ```bash
 # Repository klonen
-git clone https://github.com/your-org/easter-egg-hunt.git
-cd easter-egg-hunt
+git clone https://github.com/mcnilz/easteregghunt.git
+cd easteregghunt
 
 # Dependencies installieren
 dotnet restore
@@ -109,10 +109,9 @@ Dieses Projekt ist unter der [MIT Lizenz](LICENSE) lizenziert.
 
 ## 🔒 Sicherheit
 
-Sicherheitslücken bitte an security@your-domain.com melden. Siehe [SECURITY.md](SECURITY.md) für Details.
+Sicherheitslücken bitte über [GitHub Issues](../../issues) mit dem Label "security" melden. Siehe [SECURITY.md](SECURITY.md) für Details.
 
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](../../issues)
 - **Diskussionen**: [GitHub Discussions](../../discussions)
-- **E-Mail**: support@your-domain.com

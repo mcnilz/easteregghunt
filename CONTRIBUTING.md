@@ -271,7 +271,7 @@ Screenshots, Mockups, etc.
 ### Sicherheitslücken melden
 
 - **NICHT** öffentliche Issues für Sicherheitslücken erstellen
-- Senden Sie eine E-Mail an: security@your-domain.com
+- Erstellen Sie ein privates GitHub Issue mit dem Label "security"
 - Beschreiben Sie die Lücke detailliert
 - Warten Sie auf Antwort vor Veröffentlichung
 
@@ -279,7 +279,7 @@ Screenshots, Mockups, etc.
 
 - **Issues**: [GitHub Issues](../../issues)
 - **Diskussionen**: [GitHub Discussions](../../discussions)
-- **E-Mail**: dev-team@your-domain.com
+- **Entwicklerteam**: [GitHub Discussions](../../discussions)
 
 ## 📄 Lizenz
 

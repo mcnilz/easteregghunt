@@ -50,110 +50,34 @@ Das Easter Egg Hunt System folgt **Clean Architecture** Prinzipien mit klarer Tr
 ### 1. Domain Layer (Core)
 **Verantwortlichkeit:** Business Logic und Domain Rules
 
-```csharp
-// Domain Entities
-public class Campaign
-{
-    public int Id { get; private set; }
-    public string Name { get; private set; }
-    public string Description { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public bool IsActive { get; private set; }
-    
-    private readonly List<QrCode> _qrCodes = new();
-    public IReadOnlyList<QrCode> QrCodes => _qrCodes.AsReadOnly();
-    
-    // Domain Logic
-    public void AddQrCode(string title, string note)
-    {
-        if (!IsActive)
-            throw new DomainException("Kann keine QR-Codes zu inaktiver Kampagne hinzufügen");
-            
-        var qrCode = new QrCode(title, note, Id);
-        _qrCodes.Add(qrCode);
-        
-        // Domain Event
-        DomainEvents.Raise(new QrCodeAddedEvent(this, qrCode));
-    }
-}
-```
+- **Entities**: Campaign, QrCode, User, Find, Session, AdminUser
+- **Value Objects**: QrCodeUrl, SessionId, FindTimestamp
+- **Domain Events**: QrCodeFound, CampaignEnd, UserJoined
+- **Repository Interfaces**: ICampaignRepository, IQrCodeRepository, etc.
 
 ### 2. Application Layer
 **Verantwortlichkeit:** Use Cases und Application Services
 
-```csharp
-public class CampaignService : ICampaignService
-{
-    private readonly ICampaignRepository _repository;
-    private readonly ICampaignValidator _validator;
-    private readonly ILogger<CampaignService> _logger;
-    
-    public async Task<CampaignDto> CreateCampaignAsync(CreateCampaignRequest request)
-    {
-        // Validierung
-        await _validator.ValidateAndThrowAsync(request);
-        
-        // Domain Logic
-        var campaign = new Campaign(request.Name, request.Description);
-        
-        // Persistierung
-        var savedCampaign = await _repository.SaveAsync(campaign);
-        
-        // Logging
-        _logger.LogInformation("Kampagne {CampaignName} erstellt mit ID {CampaignId}", 
-            campaign.Name, campaign.Id);
-        
-        return _mapper.Map<CampaignDto>(savedCampaign);
-    }
-}
-```
+- **Services**: CampaignService, QrCodeService, UserService, StatisticsService
+- **DTOs**: CampaignDto, QrCodeDto, UserDto, FindDto
+- **Validators**: FluentValidation für alle Eingaben
+- **Mappers**: AutoMapper für Entity-DTO Konvertierung
 
 ### 3. Infrastructure Layer
 **Verantwortlichkeit:** Data Access und externe Services
 
-```csharp
-public class CampaignRepository : ICampaignRepository
-{
-    private readonly EasterEggHuntDbContext _context;
-    
-    public async Task<Campaign> GetByIdAsync(int id)
-    {
-        return await _context.Campaigns
-            .Include(c => c.QrCodes)
-            .FirstOrDefaultAsync(c => c.Id == id);
-    }
-    
-    public async Task<Campaign> SaveAsync(Campaign campaign)
-    {
-        _context.Campaigns.Add(campaign);
-        await _context.SaveChangesAsync();
-        return campaign;
-    }
-}
-```
+- **Repositories**: Implementierung aller Repository-Interfaces
+- **DbContext**: EasterEggHuntDbContext mit EF Core
+- **External Services**: QR-Code-Generator, E-Mail-Service
+- **Configuration**: Dependency Injection Setup
 
 ### 4. Presentation Layer
 **Verantwortlichkeit:** UI und API Endpoints
 
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-public class CampaignsController : ControllerBase
-{
-    private readonly ICampaignService _campaignService;
-    
-    /// <summary>
-    /// Erstellt eine neue Kampagne
-    /// </summary>
-    [HttpPost]
-    public async Task<ActionResult<CampaignDto>> CreateCampaign(
-        [FromBody] CreateCampaignRequest request)
-    {
-        var campaign = await _campaignService.CreateCampaignAsync(request);
-        return CreatedAtAction(nameof(GetCampaign), new { id = campaign.Id }, campaign);
-    }
-}
-```
+- **Web API**: RESTful Endpoints für Mobile/Web Clients
+- **MVC Controllers**: Admin-Interface und Employee-Interface
+- **Razor Pages**: Server-side gerenderte UI
+- **Swagger**: API-Dokumentation
 
 ## 🗄️ Datenbank-Schema
 
@@ -256,190 +180,70 @@ CREATE UNIQUE INDEX IX_AdminUsers_Username ON AdminUsers(Username);
 CREATE INDEX IX_AdminUsers_CreatedAt ON AdminUsers(CreatedAt);
 ```
 
-### EF Core Entities
-
-```csharp
-// Campaign Entity
-public class Campaign
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public bool IsActive { get; set; }
-    public string CreatedBy { get; set; } = string.Empty;
-    
-    // Navigation Properties
-    public virtual ICollection<QrCode> QrCodes { get; set; } = new List<QrCode>();
-}
-
-// QrCode Entity
-public class QrCode
-{
-    public int Id { get; set; }
-    public int CampaignId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string InternalNote { get; set; } = string.Empty;
-    public string UniqueUrl { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public bool IsActive { get; set; }
-    public int SortOrder { get; set; }
-    
-    // Navigation Properties
-    public virtual Campaign Campaign { get; set; } = null!;
-    public virtual ICollection<Find> Finds { get; set; } = new List<Find>();
-}
-
-// User Entity
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public DateTime FirstSeen { get; set; }
-    public DateTime LastSeen { get; set; }
-    public bool IsActive { get; set; }
-    
-    // Navigation Properties
-    public virtual ICollection<Find> Finds { get; set; } = new List<Find>();
-    public virtual ICollection<Session> Sessions { get; set; } = new List<Session>();
-}
-
-// Find Entity
-public class Find
-{
-    public int Id { get; set; }
-    public int QrCodeId { get; set; }
-    public int UserId { get; set; }
-    public DateTime FoundAt { get; set; }
-    public string IpAddress { get; set; } = string.Empty;
-    public string UserAgent { get; set; } = string.Empty;
-    
-    // Navigation Properties
-    public virtual QrCode QrCode { get; set; } = null!;
-    public virtual User User { get; set; } = null!;
-}
-```
-
 ## 🐳 Docker Architecture
 
-### Docker Compose Setup
+### Aktuelle Docker Compose Konfiguration
 
 ```yaml
-
 services:
   # Web API Backend
   easteregghunt-api:
-    build:
-      context: .
-      dockerfile: src/EasterEggHunt.Api/Dockerfile
+    image: easteregghunt/api:latest
     ports:
-      - "5001:80"
+      - "5001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/easteregghunt.db
     volumes:
       - sqlite-data:/app/data
-    depends_on:
-      - sqlite-init
     networks:
       - easteregghunt-network
+    restart: unless-stopped
 
   # Web Frontend
   easteregghunt-web:
-    build:
-      context: .
-      dockerfile: src/EasterEggHunt.Web/Dockerfile
+    image: easteregghunt/web:latest
     ports:
-      - "5000:80"
+      - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ApiSettings__BaseUrl=http://easteregghunt-api
+      - ASPNETCORE_URLS=http://+:8080
+      - ApiSettings__BaseUrl=http://easteregghunt-api:8080
     depends_on:
       - easteregghunt-api
     networks:
       - easteregghunt-network
-
-  # SQLite Initialization
-  sqlite-init:
-    image: alpine:latest
-    volumes:
-      - sqlite-data:/data
-    command: >
-      sh -c "
-        if [ ! -f /data/easteregghunt.db ]; then
-          touch /data/easteregghunt.db
-          chmod 666 /data/easteregghunt.db
-        fi
-      "
-
-  # Nginx Reverse Proxy (Production)
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./ssl:/etc/nginx/ssl
-    depends_on:
-      - easteregghunt-web
-      - easteregghunt-api
-    networks:
-      - easteregghunt-network
+    restart: unless-stopped
 
 volumes:
   sqlite-data:
+    driver: local
 
 networks:
   easteregghunt-network:
     driver: bridge
 ```
 
+### Build-System
+
+- **Docker Buildx Bake**: Multi-Service Builds mit Caching
+- **Multi-Platform Support**: linux/amd64, linux/arm64
+- **Optimierte Dockerfiles**: Multi-Stage Builds für kleinere Images
+- **Volume Management**: SQLite-Datenbank als persistentes Volume
+
 ## 🔧 Dependency Injection
 
 ### Service Registration
 
-```csharp
-// Program.cs
-var builder = WebApplication.CreateBuilder(args);
+Die Dependency Injection wird in `ServiceCollectionExtensions.cs` konfiguriert:
 
-// Database
-builder.Services.AddDbContext<EasterEggHuntDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Repositories
-builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
-builder.Services.AddScoped<IQrCodeRepository, QrCodeRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IFindRepository, FindRepository>();
-
-// Services
-builder.Services.AddScoped<ICampaignService, CampaignService>();
-builder.Services.AddScoped<IQrCodeService, QrCodeService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IStatisticsService, StatisticsService>();
-
-// Validators
-builder.Services.AddScoped<ICampaignValidator, CampaignValidator>();
-builder.Services.AddScoped<IQrCodeValidator, QrCodeValidator>();
-
-// External Services
-builder.Services.AddScoped<IQrCodeGenerator, QrCodeGenerator>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-
-// Cross-Cutting Concerns
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IDateTimeProvider, DateTimeProvider>();
-
-// AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
-
-// FluentValidation
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<CreateCampaignRequestValidator>();
-```
+- **Database**: `EasterEggHuntDbContext` mit SQLite
+- **Repositories**: Alle Repository-Interfaces und -Implementierungen
+- **Services**: Application Services für Business Logic
+- **Validators**: FluentValidation für Input-Validierung
+- **External Services**: QR-Code-Generator, E-Mail-Service
+- **Cross-Cutting Concerns**: Logging, Caching, Monitoring
 
 ## 🧪 Testing Architecture
 
@@ -464,173 +268,96 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateCampaignRequestValida
 
 ```
 tests/
-├── EasterEggHunt.UnitTests/
-│   ├── Domain/
-│   │   ├── CampaignTests.cs
-│   │   └── QrCodeTests.cs
-│   ├── Application/
-│   │   ├── CampaignServiceTests.cs
-│   │   └── QrCodeServiceTests.cs
-│   └── Presentation/
-│       ├── CampaignsControllerTests.cs
-│       └── QrCodesControllerTests.cs
-├── EasterEggHunt.IntegrationTests/
-│   ├── Api/
-│   │   ├── CampaignsApiTests.cs
-│   │   └── QrCodesApiTests.cs
-│   ├── Database/
-│   │   ├── CampaignRepositoryTests.cs
-│   │   └── QrCodeRepositoryTests.cs
-│   └── Services/
-│       └── EmailServiceTests.cs
-└── EasterEggHunt.E2ETests/
-    ├── AdminWorkflowTests.cs
-    ├── EmployeeWorkflowTests.cs
-    └── QrCodeScanningTests.cs
+├── EasterEggHunt.Domain.Tests/          # Domain Entity Tests
+├── EasterEggHunt.Application.Tests/     # Service Tests
+├── EasterEggHunt.Infrastructure.Tests/  # Repository Integration Tests
+└── EasterEggHunt.Api.Tests/             # API Controller Tests
 ```
+
+### Aktuelle Test-Statistiken
+
+- **149 Tests** insgesamt
+- **81.31% Code Coverage** (Domain: 91.56%, Infrastructure: 86.90%)
+- **Integration Tests** mit echter SQLite-Datenbank
+- **Unit Tests** für alle Domain Entities
 
 ## 🔒 Security Architecture
 
 ### Authentication & Authorization
 
-```csharp
-// Admin Authentication
-services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Admin/Login";
-        options.LogoutPath = "/Admin/Logout";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
-        options.SlidingExpiration = true;
-    });
-
-// Employee Session Management
-services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromDays(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
-});
-```
+- **Admin Authentication**: Cookie-basierte Authentifizierung
+- **Employee Sessions**: Cookie-basierte Session-Verwaltung
+- **Password Hashing**: BCrypt für sichere Passwort-Speicherung
+- **Session Management**: 30-Tage Standard-Gültigkeitsdauer
 
 ### Security Headers
 
-```csharp
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.Add("X-Frame-Options", "DENY");
-    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
-    context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
-    
-    if (context.Request.IsHttps)
-    {
-        context.Response.Headers.Add("Strict-Transport-Security", 
-            "max-age=31536000; includeSubDomains");
-    }
-    
-    await next();
-});
-```
+- **X-Content-Type-Options**: nosniff
+- **X-Frame-Options**: DENY
+- **X-XSS-Protection**: 1; mode=block
+- **Referrer-Policy**: strict-origin-when-cross-origin
+- **Strict-Transport-Security**: HTTPS-Enforcement
 
 ## 📊 Performance Considerations
 
 ### Database Optimizations
 
-```csharp
-// Efficient Queries
-public async Task<List<CampaignStatisticsDto>> GetCampaignStatisticsAsync()
-{
-    return await _context.Campaigns
-        .Where(c => c.IsActive)
-        .Select(c => new CampaignStatisticsDto
-        {
-            Id = c.Id,
-            Name = c.Name,
-            QrCodeCount = c.QrCodes.Count(),
-            FindCount = c.QrCodes.SelectMany(q => q.Finds).Count(),
-            ParticipantCount = c.QrCodes
-                .SelectMany(q => q.Finds)
-                .Select(f => f.UserId)
-                .Distinct()
-                .Count()
-        })
-        .ToListAsync();
-}
-```
+- **Indizes** für alle häufigen Abfrage-Patterns
+- **Composite Indizes** für komplexe Queries
+- **Eager Loading** für Navigation Properties
+- **Query Optimization** mit EF Core
 
 ### Caching Strategy
 
-```csharp
-// Memory Caching für häufig abgerufene Daten
-services.AddMemoryCache();
-services.AddScoped<ICachedCampaignService, CachedCampaignService>();
-
-public class CachedCampaignService : ICampaignService
-{
-    private readonly ICampaignService _campaignService;
-    private readonly IMemoryCache _cache;
-    
-    public async Task<List<CampaignDto>> GetActiveCampaignsAsync()
-    {
-        const string cacheKey = "active-campaigns";
-        
-        if (_cache.TryGetValue(cacheKey, out List<CampaignDto> campaigns))
-        {
-            return campaigns;
-        }
-        
-        campaigns = await _campaignService.GetActiveCampaignsAsync();
-        
-        _cache.Set(cacheKey, campaigns, TimeSpan.FromMinutes(5));
-        
-        return campaigns;
-    }
-}
-```
+- **Memory Caching** für häufig abgerufene Daten
+- **Session Caching** für Benutzer-Daten
+- **Query Result Caching** für Statistiken
 
 ## 🚀 Deployment Architecture
 
-### Production Environment
+### Development Environment
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    LOAD BALANCER                            │
-│                   (Nginx/Traefik)                          │
+│                    Docker Compose                          │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │  Web Frontend   │    │  Web API        │                │
+│  │  (Port 5000)    │    │  (Port 5001)    │                │
+│  └─────────────────┘    └─────────────────┘                │
+│           │                       │                        │
+│           └───────────┬───────────┘                        │
+│                       │                                    │
+│  ┌─────────────────────▼─────────────────────┐             │
+│  │         SQLite Database                   │             │
+│  │      (Persistent Volume)                  │             │
+│  └───────────────────────────────────────────┘             │
 └─────────────────────────────────────────────────────────────┘
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        │                       │                       │
-┌───────▼──────┐    ┌──────────▼───────┐    ┌─────────▼──────┐
-│  Web App 1   │    │   Web App 2     │    │   API Server   │
-│  (Container) │    │   (Container)    │    │   (Container)  │
-└──────────────┘    └──────────────────┘    └────────────────┘
-                                │
-                    ┌───────────▼────────────┐
-                    │     SQLite Database    │
-                    │    (Shared Volume)     │
-                    └────────────────────────┘
 ```
 
-### Monitoring & Logging
+### Production Considerations
 
-```csharp
-// Structured Logging
-services.AddLogging(builder =>
-{
-    builder.AddConsole();
-    builder.AddFile("logs/easteregghunt-{Date}.log");
-});
+- **Load Balancer**: Nginx oder Traefik
+- **SSL/TLS**: HTTPS-Enforcement
+- **Monitoring**: Application Insights oder ähnlich
+- **Backup**: Regelmäßige SQLite-Backups
+- **Scaling**: Horizontal mit Load Balancer
 
-// Health Checks
-services.AddHealthChecks()
-    .AddDbContextCheck<EasterEggHuntDbContext>()
-    .AddCheck<QrCodeServiceHealthCheck>("qrcode-service");
+## 🔄 CI/CD Pipeline
 
-// Application Insights (optional)
-services.AddApplicationInsightsTelemetry();
-```
+### GitHub Actions
+
+- **Build**: .NET 8.0 Build mit Code Analysis
+- **Test**: Alle Tests mit Coverage-Reporting
+- **Quality**: Code Coverage Minimum 80%
+- **Security**: Dependency Scanning
+- **Docker**: Multi-Platform Image Builds
+
+### Quality Gates
+
+- **Code Coverage**: Minimum 80% (Domain/Infrastructure)
+- **Code Analysis**: Keine Warnings erlaubt
+- **Security Scan**: Automatische Vulnerability-Checks
+- **Format Check**: Einheitliche Code-Formatierung
 
 ---
 
