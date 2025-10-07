@@ -66,25 +66,106 @@ cd easteregghunt
 
 # Dependencies installieren
 dotnet restore
-
-# Datenbank erstellen (falls erforderlich)
-dotnet ef database update
-
-# Anwendung starten
-dotnet run --project src/EasterEggHunt.Web
-
-# Oder mit Docker Compose (verwendet automatisch compose.yaml)
-docker compose up
 ```
 
-### Tests ausführen
+### 🛠️ Entwicklung mit Skripten
+
+Das Projekt bietet praktische Skripte für die Entwicklung:
+
+#### **PowerShell (Windows)**
+```powershell
+# Entwicklung mit Hot-Reload starten
+.\scripts\easter-egg-hunt.ps1 dev
+
+# Nur API starten
+.\scripts\easter-egg-hunt.ps1 dev -Project Api
+
+# Nur Web starten  
+.\scripts\easter-egg-hunt.ps1 dev -Project Web
+
+# Ohne Hot-Reload
+.\scripts\easter-egg-hunt.ps1 dev -HotReload:$false
+
+# Tests ausführen
+.\scripts\easter-egg-hunt.ps1 test
+
+# Build
+.\scripts\easter-egg-hunt.ps1 build
+
+# Datenbank migrieren
+.\scripts\easter-egg-hunt.ps1 migrate
+
+# Clean
+.\scripts\easter-egg-hunt.ps1 clean
+
+# Hilfe anzeigen
+.\scripts\easter-egg-hunt.ps1 help
+```
+
+#### **Bash (Linux/macOS)**
+```bash
+# Entwicklung mit Hot-Reload starten
+./scripts/easter-egg-hunt.sh dev
+
+# Nur API starten
+./scripts/easter-egg-hunt.sh dev -p Api
+
+# Nur Web starten
+./scripts/easter-egg-hunt.sh dev -p Web
+
+# Ohne Hot-Reload
+./scripts/easter-egg-hunt.sh dev -h false
+
+# Tests ausführen
+./scripts/easter-egg-hunt.sh test
+
+# Build
+./scripts/easter-egg-hunt.sh build
+
+# Datenbank migrieren
+./scripts/easter-egg-hunt.sh migrate
+
+# Clean
+./scripts/easter-egg-hunt.sh clean
+
+# Hilfe anzeigen
+./scripts/easter-egg-hunt.sh help
+```
+
+### 🐳 Docker Deployment
 
 ```bash
-# Alle Tests ausführen
-dotnet test
+# Mit Docker Compose (verwendet automatisch compose.yaml)
+docker compose up
 
-# Mit Code Coverage
-dotnet test --collect:"XPlat Code Coverage"
+# Oder mit den Build-Skripten
+.\scripts\easter-egg-hunt.ps1 build
+```
+
+### 📊 Verfügbare URLs
+
+Nach dem Start sind folgende URLs verfügbar:
+- **Web-Anwendung**: https://localhost:7002
+- **API**: https://localhost:7001  
+- **Swagger UI**: https://localhost:7001/swagger
+
+### ⚡ Häufige Entwicklungskommandos
+
+```bash
+# Projekt starten (beide Services mit Hot-Reload)
+.\scripts\easter-egg-hunt.ps1 dev
+
+# Nur Tests ausführen
+.\scripts\easter-egg-hunt.ps1 test
+
+# Code formatieren
+dotnet format
+
+# Datenbank zurücksetzen
+.\scripts\easter-egg-hunt.ps1 migrate
+
+# Projekt bereinigen
+.\scripts\easter-egg-hunt.ps1 clean
 ```
 
 ## 📖 Dokumentation
