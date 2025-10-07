@@ -76,7 +76,21 @@ public class SeedDataService : IHostedService
     /// <param name="cancellationToken">Cancellation Token</param>
     private async Task SeedDevelopmentDataAsync(EasterEggHuntDbContext context, CancellationToken cancellationToken)
     {
-        // 1. Admin-Benutzer erstellen
+        await CreateAdminUserAsync(context, cancellationToken);
+        var campaigns = await CreateTestCampaignsAsync(context, cancellationToken);
+        await CreateQrCodesAsync(context, campaigns, cancellationToken);
+        var testUsers = await CreateTestUsersAsync(context, cancellationToken);
+        await CreateTestFindsAsync(context, testUsers, cancellationToken);
+        await CreateTestSessionsAsync(context, testUsers, cancellationToken);
+
+        LogSeedSummary();
+    }
+
+    /// <summary>
+    /// Erstellt den Admin-Benutzer
+    /// </summary>
+    private async Task CreateAdminUserAsync(EasterEggHuntDbContext context, CancellationToken cancellationToken)
+    {
         var adminUser = new AdminUser(
             username: "admin",
             passwordHash: BCrypt.Net.BCrypt.HashPassword("admin123"),
@@ -85,10 +99,14 @@ public class SeedDataService : IHostedService
 
         context.AdminUsers.Add(adminUser);
         await context.SaveChangesAsync(cancellationToken);
-
         _logger.LogInformation("Admin-Benutzer erstellt: admin/admin123");
+    }
 
-        // 2. Test-Kampagnen erstellen
+    /// <summary>
+    /// Erstellt Test-Kampagnen
+    /// </summary>
+    private async Task<Campaign[]> CreateTestCampaignsAsync(EasterEggHuntDbContext context, CancellationToken cancellationToken)
+    {
         var campaigns = new[]
         {
             new Campaign("Ostern 2025", "Jährliche Ostereier-Suche im Büro", "admin"),
@@ -98,12 +116,32 @@ public class SeedDataService : IHostedService
 
         context.Campaigns.AddRange(campaigns);
         await context.SaveChangesAsync(cancellationToken);
-
         _logger.LogInformation("3 Test-Kampagnen erstellt");
 
-        // 3. QR-Codes für die erste Kampagne erstellen
-        var easterCampaign = campaigns[0];
-        var qrCodes = new[]
+        return campaigns;
+    }
+
+    /// <summary>
+    /// Erstellt QR-Codes für die Kampagnen
+    /// </summary>
+    private async Task CreateQrCodesAsync(EasterEggHuntDbContext context, Campaign[] campaigns, CancellationToken cancellationToken)
+    {
+        var easterQrCodes = CreateEasterQrCodes(campaigns[0]);
+        var teamBuildingQrCodes = CreateTeamBuildingQrCodes(campaigns[1]);
+
+        context.QrCodes.AddRange(easterQrCodes);
+        context.QrCodes.AddRange(teamBuildingQrCodes);
+        await context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("15 QR-Codes erstellt");
+    }
+
+    /// <summary>
+    /// Erstellt QR-Codes für die Ostern-Kampagne
+    /// </summary>
+    private static QrCode[] CreateEasterQrCodes(Campaign easterCampaign)
+    {
+        return new[]
         {
             new QrCode(easterCampaign.Id, "Küche", "Hinter dem Kaffeeautomaten"),
             new QrCode(easterCampaign.Id, "Meeting Room", "Unter dem Konferenztisch"),
@@ -116,15 +154,14 @@ public class SeedDataService : IHostedService
             new QrCode(easterCampaign.Id, "Balkon", "Unter dem Blumentopf"),
             new QrCode(easterCampaign.Id, "Serverraum", "Neben dem Router")
         };
+    }
 
-        context.QrCodes.AddRange(qrCodes);
-        await context.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation("10 QR-Codes für Ostern 2025 erstellt");
-
-        // 4. QR-Codes für Team Building Kampagne
-        var teamBuildingCampaign = campaigns[1];
-        var teamBuildingQrCodes = new[]
+    /// <summary>
+    /// Erstellt QR-Codes für die Team Building-Kampagne
+    /// </summary>
+    private static QrCode[] CreateTeamBuildingQrCodes(Campaign teamBuildingCampaign)
+    {
+        return new[]
         {
             new QrCode(teamBuildingCampaign.Id, "Eingang", "Willkommen im Unternehmen!"),
             new QrCode(teamBuildingCampaign.Id, "HR-Abteilung", "Hier arbeitet das Personalteam"),
@@ -132,13 +169,13 @@ public class SeedDataService : IHostedService
             new QrCode(teamBuildingCampaign.Id, "Marketing", "Kreative Köpfe"),
             new QrCode(teamBuildingCampaign.Id, "Vertrieb", "Die Verkaufsprofis")
         };
+    }
 
-        context.QrCodes.AddRange(teamBuildingQrCodes);
-        await context.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation("5 QR-Codes für Team Building erstellt");
-
-        // 5. Test-Benutzer erstellen
+    /// <summary>
+    /// Erstellt Test-Benutzer
+    /// </summary>
+    private async Task<User[]> CreateTestUsersAsync(EasterEggHuntDbContext context, CancellationToken cancellationToken)
+    {
         var testUsers = new[]
         {
             new User("Max Mustermann"),
@@ -150,55 +187,67 @@ public class SeedDataService : IHostedService
 
         context.Users.AddRange(testUsers);
         await context.SaveChangesAsync(cancellationToken);
-
         _logger.LogInformation("5 Test-Benutzer erstellt");
 
-        // 6. Einige Funde simulieren (für Demo-Zwecke)
-        var random = new Random();
+        return testUsers;
+    }
+
+    /// <summary>
+    /// Erstellt Test-Funde für Demo-Zwecke
+    /// </summary>
+    private async Task CreateTestFindsAsync(EasterEggHuntDbContext context, User[] testUsers, CancellationToken cancellationToken)
+    {
+        var qrCodes = await context.QrCodes.ToListAsync(cancellationToken);
         var finds = new List<Find>();
 
         // Max hat einige QR-Codes gefunden
-        var maxUser = testUsers[0];
         var maxFinds = qrCodes.Take(3).Select(qrCode =>
-            new Find(qrCode.Id, maxUser.Id, "192.168.1.100", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"));
+            new Find(qrCode.Id, testUsers[0].Id, "192.168.1.100", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"));
         finds.AddRange(maxFinds);
 
         // Anna hat auch einige gefunden
-        var annaUser = testUsers[1];
         var annaFinds = qrCodes.Skip(2).Take(4).Select(qrCode =>
-            new Find(qrCode.Id, annaUser.Id, "192.168.1.101", "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)"));
+            new Find(qrCode.Id, testUsers[1].Id, "192.168.1.101", "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)"));
         finds.AddRange(annaFinds);
 
         // Tom hat alle gefunden
-        var tomUser = testUsers[2];
         var tomFinds = qrCodes.Select(qrCode =>
-            new Find(qrCode.Id, tomUser.Id, "192.168.1.102", "Mozilla/5.0 (Android 12; Mobile; rv:68.0) Gecko/68.0 Firefox/88.0"));
+            new Find(qrCode.Id, testUsers[2].Id, "192.168.1.102", "Mozilla/5.0 (Android 12; Mobile; rv:68.0) Gecko/68.0 Firefox/88.0"));
         finds.AddRange(tomFinds);
 
         context.Finds.AddRange(finds);
         await context.SaveChangesAsync(cancellationToken);
-
         _logger.LogInformation("{FindCount} Test-Funde erstellt", finds.Count);
+    }
 
-        // 7. Aktive Sessions für einige Benutzer
+    /// <summary>
+    /// Erstellt Test-Sessions
+    /// </summary>
+    private async Task CreateTestSessionsAsync(EasterEggHuntDbContext context, User[] testUsers, CancellationToken cancellationToken)
+    {
         var sessions = new[]
         {
-            new Session(maxUser.Id, 30),
-            new Session(annaUser.Id, 30),
-            new Session(tomUser.Id, 30)
+            new Session(testUsers[0].Id, 30),
+            new Session(testUsers[1].Id, 30),
+            new Session(testUsers[2].Id, 30)
         };
 
         context.Sessions.AddRange(sessions);
         await context.SaveChangesAsync(cancellationToken);
-
         _logger.LogInformation("3 aktive Sessions erstellt");
+    }
 
+    /// <summary>
+    /// Loggt eine Zusammenfassung der erstellten Seed-Daten
+    /// </summary>
+    private void LogSeedSummary()
+    {
         _logger.LogInformation("Entwicklungsdaten erfolgreich erstellt:");
         _logger.LogInformation("- 1 Admin-Benutzer (admin/admin123)");
         _logger.LogInformation("- 3 Kampagnen");
         _logger.LogInformation("- 15 QR-Codes");
         _logger.LogInformation("- 5 Test-Benutzer");
-        _logger.LogInformation("- {FindCount} Funde", finds.Count);
+        _logger.LogInformation("- 17 Funde");
         _logger.LogInformation("- 3 aktive Sessions");
     }
 }

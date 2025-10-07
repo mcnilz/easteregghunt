@@ -93,10 +93,10 @@ public async Task CreateCampaign_WithValidData_ShouldReturnCampaignWithGenerated
     var result = await _campaignService.CreateCampaignAsync(request);
     
     // Assert - Erwartetes Verhalten definieren
-    result.Should().NotBeNull();
-    result.Id.Should().BeGreaterThan(0);
-    result.Name.Should().Be("Ostern 2025");
-    result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    Assert.That(result, Is.Not.Null);
+    Assert.That(result.Id, Is.GreaterThan(0));
+    Assert.That(result.Name, Is.EqualTo("Ostern 2025"));
+    Assert.That(result.CreatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
 }
 
 // Dann erst die Implementierung schreiben!
@@ -196,10 +196,10 @@ public async Task CreateCampaign_WithValidRequest_ShouldReturnCampaignWithCorrec
     var result = await _campaignService.CreateCampaignAsync(request);
     
     // Assert - Spezifische, aussagekräftige Assertions
-    result.Should().NotBeNull();
-    result.Name.Should().Be("Ostern 2025");
-    result.Description.Should().Be("Büro Hamburg");
-    result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    Assert.That(result, Is.Not.Null);
+    Assert.That(result.Name, Is.EqualTo("Ostern 2025"));
+    Assert.That(result.Description, Is.EqualTo("Büro Hamburg"));
+    Assert.That(result.CreatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     
     // Verify - Interaktionen überprüfen
     _mockRepository.Verify(r => r.SaveAsync(It.IsAny<Campaign>()), Times.Once);
