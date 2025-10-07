@@ -25,6 +25,7 @@
     <Compile Remove="Integration\**" />
     <Compile Include="Integration\IntegrationTestBase.cs" />
     <Compile Include="Integration\AdminUserRepositoryIntegrationTests.cs" />
+    <Compile Include="Integration\UserRepositoryIntegrationTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

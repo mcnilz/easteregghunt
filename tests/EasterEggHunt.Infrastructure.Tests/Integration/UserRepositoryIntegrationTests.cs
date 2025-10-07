@@ -8,7 +8,6 @@ namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
 [TestFixture]
 [Category("Integration")]
-[Ignore("Temporarily disabled - FluentAssertions conversion needed")]
 public class UserRepositoryIntegrationTests : IntegrationTestBase
 {
     [SetUp]
@@ -77,10 +76,10 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var users = await UserRepository.GetAllAsync();
 
         // Assert
-        users.Should().NotBeNull();
-        users.Should().HaveCount(2);
-        users.Should().Contain(u => u.Id == user1.Id);
-        users.Should().Contain(u => u.Id == user2.Id);
+        Assert.That(users, Is.Not.Null);
+        Assert.That(users.Count(), Is.EqualTo(2));
+        Assert.That(users, Has.Some.Matches<User>(u => u.Id == user1.Id));
+        Assert.That(users, Has.Some.Matches<User>(u => u.Id == user2.Id));
     }
 
     [Test]
@@ -95,9 +94,9 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedUser = await UserRepository.GetByNameAsync("Unique Name");
 
         // Assert
-        retrievedUser.Should().NotBeNull();
-        retrievedUser!.Id.Should().Be(user.Id);
-        retrievedUser.Name.Should().Be("Unique Name");
+        Assert.That(retrievedUser, Is.Not.Null);
+        Assert.That(retrievedUser!.Id, Is.EqualTo(user.Id));
+        Assert.That(retrievedUser.Name, Is.EqualTo("Unique Name"));
     }
 
     [Test]
@@ -126,8 +125,8 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var updatedUser = await UserRepository.GetByIdAsync(user.Id);
-        updatedUser.Should().NotBeNull();
-        updatedUser!.LastSeen.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        Assert.That(updatedUser, Is.Not.Null);
+        Assert.That(updatedUser!.LastSeen, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromMinutes(1)));
     }
 
     [Test]
@@ -143,9 +142,9 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         await UserRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeTrue();
+        Assert.That(result, Is.True);
         var deletedUser = await UserRepository.GetByIdAsync(user.Id);
-        deletedUser.Should().BeNull();
+        Assert.That(deletedUser, Is.Null);
     }
 
     [Test]
@@ -156,7 +155,7 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         await UserRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeFalse();
+        Assert.That(result, Is.False);
     }
 
     [Test]
@@ -171,7 +170,7 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var exists = await UserRepository.ExistsAsync(user.Id);
 
         // Assert
-        exists.Should().BeTrue();
+        Assert.That(exists, Is.True);
     }
 
     [Test]
@@ -181,7 +180,7 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var exists = await UserRepository.ExistsAsync(999);
 
         // Assert
-        exists.Should().BeFalse();
+        Assert.That(exists, Is.False);
     }
 
     [Test]
@@ -196,7 +195,7 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var savedUser = await UserRepository.GetByIdAsync(user.Id);
-        savedUser.Should().NotBeNull();
+        Assert.That(savedUser, Is.Not.Null);
     }
 
     [Test]
@@ -223,9 +222,9 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedUser = await UserRepository.GetByIdAsync(user.Id);
 
         // Assert
-        retrievedUser.Should().NotBeNull();
-        retrievedUser!.Finds.Should().HaveCount(1);
-        retrievedUser.Finds.Should().Contain(f => f.Id == find.Id);
+        Assert.That(retrievedUser, Is.Not.Null);
+        Assert.That(retrievedUser!.Finds.Count(), Is.EqualTo(1));
+        Assert.That(retrievedUser.Finds, Has.Some.Matches<Find>(f => f.Id == find.Id));
     }
 
     [Test]
@@ -244,9 +243,9 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         var retrievedUser = await UserRepository.GetByIdAsync(user.Id);
 
         // Assert
-        retrievedUser.Should().NotBeNull();
-        retrievedUser!.Sessions.Should().HaveCount(1);
-        retrievedUser.Sessions.Should().Contain(s => s.Id == session.Id);
+        Assert.That(retrievedUser, Is.Not.Null);
+        Assert.That(retrievedUser!.Sessions.Count(), Is.EqualTo(1));
+        Assert.That(retrievedUser.Sessions, Has.Some.Matches<Session>(s => s.Id == session.Id));
     }
 
     [Test]
@@ -265,8 +264,8 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var retrievedUser = await UserRepository.GetByIdAsync(user.Id);
-        retrievedUser.Should().NotBeNull();
-        retrievedUser!.IsActive.Should().BeTrue();
+        Assert.That(retrievedUser, Is.Not.Null);
+        Assert.That(retrievedUser!.IsActive, Is.True);
     }
 
     [Test]
@@ -284,7 +283,7 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var retrievedUser = await UserRepository.GetByIdAsync(user.Id);
-        retrievedUser.Should().NotBeNull();
-        retrievedUser!.IsActive.Should().BeFalse();
+        Assert.That(retrievedUser, Is.Not.Null);
+        Assert.That(retrievedUser!.IsActive, Is.False);
     }
 }
