@@ -12,6 +12,17 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
 # Wechsle zum Projektverzeichnis
 Set-Location $PSScriptRoot\..
 
+# Führe Datenbank-Migrationen aus
+Write-Host "🗄️ Führe Datenbank-Migrationen aus..." -ForegroundColor Yellow
+try {
+    dotnet ef database update --project src/EasterEggHunt.Infrastructure --startup-project src/EasterEggHunt.Web
+    Write-Host "✅ Datenbank-Migrationen erfolgreich ausgeführt" -ForegroundColor Green
+}
+catch {
+    Write-Warning "⚠️ Fehler bei Datenbank-Migrationen: $($_.Exception.Message)"
+    Write-Host "Versuche trotzdem fortzufahren..." -ForegroundColor Yellow
+}
+
 # Starte API-Projekt im Hintergrund
 Write-Host "📡 Starte API-Projekt mit Hot-Reload..." -ForegroundColor Yellow
 $apiJob = Start-Job -ScriptBlock {

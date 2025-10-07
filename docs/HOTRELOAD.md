@@ -48,6 +48,25 @@ Verwenden Sie die bereitgestellten Skripte:
 ./scripts/dev-with-hotreload.sh
 ```
 
+### Datenbank-Migrationen
+
+Die Skripte führen automatisch die Datenbank-Migrationen aus. Sie können diese auch manuell ausführen:
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\migrate-database.ps1
+```
+
+**Linux/macOS (Bash):**
+```bash
+./scripts/migrate-database.sh
+```
+
+**Manuell:**
+```bash
+dotnet ef database update --project src/EasterEggHunt.Infrastructure --startup-project src/EasterEggHunt.Web
+```
+
 ### Manueller Start
 
 **API-Projekt:**

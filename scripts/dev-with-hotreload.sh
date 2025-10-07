@@ -14,6 +14,14 @@ fi
 # Wechsle zum Projektverzeichnis
 cd "$(dirname "$0")/.."
 
+# Führe Datenbank-Migrationen aus
+echo "🗄️ Führe Datenbank-Migrationen aus..."
+if dotnet ef database update --project src/EasterEggHunt.Infrastructure --startup-project src/EasterEggHunt.Web; then
+    echo "✅ Datenbank-Migrationen erfolgreich ausgeführt"
+else
+    echo "⚠️ Fehler bei Datenbank-Migrationen, versuche trotzdem fortzufahren..."
+fi
+
 # Funktion zum Stoppen aller Hintergrundprozesse
 cleanup() {
     echo "🛑 Stoppe alle Projekte..."
