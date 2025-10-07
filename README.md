@@ -89,19 +89,22 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ## 📖 Dokumentation
 
-- **[Architektur](ARCHITECTURE.md)** - Technische Architektur und Design-Entscheidungen
-- **[Datenbank-Schema](DATABASE_SCHEMA.md)** - ER-Diagramm und Datenbankdokumentation
-- **[Sprint-Planung](SPRINT_PLANNING.md)** - Detaillierte Sprint-Planung und User Stories
+- **[Entwicklerhandbuch](docs/DEVELOPER_GUIDE.md)** - Umfassendes Handbuch für Entwickler
+- **[Architektur](docs/ARCHITECTURE.md)** - Technische Architektur und Design-Entscheidungen
+- **[Datenbank-Schema](docs/DATABASE_SCHEMA.md)** - ER-Diagramm und Datenbankdokumentation
+- **[Sprint-Planung](docs/SPRINT_PLANNING.md)** - Detaillierte Sprint-Planung und User Stories
 - **[Gherkin Features](features/)** - Detaillierte Feature-Spezifikationen
-- **[Coding Guidelines](CODING_GUIDELINES.md)** - Entwicklungsstandards
-- **[Docker Build](README-BUILD.md)** - Docker Buildx Bake Dokumentation
-- **[Contributing](CONTRIBUTING.md)** - Beitrag zum Projekt
-- **[Security](SECURITY.md)** - Sicherheitsrichtlinien
-- **[Changelog](CHANGELOG.md)** - Versionshistorie
+- **[Coding Guidelines](docs/CODING_GUIDELINES.md)** - Entwicklungsstandards
+- **[Docker Build](docs/BUILD.md)** - Docker Buildx Bake Dokumentation
+- **[Environment-Konfiguration](docs/ENVIRONMENT_CONFIGURATION.md)** - Umgebungs-spezifische Einstellungen
+- **[Hot-Reload](docs/HOTRELOAD.md)** - Hot-Reload Konfiguration
+- **[Contributing](docs/CONTRIBUTING.md)** - Beitrag zum Projekt
+- **[Security](docs/SECURITY.md)** - Sicherheitsrichtlinien
+- **[Changelog](docs/CHANGELOG.md)** - Versionshistorie
 
 ## 🤝 Beitragen
 
-Wir freuen uns über Beiträge! Bitte lesen Sie unsere [Contributing Guidelines](CONTRIBUTING.md) für Details zum Entwicklungsprozess.
+Wir freuen uns über Beiträge! Bitte lesen Sie unsere [Contributing Guidelines](docs/CONTRIBUTING.md) für Details zum Entwicklungsprozess.
 
 ## 📄 Lizenz
 
@@ -109,7 +112,7 @@ Dieses Projekt ist unter der [MIT Lizenz](LICENSE) lizenziert.
 
 ## 🔒 Sicherheit
 
-Sicherheitslücken bitte über [GitHub Issues](../../issues) mit dem Label "security" melden. Siehe [SECURITY.md](SECURITY.md) für Details.
+Sicherheitslücken bitte über [GitHub Issues](../../issues) mit dem Label "security" melden. Siehe [SECURITY.md](docs/SECURITY.md) für Details.
 
 ## 📞 Support
 
