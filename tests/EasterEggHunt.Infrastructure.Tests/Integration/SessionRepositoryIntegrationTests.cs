@@ -8,7 +8,6 @@ namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
 [TestFixture]
 [Category("Integration")]
-[Ignore("Temporarily disabled - FluentAssertions conversion needed")]
 public class SessionRepositoryIntegrationTests : IntegrationTestBase
 {
     private User _testUser = null!;
@@ -36,10 +35,10 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var retrievedSession = await SessionRepository.GetByIdAsync(session.Id);
-        retrievedSession.Should().NotBeNull();
-        retrievedSession!.UserId.Should().Be(_testUser.Id);
-        retrievedSession.IsActive.Should().BeTrue();
-        retrievedSession.Data.Should().Be("{}");
+        Assert.That(retrievedSession, Is.Not.Null);
+        Assert.That(retrievedSession!.UserId, Is.EqualTo(_testUser.Id));
+        Assert.That(retrievedSession.IsActive, Is.True);
+        Assert.That(retrievedSession.Data, Is.EqualTo("{}"));
     }
 
     [Test]
@@ -54,8 +53,8 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var retrievedSession = await SessionRepository.GetByIdAsync(session.Id);
 
         // Assert
-        retrievedSession.Should().NotBeNull();
-        retrievedSession!.Id.Should().Be(session.Id);
+        Assert.That(retrievedSession, Is.Not.Null);
+        Assert.That(retrievedSession!.Id, Is.EqualTo(session.Id));
     }
 
     [Test]
@@ -65,7 +64,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var retrievedSession = await SessionRepository.GetByIdAsync("non-existing-id");
 
         // Assert
-        retrievedSession.Should().BeNull();
+        Assert.That(retrievedSession, Is.Null);
     }
 
     [Test]
@@ -82,10 +81,10 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var sessions = await SessionRepository.GetAllAsync();
 
         // Assert
-        sessions.Should().NotBeNull();
-        sessions.Should().HaveCount(2);
-        sessions.Should().Contain(s => s.Id == session1.Id);
-        sessions.Should().Contain(s => s.Id == session2.Id);
+        Assert.That(sessions, Is.Not.Null);
+        Assert.That(sessions.Count(), Is.EqualTo(2));
+        Assert.That(sessions, Has.Some.Matches<Session>(s => s.Id == session1.Id));
+        Assert.That(sessions, Has.Some.Matches<Session>(s => s.Id == session2.Id));
     }
 
     [Test]
@@ -106,10 +105,10 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var sessions = await SessionRepository.GetByUserIdAsync(_testUser.Id);
 
         // Assert
-        sessions.Should().NotBeNull();
-        sessions.Should().HaveCount(1);
-        sessions.Should().Contain(s => s.Id == session1.Id);
-        sessions.Should().NotContain(s => s.Id == session2.Id);
+        Assert.That(sessions, Is.Not.Null);
+        Assert.That(sessions.Count(), Is.EqualTo(1));
+        Assert.That(sessions, Has.Some.Matches<Session>(s => s.Id == session1.Id));
+        Assert.That(sessions, Has.None.Matches<Session>(s => s.Id == session2.Id));
     }
 
     [Test]
@@ -128,8 +127,8 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var updatedSession = await SessionRepository.GetByIdAsync(session.Id);
-        updatedSession.Should().NotBeNull();
-        updatedSession!.Data.Should().Be("{\"key\": \"value\"}");
+        Assert.That(updatedSession, Is.Not.Null);
+        Assert.That(updatedSession!.Data, Is.EqualTo("{\"key\": \"value\"}"));
     }
 
     [Test]
@@ -145,9 +144,9 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         await SessionRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeTrue();
+        Assert.That(result, Is.True);
         var deletedSession = await SessionRepository.GetByIdAsync(session.Id);
-        deletedSession.Should().BeNull();
+        Assert.That(deletedSession, Is.Null);
     }
 
     [Test]
@@ -158,7 +157,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         await SessionRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeFalse();
+        Assert.That(result, Is.False);
     }
 
     [Test]
@@ -173,7 +172,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var exists = await SessionRepository.ExistsAsync(session.Id);
 
         // Assert
-        exists.Should().BeTrue();
+        Assert.That(exists, Is.True);
     }
 
     [Test]
@@ -183,7 +182,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var exists = await SessionRepository.ExistsAsync("non-existing-id");
 
         // Assert
-        exists.Should().BeFalse();
+        Assert.That(exists, Is.False);
     }
 
     [Test]
@@ -198,7 +197,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var savedSession = await SessionRepository.GetByIdAsync(session.Id);
-        savedSession.Should().NotBeNull();
+        Assert.That(savedSession, Is.Not.Null);
     }
 
     [Test]
@@ -217,9 +216,9 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var activeSessions = await SessionRepository.GetActiveAsync();
 
         // Assert
-        activeSessions.Should().NotBeNull();
-        activeSessions.Should().ContainSingle(s => s.Id == activeSession.Id);
-        activeSessions.Should().NotContain(s => s.Id == inactiveSession.Id);
+        Assert.That(activeSessions, Is.Not.Null);
+        Assert.That(activeSessions, Has.Exactly(1).Matches<Session>(s => s.Id == activeSession.Id));
+        Assert.That(activeSessions, Has.None.Matches<Session>(s => s.Id == inactiveSession.Id));
     }
 
     [Test]
@@ -245,10 +244,10 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         activeSessions = activeSessions.Where(s => s.IsActive);
 
         // Assert
-        activeSessions.Should().NotBeNull();
-        activeSessions.Should().ContainSingle(s => s.Id == activeSession1.Id);
-        activeSessions.Should().NotContain(s => s.Id == activeSession2.Id);
-        activeSessions.Should().NotContain(s => s.Id == inactiveSession.Id);
+        Assert.That(activeSessions, Is.Not.Null);
+        Assert.That(activeSessions, Has.Exactly(1).Matches<Session>(s => s.Id == activeSession1.Id));
+        Assert.That(activeSessions, Has.None.Matches<Session>(s => s.Id == activeSession2.Id));
+        Assert.That(activeSessions, Has.None.Matches<Session>(s => s.Id == inactiveSession.Id));
     }
 
     [Test]
@@ -267,10 +266,10 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         await SessionRepository.SaveChangesAsync();
 
         // Assert
-        deletedCount.Should().BeGreaterThan(0);
+        Assert.That(deletedCount, Is.GreaterThan(0));
         var remainingSessions = await SessionRepository.GetAllAsync();
-        remainingSessions.Should().Contain(s => s.Id == validSession.Id);
-        remainingSessions.Should().NotContain(s => s.Id == expiredSession.Id);
+        Assert.That(remainingSessions, Has.Some.Matches<Session>(s => s.Id == validSession.Id));
+        Assert.That(remainingSessions, Has.None.Matches<Session>(s => s.Id == expiredSession.Id));
     }
 
     [Test]
@@ -285,9 +284,9 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var retrievedSession = await SessionRepository.GetByIdAsync(session.Id);
 
         // Assert
-        retrievedSession.Should().NotBeNull();
-        retrievedSession!.User.Should().NotBeNull();
-        retrievedSession.User.Id.Should().Be(_testUser.Id);
+        Assert.That(retrievedSession, Is.Not.Null);
+        Assert.That(retrievedSession!.User, Is.Not.Null);
+        Assert.That(retrievedSession.User.Id, Is.EqualTo(_testUser.Id));
     }
 
     [Test]
@@ -309,9 +308,9 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         var retrievedExpiredSession = await SessionRepository.GetByIdAsync(expiredSession.Id);
         var retrievedInactiveSession = await SessionRepository.GetByIdAsync(inactiveSession.Id);
 
-        retrievedValidSession!.IsValid().Should().BeTrue();
-        retrievedExpiredSession!.IsValid().Should().BeFalse();
-        retrievedInactiveSession!.IsValid().Should().BeFalse();
+        Assert.That(retrievedValidSession!.IsValid(), Is.True);
+        Assert.That(retrievedExpiredSession!.IsValid(), Is.False);
+        Assert.That(retrievedInactiveSession!.IsValid(), Is.False);
     }
 
     [Test]
@@ -331,7 +330,7 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var updatedSession = await SessionRepository.GetByIdAsync(session.Id);
-        updatedSession.Should().NotBeNull();
-        updatedSession!.ExpiresAt.Should().BeCloseTo(originalExpiration.AddDays(10), TimeSpan.FromMinutes(1));
+        Assert.That(updatedSession, Is.Not.Null);
+        Assert.That(updatedSession!.ExpiresAt, Is.EqualTo(originalExpiration.AddDays(10)).Within(TimeSpan.FromMinutes(1)));
     }
 }

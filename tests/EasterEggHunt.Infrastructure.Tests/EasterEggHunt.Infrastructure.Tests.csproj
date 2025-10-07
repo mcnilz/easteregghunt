@@ -26,6 +26,7 @@
     <Compile Include="Integration\IntegrationTestBase.cs" />
     <Compile Include="Integration\AdminUserRepositoryIntegrationTests.cs" />
     <Compile Include="Integration\UserRepositoryIntegrationTests.cs" />
+    <Compile Include="Integration\SessionRepositoryIntegrationTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
