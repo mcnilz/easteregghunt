@@ -19,17 +19,20 @@
 ## 🎯 Aktueller Projekt-Status
 
 **Aktueller Sprint:** Sprint 0 - Projekt-Foundation  
-**Fortschritt:** 77% abgeschlossen (20/26 Story Points)  
-**Tests:** 149 Tests erfolgreich mit 81.31% Code Coverage  
-**Letzte Commits:** Repository Pattern vollständig implementiert, Integration Tests abgeschlossen
+**Fortschritt:** 85% abgeschlossen (22/26 Story Points)  
+**Tests:** 200+ Tests erfolgreich mit 87.7% Code Coverage  
+**Letzte Commits:** Service Layer implementiert, alle FluentAssertions entfernt, 100 Integration Tests
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
-- ✅ 6 Domain Entities mit umfassenden Tests
-- ✅ Repository Pattern mit Integration Tests (SQLite)
+- ✅ 6 Domain Entities mit umfassenden Tests (52 Tests)
+- ✅ Repository Pattern mit 100 Integration Tests (SQLite)
+- ✅ Service Layer mit Dependency Injection (5 Services)
+- ✅ FluentAssertions komplett durch NUnit Assertions ersetzt
 - ✅ Docker Buildx Bake Setup mit optimierten Builds
 - ✅ GitHub Actions CI/CD Pipeline funktioniert
 - ✅ Umfassende Dokumentation (Architektur, Datenbank, Build)
+- ✅ SeedDataService für Entwicklungsumgebung
 
 ---
 
@@ -63,7 +66,7 @@ Technische Grundlagen schaffen und Architektur etablieren
 **Akzeptanzkriterien:**
 - [x] Entity-Relationship-Diagramm erstellt
 - [x] EF Core Entities definiert
-- [ ] Seed-Daten für Entwicklung
+- [x] Seed-Daten für Entwicklung (SeedDataService)
 - [x] Migration-Strategie festgelegt
 - [x] Datenbank-Constraints definiert
 - [x] Performance-Überlegungen dokumentiert
@@ -79,7 +82,7 @@ Technische Grundlagen schaffen und Architektur etablieren
 - [x] Clean Architecture Layers definiert
 - [x] Dependency Injection konfiguriert
 - [x] Repository Pattern implementiert
-- [ ] Service Layer Struktur
+- [x] Service Layer Struktur (5 Services implementiert)
 - [ ] API Controller Struktur
 - [ ] Frontend MVC Struktur
 - [x] Architektur-Dokumentation
@@ -104,14 +107,14 @@ Technische Grundlagen schaffen und Architektur etablieren
 **Sprint 0 Gesamt:** 26 Story Points
 
 ### 📊 Sprint 0 Status (Stand: 02.10.2025)
-- **Abgeschlossen:** 20 Story Points (77%)
-- **Verbleibend:** 6 Story Points (23%)
-- **Tests:** 149 Tests erfolgreich, 81.31% Code Coverage
-- **Repository Pattern:** Vollständig implementiert mit Integration Tests
+- **Abgeschlossen:** 22 Story Points (85%)
+- **Verbleibend:** 4 Story Points (15%)
+- **Tests:** 200+ Tests erfolgreich, 87.7% Code Coverage
+- **Repository Pattern:** Vollständig implementiert mit 100 Integration Tests
+- **Service Layer:** 5 Services mit Dependency Injection implementiert
+- **FluentAssertions:** Komplett durch NUnit Assertions ersetzt
 
 **Verbleibende Aufgaben:**
-- Seed-Daten für Entwicklung implementieren
-- Service Layer Struktur erstellen
 - API Controller Grundstruktur
 - Frontend MVC Grundstruktur
 - Hot-Reload Konfiguration
