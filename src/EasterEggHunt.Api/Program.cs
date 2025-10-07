@@ -27,6 +27,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    // Hot-Reload is automatically enabled when using 'dotnet watch run'
 }
 
 app.UseHttpsRedirection();

@@ -1,0 +1,21 @@
+{
+  "hotReloadProfile": "aspnetcore",
+  "exclude": [
+    "**/bin/**",
+    "**/obj/**",
+    "**/node_modules/**",
+    "**/.git/**",
+    "**/coverage/**",
+    "**/Migrations/**",
+    "**/*.db",
+    "**/*.db-shm",
+    "**/*.db-wal"
+  ],
+  "include": [
+    "**/*.cs",
+    "**/*.cshtml",
+    "**/*.css",
+    "**/*.js",
+    "**/*.json"
+  ]
+}
