@@ -12,9 +12,9 @@ namespace EasterEggHunt.Application.Tests.Services;
 [TestFixture]
 public class AuthServiceTests
 {
-    private Mock<IAdminUserRepository>? _mockRepository;
-    private Mock<ILogger<AuthService>>? _mockLogger;
-    private AuthService? _authService;
+    private Mock<IAdminUserRepository> _mockRepository = null!;
+    private Mock<ILogger<AuthService>> _mockLogger = null!;
+    private AuthService _authService = null!;
 
     [SetUp]
     public void Setup()
