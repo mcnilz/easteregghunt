@@ -1,10 +1,18 @@
 using EasterEggHunt.Application;
 using EasterEggHunt.Infrastructure;
+using EasterEggHunt.Infrastructure.Configuration;
+using EasterEggHunt.Web.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Add Easter Egg Hunt Configuration
+builder.Services.AddEasterEggHuntConfiguration(builder.Configuration);
+
+// Add CORS
+builder.Services.AddEasterEggHuntCors(builder.Configuration);
 
 // Add Easter Egg Hunt DbContext
 builder.Services.AddEasterEggHuntDbContext(builder.Configuration);
@@ -33,10 +41,14 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Configure EasterEggHunt environment-specific settings
+app.ConfigureEasterEggHuntEnvironment();
+
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors();
 
 app.UseAuthorization();
 

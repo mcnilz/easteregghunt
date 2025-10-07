@@ -1,5 +1,7 @@
+using EasterEggHunt.Api.Configuration;
 using EasterEggHunt.Application;
 using EasterEggHunt.Infrastructure;
+using EasterEggHunt.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add Easter Egg Hunt Configuration
+builder.Services.AddEasterEggHuntConfiguration(builder.Configuration);
+
+// Add CORS
+builder.Services.AddEasterEggHuntCors(builder.Configuration);
 
 // Add Easter Egg Hunt DbContext
 builder.Services.AddEasterEggHuntDbContext(builder.Configuration);
@@ -30,7 +38,11 @@ if (app.Environment.IsDevelopment())
     // Hot-Reload is automatically enabled when using 'dotnet watch run'
 }
 
-app.UseHttpsRedirection();
+// Configure EasterEggHunt environment-specific settings
+app.ConfigureEasterEggHuntEnvironment();
+
+app.UseCors();
+
 app.UseAuthorization();
 
 // Map controllers
