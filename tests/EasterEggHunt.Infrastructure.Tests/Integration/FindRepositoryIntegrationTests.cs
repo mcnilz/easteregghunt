@@ -8,7 +8,6 @@ namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
 [TestFixture]
 [Category("Integration")]
-[Ignore("Temporarily disabled - FluentAssertions conversion needed")]
 public class FindRepositoryIntegrationTests : IntegrationTestBase
 {
     private Campaign _testCampaign = null!;
@@ -48,11 +47,11 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var retrievedFind = await FindRepository.GetByIdAsync(find.Id);
-        retrievedFind.Should().NotBeNull();
-        retrievedFind!.QrCodeId.Should().Be(_testQrCode.Id);
-        retrievedFind.UserId.Should().Be(_testUser.Id);
-        retrievedFind.IpAddress.Should().Be("127.0.0.1");
-        retrievedFind.UserAgent.Should().Be("Test User Agent");
+        Assert.That(retrievedFind, Is.Not.Null);
+        Assert.That(retrievedFind!.QrCodeId, Is.EqualTo(_testQrCode.Id));
+        Assert.That(retrievedFind.UserId, Is.EqualTo(_testUser.Id));
+        Assert.That(retrievedFind.IpAddress, Is.EqualTo("127.0.0.1"));
+        Assert.That(retrievedFind.UserAgent, Is.EqualTo("Test User Agent"));
     }
 
     [Test]
@@ -67,8 +66,8 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var retrievedFind = await FindRepository.GetByIdAsync(find.Id);
 
         // Assert
-        retrievedFind.Should().NotBeNull();
-        retrievedFind!.Id.Should().Be(find.Id);
+        Assert.That(retrievedFind, Is.Not.Null);
+        Assert.That(retrievedFind!.Id, Is.EqualTo(find.Id));
     }
 
     [Test]
@@ -78,7 +77,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var retrievedFind = await FindRepository.GetByIdAsync(999);
 
         // Assert
-        retrievedFind.Should().BeNull();
+        Assert.That(retrievedFind, Is.Null);
     }
 
     [Test]
@@ -95,10 +94,10 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var finds = await FindRepository.GetAllAsync();
 
         // Assert
-        finds.Should().NotBeNull();
-        finds.Should().HaveCount(2);
-        finds.Should().Contain(f => f.Id == find1.Id);
-        finds.Should().Contain(f => f.Id == find2.Id);
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(2));
+        Assert.That(finds, Has.Some.Matches<Find>(f => f.Id == find1.Id));
+        Assert.That(finds, Has.Some.Matches<Find>(f => f.Id == find2.Id));
     }
 
     [Test]
@@ -119,10 +118,10 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var finds = await FindRepository.GetByQrCodeIdAsync(_testQrCode.Id);
 
         // Assert
-        finds.Should().NotBeNull();
-        finds.Should().HaveCount(1);
-        finds.Should().Contain(f => f.Id == find1.Id);
-        finds.Should().NotContain(f => f.Id == find2.Id);
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(1));
+        Assert.That(finds, Has.Some.Matches<Find>(f => f.Id == find1.Id));
+        Assert.That(finds, Has.None.Matches<Find>(f => f.Id == find2.Id));
     }
 
     [Test]
@@ -143,10 +142,10 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var finds = await FindRepository.GetByUserIdAsync(_testUser.Id);
 
         // Assert
-        finds.Should().NotBeNull();
-        finds.Should().HaveCount(1);
-        finds.Should().Contain(f => f.Id == find1.Id);
-        finds.Should().NotContain(f => f.Id == find2.Id);
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(1));
+        Assert.That(finds, Has.Some.Matches<Find>(f => f.Id == find1.Id));
+        Assert.That(finds, Has.None.Matches<Find>(f => f.Id == find2.Id));
     }
 
     [Test]
@@ -165,8 +164,8 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var updatedFind = await FindRepository.GetByIdAsync(find.Id);
-        updatedFind.Should().NotBeNull();
-        updatedFind!.UserAgent.Should().Be("Updated User Agent");
+        Assert.That(updatedFind, Is.Not.Null);
+        Assert.That(updatedFind!.UserAgent, Is.EqualTo("Updated User Agent"));
     }
 
     [Test]
@@ -182,9 +181,9 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         await FindRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeTrue();
+        Assert.That(result, Is.True);
         var deletedFind = await FindRepository.GetByIdAsync(find.Id);
-        deletedFind.Should().BeNull();
+        Assert.That(deletedFind, Is.Null);
     }
 
     [Test]
@@ -195,7 +194,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         await FindRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeFalse();
+        Assert.That(result, Is.False);
     }
 
     [Test]
@@ -210,7 +209,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var exists = await FindRepository.ExistsAsync(find.Id);
 
         // Assert
-        exists.Should().BeTrue();
+        Assert.That(exists, Is.True);
     }
 
     [Test]
@@ -220,7 +219,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var exists = await FindRepository.ExistsAsync(999);
 
         // Assert
-        exists.Should().BeFalse();
+        Assert.That(exists, Is.False);
     }
 
     [Test]
@@ -235,7 +234,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var savedFind = await FindRepository.GetByIdAsync(find.Id);
-        savedFind.Should().NotBeNull();
+        Assert.That(savedFind, Is.Not.Null);
     }
 
     [Test]
@@ -250,7 +249,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var hasFound = await FindRepository.UserHasFoundQrCodeAsync(_testUser.Id, _testQrCode.Id);
 
         // Assert
-        hasFound.Should().BeTrue();
+        Assert.That(hasFound, Is.True);
     }
 
     [Test]
@@ -260,7 +259,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var hasFound = await FindRepository.UserHasFoundQrCodeAsync(_testUser.Id, _testQrCode.Id);
 
         // Assert
-        hasFound.Should().BeFalse();
+        Assert.That(hasFound, Is.False);
     }
 
     [Test]
@@ -282,7 +281,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var count = finds.Count();
 
         // Assert
-        count.Should().Be(2);
+        Assert.That(count, Is.EqualTo(2));
     }
 
     [Test]
@@ -304,7 +303,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var count = finds.Count();
 
         // Assert
-        count.Should().Be(2);
+        Assert.That(count, Is.EqualTo(2));
     }
 
     [Test]
@@ -319,10 +318,10 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         var retrievedFind = await FindRepository.GetByIdAsync(find.Id);
 
         // Assert
-        retrievedFind.Should().NotBeNull();
-        retrievedFind!.QrCode.Should().NotBeNull();
-        retrievedFind.QrCode.Id.Should().Be(_testQrCode.Id);
-        retrievedFind.User.Should().NotBeNull();
-        retrievedFind.User.Id.Should().Be(_testUser.Id);
+        Assert.That(retrievedFind, Is.Not.Null);
+        Assert.That(retrievedFind!.QrCode, Is.Not.Null);
+        Assert.That(retrievedFind.QrCode.Id, Is.EqualTo(_testQrCode.Id));
+        Assert.That(retrievedFind.User, Is.Not.Null);
+        Assert.That(retrievedFind.User.Id, Is.EqualTo(_testUser.Id));
     }
 }
