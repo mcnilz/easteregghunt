@@ -97,11 +97,13 @@ public abstract class IntegrationTestBase : IDisposable
         var qrCode1 = new EasterEggHunt.Domain.Entities.QrCode(
             campaign.Id,
             "QR Code 1",
+            "Beschreibung für QR Code 1",
             "Interner Hinweis für QR Code 1");
 
         var qrCode2 = new EasterEggHunt.Domain.Entities.QrCode(
             campaign.Id,
             "QR Code 2",
+            "Beschreibung für QR Code 2",
             "Interner Hinweis für QR Code 2");
 
         await QrCodeRepository.AddAsync(qrCode1);

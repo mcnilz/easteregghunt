@@ -11,18 +11,20 @@ public class QrCodeTests
 {
     private const int ValidCampaignId = 1;
     private const string ValidTitle = "Versteck unter dem Schreibtisch";
-    private const string ValidInternalNote = "QR-Code ist unter dem Schreibtisch von Max versteckt";
+    private const string ValidDescription = "Ein versteckter QR-Code";
+    private const string ValidInternalNotes = "QR-Code ist unter dem Schreibtisch von Max versteckt";
 
     [Test]
     public void Constructor_WithValidParameters_ShouldCreateQrCode()
     {
         // Act
-        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
 
         // Assert
         Assert.That(qrCode.CampaignId, Is.EqualTo(ValidCampaignId));
         Assert.That(qrCode.Title, Is.EqualTo(ValidTitle));
-        Assert.That(qrCode.InternalNote, Is.EqualTo(ValidInternalNote));
+        Assert.That(qrCode.Description, Is.EqualTo(ValidDescription));
+        Assert.That(qrCode.InternalNotes, Is.EqualTo(ValidInternalNotes));
         Assert.That(qrCode.IsActive, Is.True);
         Assert.That(qrCode.SortOrder, Is.EqualTo(0));
         Assert.That(qrCode.CreatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
@@ -37,7 +39,7 @@ public class QrCodeTests
     public void Constructor_WithNullTitle_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => new QrCode(ValidCampaignId, null!, ValidInternalNote));
+        var ex = Assert.Throws<ArgumentNullException>(() => new QrCode(ValidCampaignId, null!, ValidDescription, ValidInternalNotes));
         Assert.That(ex.ParamName, Is.EqualTo("title"));
     }
 
@@ -45,16 +47,16 @@ public class QrCodeTests
     public void Constructor_WithNullInternalNote_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => new QrCode(ValidCampaignId, ValidTitle, null!));
-        Assert.That(ex.ParamName, Is.EqualTo("internalNote"));
+        var ex = Assert.Throws<ArgumentNullException>(() => new QrCode(ValidCampaignId, ValidTitle, ValidDescription, null!));
+        Assert.That(ex.ParamName, Is.EqualTo("internalNotes"));
     }
 
     [Test]
     public void Constructor_ShouldGenerateUniqueUrl()
     {
         // Act
-        var qrCode1 = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
-        var qrCode2 = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode1 = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
+        var qrCode2 = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
 
         // Assert
         Assert.That(qrCode1.UniqueUrl, Is.Not.EqualTo(qrCode2.UniqueUrl));
@@ -66,7 +68,7 @@ public class QrCodeTests
     public void Activate_ShouldSetIsActiveToTrue()
     {
         // Arrange
-        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
         qrCode.Deactivate(); // Erst deaktivieren
 
         // Act
@@ -81,7 +83,7 @@ public class QrCodeTests
     public void Deactivate_ShouldSetIsActiveToFalse()
     {
         // Arrange
-        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
 
         // Act
         qrCode.Deactivate();
@@ -95,16 +97,16 @@ public class QrCodeTests
     public void Update_WithValidParameters_ShouldUpdateProperties()
     {
         // Arrange
-        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
         var newTitle = "Neuer Titel";
         var newNote = "Neue interne Notiz";
 
         // Act
-        qrCode.Update(newTitle, newNote);
+        qrCode.Update(newTitle, ValidDescription, newNote);
 
         // Assert
         Assert.That(qrCode.Title, Is.EqualTo(newTitle));
-        Assert.That(qrCode.InternalNote, Is.EqualTo(newNote));
+        Assert.That(qrCode.InternalNotes, Is.EqualTo(newNote));
         Assert.That(qrCode.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
     }
 
@@ -112,10 +114,10 @@ public class QrCodeTests
     public void Update_WithNullTitle_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
 
         // Act & Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => qrCode.Update(null!, ValidInternalNote));
+        var ex = Assert.Throws<ArgumentNullException>(() => qrCode.Update(null!, ValidDescription, ValidInternalNotes));
         Assert.That(ex.ParamName, Is.EqualTo("title"));
     }
 
@@ -123,18 +125,18 @@ public class QrCodeTests
     public void Update_WithNullInternalNote_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
 
         // Act & Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => qrCode.Update(ValidTitle, null!));
-        Assert.That(ex.ParamName, Is.EqualTo("internalNote"));
+        var ex = Assert.Throws<ArgumentNullException>(() => qrCode.Update(ValidTitle, ValidDescription, null!));
+        Assert.That(ex.ParamName, Is.EqualTo("internalNotes"));
     }
 
     [Test]
     public void SetSortOrder_ShouldUpdateSortOrder()
     {
         // Arrange
-        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
         var newSortOrder = 5;
 
         // Act
@@ -149,7 +151,7 @@ public class QrCodeTests
     public void Finds_ShouldBeReadOnlyCollection()
     {
         // Arrange
-        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidInternalNote);
+        var qrCode = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
 
         // Act & Assert
         Assert.That(qrCode.Finds, Is.Not.Null);

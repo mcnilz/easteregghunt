@@ -30,7 +30,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         await UserRepository.SaveChangesAsync();
 
         // Test-QR-Code erstellen
-        _testQrCode = new QrCode(_testCampaign.Id, "Test QR Code", "Test Note");
+        _testQrCode = new QrCode(_testCampaign.Id, "Test QR Code", "Test Description", "Test Note");
         await QrCodeRepository.AddAsync(_testQrCode);
         await QrCodeRepository.SaveChangesAsync();
     }
@@ -104,7 +104,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
     public async Task GetByQrCodeIdAsync_ShouldReturnFindsForQrCode()
     {
         // Arrange
-        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Note 2");
+        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Description 2", "Note 2");
         await QrCodeRepository.AddAsync(qrCode2);
         await QrCodeRepository.SaveChangesAsync();
 
@@ -288,7 +288,7 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
     public async Task GetCountByUserIdAsync_ShouldReturnCorrectCount()
     {
         // Arrange
-        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Note 2");
+        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Description 2", "Note 2");
         await QrCodeRepository.AddAsync(qrCode2);
         await QrCodeRepository.SaveChangesAsync();
 

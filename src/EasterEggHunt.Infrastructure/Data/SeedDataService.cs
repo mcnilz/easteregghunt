@@ -143,16 +143,16 @@ public class SeedDataService : IHostedService
     {
         return new[]
         {
-            new QrCode(easterCampaign.Id, "Küche", "Hinter dem Kaffeeautomaten"),
-            new QrCode(easterCampaign.Id, "Meeting Room", "Unter dem Konferenztisch"),
-            new QrCode(easterCampaign.Id, "Rezeption", "In der Pflanze links vom Eingang"),
-            new QrCode(easterCampaign.Id, "Büro 101", "Hinter dem Monitor von Max"),
-            new QrCode(easterCampaign.Id, "Parkplatz", "Unter dem Auto von der Chefin"),
-            new QrCode(easterCampaign.Id, "Kantine", "In der Salatschüssel"),
-            new QrCode(easterCampaign.Id, "Toilette", "Hinter dem Spiegel"),
-            new QrCode(easterCampaign.Id, "Kopierraum", "Im Papierkorb"),
-            new QrCode(easterCampaign.Id, "Balkon", "Unter dem Blumentopf"),
-            new QrCode(easterCampaign.Id, "Serverraum", "Neben dem Router")
+            new QrCode(easterCampaign.Id, "Küche", "Versteck in der Küche", "Hinter dem Kaffeeautomaten"),
+            new QrCode(easterCampaign.Id, "Meeting Room", "Versteck im Meeting Room", "Unter dem Konferenztisch"),
+            new QrCode(easterCampaign.Id, "Rezeption", "Versteck an der Rezeption", "In der Pflanze links vom Eingang"),
+            new QrCode(easterCampaign.Id, "Büro 101", "Versteck in Büro 101", "Hinter dem Monitor von Max"),
+            new QrCode(easterCampaign.Id, "Parkplatz", "Versteck auf dem Parkplatz", "Unter dem Auto von der Chefin"),
+            new QrCode(easterCampaign.Id, "Kantine", "Versteck in der Kantine", "In der Salatschüssel"),
+            new QrCode(easterCampaign.Id, "Toilette", "Versteck in der Toilette", "Hinter dem Spiegel"),
+            new QrCode(easterCampaign.Id, "Kopierraum", "Versteck im Kopierraum", "Im Papierkorb"),
+            new QrCode(easterCampaign.Id, "Balkon", "Versteck auf dem Balkon", "Unter dem Blumentopf"),
+            new QrCode(easterCampaign.Id, "Serverraum", "Versteck im Serverraum", "Neben dem Router")
         };
     }
 
@@ -163,11 +163,11 @@ public class SeedDataService : IHostedService
     {
         return new[]
         {
-            new QrCode(teamBuildingCampaign.Id, "Eingang", "Willkommen im Unternehmen!"),
-            new QrCode(teamBuildingCampaign.Id, "HR-Abteilung", "Hier arbeitet das Personalteam"),
-            new QrCode(teamBuildingCampaign.Id, "IT-Abteilung", "Die Technik-Experten"),
-            new QrCode(teamBuildingCampaign.Id, "Marketing", "Kreative Köpfe"),
-            new QrCode(teamBuildingCampaign.Id, "Vertrieb", "Die Verkaufsprofis")
+            new QrCode(teamBuildingCampaign.Id, "Eingang", "Willkommen im Unternehmen!", "Eingangsbereich"),
+            new QrCode(teamBuildingCampaign.Id, "HR-Abteilung", "Hier arbeitet das Personalteam", "HR-Büro"),
+            new QrCode(teamBuildingCampaign.Id, "IT-Abteilung", "Die Technik-Experten", "IT-Büro"),
+            new QrCode(teamBuildingCampaign.Id, "Marketing", "Kreative Köpfe", "Marketing-Büro"),
+            new QrCode(teamBuildingCampaign.Id, "Vertrieb", "Die Verkaufsprofis", "Vertriebs-Büro")
         };
     }
 

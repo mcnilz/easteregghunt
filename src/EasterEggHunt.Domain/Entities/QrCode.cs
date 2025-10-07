@@ -21,9 +21,14 @@ public class QrCode
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
-    /// Interne Notiz für Administratoren
+    /// Beschreibung des QR-Codes (öffentlich sichtbar)
     /// </summary>
-    public string InternalNote { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Interne Notizen für Administratoren
+    /// </summary>
+    public string InternalNotes { get; set; } = string.Empty;
 
     /// <summary>
     /// Eindeutige URL für den QR-Code
@@ -72,12 +77,14 @@ public class QrCode
     /// </summary>
     /// <param name="campaignId">ID der zugehörigen Kampagne</param>
     /// <param name="title">Titel des QR-Codes</param>
-    /// <param name="internalNote">Interne Notiz</param>
-    public QrCode(int campaignId, string title, string internalNote)
+    /// <param name="description">Beschreibung des QR-Codes</param>
+    /// <param name="internalNotes">Interne Notizen</param>
+    public QrCode(int campaignId, string title, string description, string internalNotes)
     {
         CampaignId = campaignId;
         Title = title ?? throw new ArgumentNullException(nameof(title));
-        InternalNote = internalNote ?? throw new ArgumentNullException(nameof(internalNote));
+        Description = description ?? throw new ArgumentNullException(nameof(description));
+        InternalNotes = internalNotes ?? throw new ArgumentNullException(nameof(internalNotes));
         UniqueUrl = GenerateUniqueUrl();
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
@@ -107,11 +114,13 @@ public class QrCode
     /// Aktualisiert die QR-Code Details
     /// </summary>
     /// <param name="title">Neuer Titel</param>
-    /// <param name="internalNote">Neue interne Notiz</param>
-    public void Update(string title, string internalNote)
+    /// <param name="description">Neue Beschreibung</param>
+    /// <param name="internalNotes">Neue interne Notizen</param>
+    public void Update(string title, string description, string internalNotes)
     {
         Title = title ?? throw new ArgumentNullException(nameof(title));
-        InternalNote = internalNote ?? throw new ArgumentNullException(nameof(internalNote));
+        Description = description ?? throw new ArgumentNullException(nameof(description));
+        InternalNotes = internalNotes ?? throw new ArgumentNullException(nameof(internalNotes));
         UpdatedAt = DateTime.UtcNow;
     }
 

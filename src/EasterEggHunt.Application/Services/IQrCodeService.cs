@@ -1,3 +1,4 @@
+using EasterEggHunt.Application.Requests;
 using EasterEggHunt.Domain.Entities;
 
 namespace EasterEggHunt.Application.Services;
@@ -24,20 +25,23 @@ public interface IQrCodeService
     /// <summary>
     /// Erstellt einen neuen QR-Code
     /// </summary>
-    /// <param name="campaignId">Kampagnen-ID</param>
-    /// <param name="title">QR-Code Titel</param>
-    /// <param name="internalNote">Interne Notiz</param>
+    /// <param name="request">QR-Code Erstellungsdaten</param>
     /// <returns>Erstellter QR-Code</returns>
-    Task<QrCode> CreateQrCodeAsync(int campaignId, string title, string internalNote);
+    Task<QrCode> CreateQrCodeAsync(CreateQrCodeRequest request);
 
     /// <summary>
     /// Aktualisiert einen bestehenden QR-Code
     /// </summary>
-    /// <param name="id">QR-Code-ID</param>
-    /// <param name="title">Neuer Titel</param>
-    /// <param name="internalNote">Neue interne Notiz</param>
+    /// <param name="request">QR-Code Aktualisierungsdaten</param>
     /// <returns>True wenn erfolgreich aktualisiert</returns>
-    Task<bool> UpdateQrCodeAsync(int id, string title, string internalNote);
+    Task<bool> UpdateQrCodeAsync(UpdateQrCodeRequest request);
+
+    /// <summary>
+    /// Löscht einen QR-Code
+    /// </summary>
+    /// <param name="id">QR-Code-ID</param>
+    /// <returns>True wenn erfolgreich gelöscht</returns>
+    Task<bool> DeleteQrCodeAsync(int id);
 
     /// <summary>
     /// Setzt die Sortierreihenfolge für einen QR-Code

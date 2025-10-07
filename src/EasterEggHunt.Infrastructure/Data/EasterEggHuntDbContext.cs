@@ -118,8 +118,9 @@ public class EasterEggHuntDbContext : DbContext
             entity.Property(e => e.Title)
                 .IsRequired()
                 .HasMaxLength(200);
-            entity.Property(e => e.InternalNote)
-                .IsRequired()
+            entity.Property(e => e.Description)
+                .HasMaxLength(500);
+            entity.Property(e => e.InternalNotes)
                 .HasMaxLength(1000);
             entity.Property(e => e.UniqueUrl)
                 .IsRequired()

@@ -1,4 +1,5 @@
 using EasterEggHunt.Api.Controllers;
+using EasterEggHunt.Application.Requests;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -33,8 +34,8 @@ public class QrCodesControllerTests
         var campaignId = 1;
         var qrCodes = new List<QrCode>
         {
-            new QrCode(campaignId, "QR Code 1", "Note 1"),
-            new QrCode(campaignId, "QR Code 2", "Note 2")
+            new QrCode(campaignId, "QR Code 1", "Description 1", "Note 1"),
+            new QrCode(campaignId, "QR Code 2", "Description 2", "Note 2")
         };
 
         _mockQrCodeService.Setup(x => x.GetQrCodesByCampaignIdAsync(campaignId))
@@ -70,7 +71,7 @@ public class QrCodesControllerTests
     public async Task GetQrCode_ReturnsOkResult_WhenQrCodeExists()
     {
         // Arrange
-        var qrCode = new QrCode(1, "Test QR Code", "Test Note");
+        var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note");
         _mockQrCodeService.Setup(x => x.GetQrCodeByIdAsync(1))
             .ReturnsAsync(qrCode);
 
@@ -103,15 +104,15 @@ public class QrCodesControllerTests
     public async Task CreateQrCode_ReturnsCreatedAtAction_WhenValidRequest()
     {
         // Arrange
-        var request = new CreateQrCodeRequest
+        var request = new CreateQrCodeApiRequest
         {
             CampaignId = 1,
             Title = "Test QR Code",
             InternalNote = "Test Note"
         };
 
-        var qrCode = new QrCode(1, "Test QR Code", "Test Note");
-        _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(1, "Test QR Code", "Test Note"))
+        var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note");
+        _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(It.IsAny<CreateQrCodeRequest>()))
             .ReturnsAsync(qrCode);
 
         // Act
@@ -128,7 +129,7 @@ public class QrCodesControllerTests
     public async Task CreateQrCode_ReturnsBadRequest_WhenModelStateIsInvalid()
     {
         // Arrange
-        var request = new CreateQrCodeRequest
+        var request = new CreateQrCodeApiRequest
         {
             CampaignId = 0, // Invalid - must be > 0
             Title = "", // Invalid - empty title
@@ -149,14 +150,14 @@ public class QrCodesControllerTests
     public async Task CreateQrCode_ReturnsBadRequest_WhenArgumentExceptionThrown()
     {
         // Arrange
-        var request = new CreateQrCodeRequest
+        var request = new CreateQrCodeApiRequest
         {
             CampaignId = 1,
             Title = "Test QR Code",
             InternalNote = "Test Note"
         };
 
-        _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(1, "Test QR Code", "Test Note"))
+        _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(It.IsAny<CreateQrCodeRequest>()))
             .ThrowsAsync(new ArgumentException("Invalid argument"));
 
         // Act
@@ -172,13 +173,13 @@ public class QrCodesControllerTests
     public async Task UpdateQrCode_ReturnsNoContent_WhenQrCodeExists()
     {
         // Arrange
-        var request = new UpdateQrCodeRequest
+        var request = new UpdateQrCodeApiRequest
         {
             Title = "Updated QR Code",
             InternalNote = "Updated Note"
         };
 
-        _mockQrCodeService.Setup(x => x.UpdateQrCodeAsync(1, "Updated QR Code", "Updated Note"))
+        _mockQrCodeService.Setup(x => x.UpdateQrCodeAsync(It.IsAny<UpdateQrCodeRequest>()))
             .ReturnsAsync(true);
 
         // Act
@@ -192,13 +193,13 @@ public class QrCodesControllerTests
     public async Task UpdateQrCode_ReturnsNotFound_WhenQrCodeDoesNotExist()
     {
         // Arrange
-        var request = new UpdateQrCodeRequest
+        var request = new UpdateQrCodeApiRequest
         {
             Title = "Updated QR Code",
             InternalNote = "Updated Note"
         };
 
-        _mockQrCodeService.Setup(x => x.UpdateQrCodeAsync(1, "Updated QR Code", "Updated Note"))
+        _mockQrCodeService.Setup(x => x.UpdateQrCodeAsync(It.IsAny<UpdateQrCodeRequest>()))
             .ReturnsAsync(false);
 
         // Act

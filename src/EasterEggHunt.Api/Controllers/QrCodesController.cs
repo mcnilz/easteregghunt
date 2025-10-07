@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EasterEggHunt.Application.Requests;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -79,7 +80,7 @@ public class QrCodesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<QrCode>> CreateQrCode([FromBody] CreateQrCodeRequest request)
+    public async Task<ActionResult<QrCode>> CreateQrCode([FromBody] CreateQrCodeApiRequest request)
     {
         try
         {
@@ -88,10 +89,14 @@ public class QrCodesController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var qrCode = await _qrCodeService.CreateQrCodeAsync(
-                request.CampaignId,
-                request.Title,
-                request.InternalNote);
+            var createRequest = new CreateQrCodeRequest
+            {
+                CampaignId = request.CampaignId,
+                Title = request.Title,
+                Description = request.Description ?? string.Empty,
+                InternalNotes = request.InternalNote ?? string.Empty
+            };
+            var qrCode = await _qrCodeService.CreateQrCodeAsync(createRequest);
 
             return CreatedAtAction(nameof(GetQrCode), new { id = qrCode.Id }, qrCode);
         }
@@ -118,7 +123,7 @@ public class QrCodesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> UpdateQrCode(int id, [FromBody] UpdateQrCodeRequest request)
+    public async Task<ActionResult> UpdateQrCode(int id, [FromBody] UpdateQrCodeApiRequest request)
     {
         try
         {
@@ -127,7 +132,14 @@ public class QrCodesController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var success = await _qrCodeService.UpdateQrCodeAsync(id, request.Title, request.InternalNote);
+            var updateRequest = new UpdateQrCodeRequest
+            {
+                Id = id,
+                Title = request.Title,
+                Description = request.Description ?? string.Empty,
+                InternalNotes = request.InternalNote ?? string.Empty
+            };
+            var success = await _qrCodeService.UpdateQrCodeAsync(updateRequest);
             if (!success)
             {
                 return NotFound($"QR-Code mit ID {id} nicht gefunden");
@@ -247,7 +259,7 @@ public class QrCodesController : ControllerBase
 /// <summary>
 /// Request-Model für QR-Code-Erstellung
 /// </summary>
-public class CreateQrCodeRequest
+public class CreateQrCodeApiRequest
 {
     /// <summary>
     /// ID der zugehörigen Kampagne
@@ -264,6 +276,12 @@ public class CreateQrCodeRequest
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
+    /// Beschreibung des QR-Codes
+    /// </summary>
+    [StringLength(500, ErrorMessage = "Beschreibung darf maximal 500 Zeichen haben")]
+    public string? Description { get; set; }
+
+    /// <summary>
     /// Interne Notiz für Administratoren
     /// </summary>
     [Required(ErrorMessage = "Interne Notiz ist erforderlich")]
@@ -274,7 +292,7 @@ public class CreateQrCodeRequest
 /// <summary>
 /// Request-Model für QR-Code-Aktualisierung
 /// </summary>
-public class UpdateQrCodeRequest
+public class UpdateQrCodeApiRequest
 {
     /// <summary>
     /// Neuer Titel des QR-Codes
@@ -282,6 +300,12 @@ public class UpdateQrCodeRequest
     [Required(ErrorMessage = "Titel ist erforderlich")]
     [StringLength(100, ErrorMessage = "Titel darf maximal 100 Zeichen haben")]
     public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Neue Beschreibung des QR-Codes
+    /// </summary>
+    [StringLength(500, ErrorMessage = "Beschreibung darf maximal 500 Zeichen haben")]
+    public string? Description { get; set; }
 
     /// <summary>
     /// Neue interne Notiz

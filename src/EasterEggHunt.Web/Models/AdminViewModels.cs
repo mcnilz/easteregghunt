@@ -141,3 +141,104 @@ public class StatisticsViewModel
     /// </summary>
     public int TotalFinds { get; set; }
 }
+
+/// <summary>
+/// ViewModel für QR-Code erstellen
+/// </summary>
+public class CreateQrCodeViewModel
+{
+    /// <summary>
+    /// Kampagnen-ID
+    /// </summary>
+    public int CampaignId { get; set; }
+
+    /// <summary>
+    /// Name der Kampagne
+    /// </summary>
+    public string CampaignName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Titel des QR-Codes
+    /// </summary>
+    [Required(ErrorMessage = "Titel ist erforderlich")]
+    [StringLength(100, ErrorMessage = "Titel darf maximal 100 Zeichen lang sein")]
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Beschreibung des QR-Codes
+    /// </summary>
+    [StringLength(500, ErrorMessage = "Beschreibung darf maximal 500 Zeichen lang sein")]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Interne Notizen (nur für Admins sichtbar)
+    /// </summary>
+    [StringLength(1000, ErrorMessage = "Interne Notizen dürfen maximal 1000 Zeichen lang sein")]
+    public string InternalNotes { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// ViewModel für QR-Code bearbeiten
+/// </summary>
+public class EditQrCodeViewModel
+{
+    /// <summary>
+    /// QR-Code-ID
+    /// </summary>
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Kampagnen-ID
+    /// </summary>
+    public int CampaignId { get; set; }
+
+    /// <summary>
+    /// Titel des QR-Codes
+    /// </summary>
+    [Required(ErrorMessage = "Titel ist erforderlich")]
+    [StringLength(100, ErrorMessage = "Titel darf maximal 100 Zeichen lang sein")]
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Beschreibung des QR-Codes
+    /// </summary>
+    [StringLength(500, ErrorMessage = "Beschreibung darf maximal 500 Zeichen lang sein")]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Interne Notizen (nur für Admins sichtbar)
+    /// </summary>
+    [StringLength(1000, ErrorMessage = "Interne Notizen dürfen maximal 1000 Zeichen lang sein")]
+    public string InternalNotes { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// ViewModel für QR-Code löschen
+/// </summary>
+public class DeleteQrCodeViewModel
+{
+    /// <summary>
+    /// QR-Code-ID
+    /// </summary>
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Kampagnen-ID
+    /// </summary>
+    public int CampaignId { get; set; }
+
+    /// <summary>
+    /// Name der Kampagne
+    /// </summary>
+    public string CampaignName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Titel des QR-Codes
+    /// </summary>
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Beschreibung des QR-Codes
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+}

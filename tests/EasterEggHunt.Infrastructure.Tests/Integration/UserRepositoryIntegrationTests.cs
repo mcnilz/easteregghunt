@@ -210,7 +210,7 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         await UserRepository.AddAsync(user);
         await UserRepository.SaveChangesAsync();
 
-        var qrCode = new QrCode(campaign.Id, "Test QR Code", "Test Note");
+        var qrCode = new QrCode(campaign.Id, "Test QR Code", "Test Description", "Test Note");
         await QrCodeRepository.AddAsync(qrCode);
         await QrCodeRepository.SaveChangesAsync();
 

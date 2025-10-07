@@ -27,7 +27,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
     public async Task AddAsync_WithValidQrCode_ShouldAddQrCode()
     {
         // Arrange
-        var qrCode = new QrCode(_testCampaign.Id, "Test Title", "Test Note");
+        var qrCode = new QrCode(_testCampaign.Id, "Test Title", "Test Description", "Test Note");
 
         // Act
         await QrCodeRepository.AddAsync(qrCode);
@@ -37,7 +37,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var retrievedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
         Assert.That(retrievedQrCode, Is.Not.Null);
         Assert.That(retrievedQrCode!.Title, Is.EqualTo("Test Title"));
-        Assert.That(retrievedQrCode.InternalNote, Is.EqualTo("Test Note"));
+        Assert.That(retrievedQrCode.InternalNotes, Is.EqualTo("Test Note"));
         Assert.That(retrievedQrCode.CampaignId, Is.EqualTo(_testCampaign.Id));
     }
 
@@ -45,7 +45,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
     public async Task GetByIdAsync_WithExistingId_ShouldReturnQrCode()
     {
         // Arrange
-        var qrCode = new QrCode(_testCampaign.Id, "Existing Title", "Existing Note");
+        var qrCode = new QrCode(_testCampaign.Id, "Existing Title", "Existing Description", "Existing Note");
         await QrCodeRepository.AddAsync(qrCode);
         await QrCodeRepository.SaveChangesAsync();
 
@@ -71,8 +71,8 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
     public async Task GetAllAsync_ShouldReturnAllQrCodes()
     {
         // Arrange
-        var qrCode1 = new QrCode(_testCampaign.Id, "Title 1", "Note 1");
-        var qrCode2 = new QrCode(_testCampaign.Id, "Title 2", "Note 2");
+        var qrCode1 = new QrCode(_testCampaign.Id, "Title 1", "Description 1", "Note 1");
+        var qrCode2 = new QrCode(_testCampaign.Id, "Title 2", "Description 2", "Note 2");
         await QrCodeRepository.AddAsync(qrCode1);
         await QrCodeRepository.AddAsync(qrCode2);
         await QrCodeRepository.SaveChangesAsync();
@@ -95,8 +95,8 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         await CampaignRepository.AddAsync(campaign2);
         await CampaignRepository.SaveChangesAsync();
 
-        var qrCode1 = new QrCode(_testCampaign.Id, "Title 1", "Note 1");
-        var qrCode2 = new QrCode(campaign2.Id, "Title 2", "Note 2");
+        var qrCode1 = new QrCode(_testCampaign.Id, "Title 1", "Description 1", "Note 1");
+        var qrCode2 = new QrCode(campaign2.Id, "Title 2", "Description 2", "Note 2");
         await QrCodeRepository.AddAsync(qrCode1);
         await QrCodeRepository.AddAsync(qrCode2);
         await QrCodeRepository.SaveChangesAsync();
@@ -115,11 +115,11 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
     public async Task UpdateAsync_WithValidQrCode_ShouldUpdateQrCode()
     {
         // Arrange
-        var qrCode = new QrCode(_testCampaign.Id, "Original Title", "Original Note");
+        var qrCode = new QrCode(_testCampaign.Id, "Original Title", "Original Description", "Original Note");
         await QrCodeRepository.AddAsync(qrCode);
         await QrCodeRepository.SaveChangesAsync();
 
-        qrCode.Update("Updated Title", "Updated Note");
+        qrCode.Update("Updated Title", "Updated Description", "Updated Note");
 
         // Act
         await QrCodeRepository.UpdateAsync(qrCode);
@@ -129,14 +129,14 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var updatedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
         Assert.That(updatedQrCode, Is.Not.Null);
         Assert.That(updatedQrCode!.Title, Is.EqualTo("Updated Title"));
-        Assert.That(updatedQrCode.InternalNote, Is.EqualTo("Updated Note"));
+        Assert.That(updatedQrCode.InternalNotes, Is.EqualTo("Updated Note"));
     }
 
     [Test]
     public async Task DeleteAsync_WithExistingId_ShouldDeleteQrCode()
     {
         // Arrange
-        var qrCode = new QrCode(_testCampaign.Id, "To Be Deleted", "Delete Note");
+        var qrCode = new QrCode(_testCampaign.Id, "To Be Deleted", "Delete Description", "Delete Note");
         await QrCodeRepository.AddAsync(qrCode);
         await QrCodeRepository.SaveChangesAsync();
 
@@ -165,7 +165,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
     public async Task ExistsAsync_WithExistingId_ShouldReturnTrue()
     {
         // Arrange
-        var qrCode = new QrCode(_testCampaign.Id, "Check Exists", "Exists Note");
+        var qrCode = new QrCode(_testCampaign.Id, "Check Exists", "Exists Description", "Exists Note");
         await QrCodeRepository.AddAsync(qrCode);
         await QrCodeRepository.SaveChangesAsync();
 
@@ -190,7 +190,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
     public async Task SaveChangesAsync_ShouldSaveChanges()
     {
         // Arrange
-        var qrCode = new QrCode(_testCampaign.Id, "Save Test", "Save Note");
+        var qrCode = new QrCode(_testCampaign.Id, "Save Test", "Save Description", "Save Note");
         await QrCodeRepository.AddAsync(qrCode);
 
         // Act
@@ -205,7 +205,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
     public async Task QrCode_WithFinds_ShouldMaintainRelationship()
     {
         // Arrange
-        var qrCode = new QrCode(_testCampaign.Id, "Title with Finds", "Note with Finds");
+        var qrCode = new QrCode(_testCampaign.Id, "Title with Finds", "Description with Finds", "Note with Finds");
         var user = new User("Test User");
         await UserRepository.AddAsync(user);
         await QrCodeRepository.AddAsync(qrCode);
@@ -228,7 +228,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
     public async Task QrCode_UniqueUrl_ShouldBeGenerated()
     {
         // Arrange
-        var qrCode = new QrCode(_testCampaign.Id, "URL Test", "URL Note");
+        var qrCode = new QrCode(_testCampaign.Id, "URL Test", "URL Description", "URL Note");
 
         // Act
         await QrCodeRepository.AddAsync(qrCode);

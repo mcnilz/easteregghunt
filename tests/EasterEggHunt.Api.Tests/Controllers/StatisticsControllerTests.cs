@@ -92,8 +92,8 @@ public class StatisticsControllerTests
         var campaign = new Campaign("Test Campaign", "Description", "Admin");
         var qrCodes = new List<QrCode>
         {
-            new QrCode(1, "QR 1", "Note 1") { Id = 1 },
-            new QrCode(1, "QR 2", "Note 2") { Id = 2 }
+            new QrCode(1, "QR 1", "Description 1", "Note 1") { Id = 1 },
+            new QrCode(1, "QR 2", "Description 2", "Note 2") { Id = 2 }
         };
         var finds = new List<Find>
         {
