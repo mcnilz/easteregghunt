@@ -124,4 +124,26 @@ public class AdminUserRepository : IAdminUserRepository
     {
         return await _context.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Speichert einen Admin-Benutzer (Add oder Update)
+    /// </summary>
+    /// <param name="adminUser">Admin-Benutzer zum Speichern</param>
+    /// <returns>Gespeicherter Admin-Benutzer</returns>
+    public async Task<AdminUser> SaveAsync(AdminUser adminUser)
+    {
+        ArgumentNullException.ThrowIfNull(adminUser);
+
+        if (adminUser.Id == 0)
+        {
+            _context.AdminUsers.Add(adminUser);
+        }
+        else
+        {
+            _context.AdminUsers.Update(adminUser);
+        }
+
+        await _context.SaveChangesAsync();
+        return adminUser;
+    }
 }

@@ -87,4 +87,11 @@ public interface IAdminUserRepository
     /// </summary>
     /// <returns>Anzahl der betroffenen Datensätze</returns>
     Task<int> SaveChangesAsync();
+
+    /// <summary>
+    /// Speichert einen Admin-Benutzer (Add oder Update)
+    /// </summary>
+    /// <param name="adminUser">Admin-Benutzer zum Speichern</param>
+    /// <returns>Gespeicherter Admin-Benutzer</returns>
+    Task<AdminUser> SaveAsync(AdminUser adminUser);
 }
