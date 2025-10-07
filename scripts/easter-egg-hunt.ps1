@@ -129,22 +129,28 @@ function Start-ApiProject {
     param([bool]$Hot)
     
     Write-Info "Starte API-Projekt..."
-    $command = if ($Hot) { "watch run" } else { "run" }
     $urls = "--urls `"https://localhost:7001;http://localhost:5001`""
     
     Set-Location $ProjectRoot
-    dotnet $command --project $ApiProject $urls
+    if ($Hot) {
+        dotnet watch run --project $ApiProject $urls
+    } else {
+        dotnet run --project $ApiProject $urls
+    }
 }
 
 function Start-WebProject {
     param([bool]$Hot)
     
     Write-Info "Starte Web-Projekt..."
-    $command = if ($Hot) { "watch run" } else { "run" }
     $urls = "--urls `"https://localhost:7002;http://localhost:5002`""
     
     Set-Location $ProjectRoot
-    dotnet $command --project $WebProject $urls
+    if ($Hot) {
+        dotnet watch run --project $WebProject $urls
+    } else {
+        dotnet run --project $WebProject $urls
+    }
 }
 
 function Start-BothProjects {
@@ -157,8 +163,11 @@ function Start-BothProjects {
     $apiJob = Start-Job -ScriptBlock {
         Set-Location $using:ProjectRoot
         $env:ASPNETCORE_ENVIRONMENT = $using:Environment
-        $command = if ($using:Hot) { "watch run" } else { "run" }
-        dotnet $command --project $using:ApiProject --urls "https://localhost:7001;http://localhost:5001"
+        if ($using:Hot) {
+            dotnet watch run --project $using:ApiProject --urls "https://localhost:7001;http://localhost:5001"
+        } else {
+            dotnet run --project $using:ApiProject --urls "https://localhost:7001;http://localhost:5001"
+        }
     }
     
     # Kurz warten
@@ -184,8 +193,11 @@ function Start-BothProjects {
     
     try {
         # Web-Projekt im Vordergrund starten
-        $command = if ($Hot) { "watch run" } else { "run" }
-        dotnet $command --project $WebProject --urls "https://localhost:7002;http://localhost:5002"
+        if ($Hot) {
+            dotnet watch run --project $WebProject --urls "https://localhost:7002;http://localhost:5002"
+        } else {
+            dotnet run --project $WebProject --urls "https://localhost:7002;http://localhost:5002"
+        }
     }
     finally {
         # API-Job stoppen

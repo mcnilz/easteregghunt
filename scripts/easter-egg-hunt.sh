@@ -114,26 +114,26 @@ start_api_project() {
     local hot=$1
     
     print_info "Starte API-Projekt..."
-    local command="run"
-    if [ "$hot" = true ]; then
-        command="watch run"
-    fi
-    
     cd "$PROJECT_ROOT"
-    dotnet $command --project "$API_PROJECT" --urls "https://localhost:7001;http://localhost:5001"
+    
+    if [ "$hot" = true ]; then
+        dotnet watch run --project "$API_PROJECT" --urls "https://localhost:7001;http://localhost:5001"
+    else
+        dotnet run --project "$API_PROJECT" --urls "https://localhost:7001;http://localhost:5001"
+    fi
 }
 
 start_web_project() {
     local hot=$1
     
     print_info "Starte Web-Projekt..."
-    local command="run"
-    if [ "$hot" = true ]; then
-        command="watch run"
-    fi
-    
     cd "$PROJECT_ROOT"
-    dotnet $command --project "$WEB_PROJECT" --urls "https://localhost:7002;http://localhost:5002"
+    
+    if [ "$hot" = true ]; then
+        dotnet watch run --project "$WEB_PROJECT" --urls "https://localhost:7002;http://localhost:5002"
+    else
+        dotnet run --project "$WEB_PROJECT" --urls "https://localhost:7002;http://localhost:5002"
+    fi
 }
 
 start_both_projects() {
@@ -145,12 +145,11 @@ start_both_projects() {
     print_info "Starte API-Projekt im Hintergrund..."
     cd "$PROJECT_ROOT"
     
-    local command="run"
     if [ "$hot" = true ]; then
-        command="watch run"
+        dotnet watch run --project "$API_PROJECT" --urls "https://localhost:7001;http://localhost:5001" &
+    else
+        dotnet run --project "$API_PROJECT" --urls "https://localhost:7001;http://localhost:5001" &
     fi
-    
-    dotnet $command --project "$API_PROJECT" --urls "https://localhost:7001;http://localhost:5001" &
     local api_pid=$!
     
     # Kurz warten
@@ -187,7 +186,11 @@ start_both_projects() {
     trap cleanup SIGINT SIGTERM
     
     # Web-Projekt im Vordergrund starten
-    dotnet $command --project "$WEB_PROJECT" --urls "https://localhost:7002;http://localhost:5002"
+    if [ "$hot" = true ]; then
+        dotnet watch run --project "$WEB_PROJECT" --urls "https://localhost:7002;http://localhost:5002"
+    else
+        dotnet run --project "$WEB_PROJECT" --urls "https://localhost:7002;http://localhost:5002"
+    fi
 }
 
 invoke_build() {
