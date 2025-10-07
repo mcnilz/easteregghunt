@@ -27,6 +27,7 @@
     <Compile Include="Integration\AdminUserRepositoryIntegrationTests.cs" />
     <Compile Include="Integration\UserRepositoryIntegrationTests.cs" />
     <Compile Include="Integration\SessionRepositoryIntegrationTests.cs" />
+    <Compile Include="Integration\QrCodeRepositoryIntegrationTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

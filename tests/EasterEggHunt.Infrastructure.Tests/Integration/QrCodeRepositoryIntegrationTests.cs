@@ -8,7 +8,6 @@ namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
 [TestFixture]
 [Category("Integration")]
-[Ignore("Temporarily disabled - FluentAssertions conversion needed")]
 public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
 {
     private Campaign _testCampaign = null!;
@@ -36,10 +35,10 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var retrievedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
-        retrievedQrCode.Should().NotBeNull();
-        retrievedQrCode!.Title.Should().Be("Test Title");
-        retrievedQrCode.InternalNote.Should().Be("Test Note");
-        retrievedQrCode.CampaignId.Should().Be(_testCampaign.Id);
+        Assert.That(retrievedQrCode, Is.Not.Null);
+        Assert.That(retrievedQrCode!.Title, Is.EqualTo("Test Title"));
+        Assert.That(retrievedQrCode.InternalNote, Is.EqualTo("Test Note"));
+        Assert.That(retrievedQrCode.CampaignId, Is.EqualTo(_testCampaign.Id));
     }
 
     [Test]
@@ -54,8 +53,8 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var retrievedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
 
         // Assert
-        retrievedQrCode.Should().NotBeNull();
-        retrievedQrCode!.Id.Should().Be(qrCode.Id);
+        Assert.That(retrievedQrCode, Is.Not.Null);
+        Assert.That(retrievedQrCode!.Id, Is.EqualTo(qrCode.Id));
     }
 
     [Test]
@@ -65,7 +64,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var retrievedQrCode = await QrCodeRepository.GetByIdAsync(999);
 
         // Assert
-        retrievedQrCode.Should().BeNull();
+        Assert.That(retrievedQrCode, Is.Null);
     }
 
     [Test]
@@ -82,10 +81,10 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var qrCodes = await QrCodeRepository.GetAllAsync();
 
         // Assert
-        qrCodes.Should().NotBeNull();
-        qrCodes.Should().HaveCount(2);
-        qrCodes.Should().Contain(q => q.Id == qrCode1.Id);
-        qrCodes.Should().Contain(q => q.Id == qrCode2.Id);
+        Assert.That(qrCodes, Is.Not.Null);
+        Assert.That(qrCodes.Count(), Is.EqualTo(2));
+        Assert.That(qrCodes, Has.Some.Matches<QrCode>(q => q.Id == qrCode1.Id));
+        Assert.That(qrCodes, Has.Some.Matches<QrCode>(q => q.Id == qrCode2.Id));
     }
 
     [Test]
@@ -106,10 +105,10 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var qrCodes = await QrCodeRepository.GetByCampaignIdAsync(_testCampaign.Id);
 
         // Assert
-        qrCodes.Should().NotBeNull();
-        qrCodes.Should().HaveCount(1);
-        qrCodes.Should().Contain(q => q.Id == qrCode1.Id);
-        qrCodes.Should().NotContain(q => q.Id == qrCode2.Id);
+        Assert.That(qrCodes, Is.Not.Null);
+        Assert.That(qrCodes.Count(), Is.EqualTo(1));
+        Assert.That(qrCodes, Has.Some.Matches<QrCode>(q => q.Id == qrCode1.Id));
+        Assert.That(qrCodes, Has.None.Matches<QrCode>(q => q.Id == qrCode2.Id));
     }
 
     [Test]
@@ -128,9 +127,9 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var updatedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
-        updatedQrCode.Should().NotBeNull();
-        updatedQrCode!.Title.Should().Be("Updated Title");
-        updatedQrCode.InternalNote.Should().Be("Updated Note");
+        Assert.That(updatedQrCode, Is.Not.Null);
+        Assert.That(updatedQrCode!.Title, Is.EqualTo("Updated Title"));
+        Assert.That(updatedQrCode.InternalNote, Is.EqualTo("Updated Note"));
     }
 
     [Test]
@@ -146,9 +145,9 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         await QrCodeRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeTrue();
+        Assert.That(result, Is.True);
         var deletedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
-        deletedQrCode.Should().BeNull();
+        Assert.That(deletedQrCode, Is.Null);
     }
 
     [Test]
@@ -159,7 +158,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         await QrCodeRepository.SaveChangesAsync();
 
         // Assert
-        result.Should().BeFalse();
+        Assert.That(result, Is.False);
     }
 
     [Test]
@@ -174,7 +173,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var exists = await QrCodeRepository.ExistsAsync(qrCode.Id);
 
         // Assert
-        exists.Should().BeTrue();
+        Assert.That(exists, Is.True);
     }
 
     [Test]
@@ -184,7 +183,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var exists = await QrCodeRepository.ExistsAsync(999);
 
         // Assert
-        exists.Should().BeFalse();
+        Assert.That(exists, Is.False);
     }
 
     [Test]
@@ -199,7 +198,7 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var savedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
-        savedQrCode.Should().NotBeNull();
+        Assert.That(savedQrCode, Is.Not.Null);
     }
 
     [Test]
@@ -220,9 +219,9 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         var retrievedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
 
         // Assert
-        retrievedQrCode.Should().NotBeNull();
-        retrievedQrCode!.Finds.Should().HaveCount(1);
-        retrievedQrCode.Finds.Should().Contain(f => f.Id == find.Id);
+        Assert.That(retrievedQrCode, Is.Not.Null);
+        Assert.That(retrievedQrCode!.Finds.Count(), Is.EqualTo(1));
+        Assert.That(retrievedQrCode.Finds, Has.Some.Matches<Find>(f => f.Id == find.Id));
     }
 
     [Test]
@@ -237,8 +236,8 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
 
         // Assert
         var retrievedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
-        retrievedQrCode.Should().NotBeNull();
-        retrievedQrCode!.UniqueUrl.Should().NotBeNull();
-        retrievedQrCode.UniqueUrl.ToString().Should().StartWith("https://easteregghunt.local/qr/");
+        Assert.That(retrievedQrCode, Is.Not.Null);
+        Assert.That(retrievedQrCode!.UniqueUrl, Is.Not.Null);
+        Assert.That(retrievedQrCode.UniqueUrl.ToString(), Does.StartWith("https://easteregghunt.local/qr/"));
     }
 }
