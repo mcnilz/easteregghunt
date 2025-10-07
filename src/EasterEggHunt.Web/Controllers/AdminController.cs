@@ -135,7 +135,7 @@ public class AdminController : Controller
             var campaign = await _campaignService.CreateCampaignAsync(
                 model.Name,
                 model.Description,
-                "Admin"); // TODO: Get from authenticated user
+                "Admin"); // In future sprints, get from authenticated user context
 
             return RedirectToAction(nameof(CampaignDetails), new { id = campaign.Id });
         }

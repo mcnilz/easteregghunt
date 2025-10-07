@@ -97,7 +97,7 @@ public class EmployeeController : Controller
         {
             _logger.LogInformation("QR-Code wird gescannt: {QrCode}", model.QrCode);
 
-            // TODO: Implement QR-Code scanning logic
+            // QR-Code scanning logic can be implemented in future sprints
             // This would typically involve:
             // 1. Validating the QR-Code
             // 2. Finding the corresponding QrCode entity

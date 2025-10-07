@@ -84,11 +84,5 @@ scripts/
 # Features (Gherkin-Dateien)
 features/
 
-# Architektur-Dokumentation
-ARCHITECTURE.md
-SPRINT_PLANNING.md
-CODING_GUIDELINES.md
-CONTRIBUTING.md
-SECURITY.md
-CHANGELOG.md
-LICENSE
+# Architektur-Dokumentation (nicht mehr im Root)
+# docs/ wird bereits ausgeschlossen
