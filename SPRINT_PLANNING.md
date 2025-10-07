@@ -7,7 +7,7 @@
 - **Frontend**: .NET Core 8.0 MVC/Razor Pages
 - **Datenbank**: SQLite mit Entity Framework Core
 - **Containerisierung**: Docker Compose
-- **Testing**: NUnit, Moq, FluentAssertions
+- **Testing**: NUnit, Moq
 - **CI/CD**: GitHub Actions
 
 **Entwicklungsansatz:**

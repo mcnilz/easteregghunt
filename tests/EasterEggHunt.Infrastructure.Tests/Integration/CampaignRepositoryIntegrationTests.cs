@@ -5,7 +5,6 @@ namespace EasterEggHunt.Infrastructure.Tests.Integration;
 
 [TestFixture]
 [Category("Integration")]
-[Ignore("Temporarily disabled - FluentAssertions conversion needed")]
 public class CampaignRepositoryIntegrationTests : IntegrationTestBase
 {
     [SetUp]
@@ -22,7 +21,7 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var campaigns = await CampaignRepository.GetAllAsync();
 
         // Assert
-        Assert.That(campaigns, Has.Count.EqualTo(1));
+        Assert.That(campaigns.Count(), Is.EqualTo(1));
         Assert.That(campaigns.First().Name, Is.EqualTo("Test Kampagne 2025"));
         Assert.That(campaigns.First().Description, Is.EqualTo("Eine Test-Kampagne für Integration Tests"));
         Assert.That(campaigns.First().CreatedBy, Is.EqualTo("TestAdmin"));
@@ -44,7 +43,7 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
         var activeCampaigns = await CampaignRepository.GetActiveAsync();
 
         // Assert
-        Assert.That(activeCampaigns, Has.Count.EqualTo(1));
+        Assert.That(activeCampaigns.Count(), Is.EqualTo(1));
         Assert.That(activeCampaigns.First().Name, Is.EqualTo("Test Kampagne 2025"));
         Assert.That(activeCampaigns.First().IsActive, Is.True);
     }
@@ -101,7 +100,7 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
 
         // Verify in database
         var campaigns = await CampaignRepository.GetAllAsync();
-        Assert.That(campaigns, Has.Count.EqualTo(2));
+        Assert.That(campaigns.Count(), Is.EqualTo(2));
     }
 
     [Test]
@@ -160,7 +159,7 @@ public class CampaignRepositoryIntegrationTests : IntegrationTestBase
 
         // Verify database unchanged
         var campaigns = await CampaignRepository.GetAllAsync();
-        Assert.That(campaigns, Has.Count.EqualTo(1));
+        Assert.That(campaigns.Count(), Is.EqualTo(1));
     }
 
     [Test]

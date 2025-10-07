@@ -25,6 +25,7 @@
     <Compile Remove="Integration\**" />
     <Compile Include="Integration\IntegrationTestBase.cs" />
     <Compile Include="Integration\AdminUserRepositoryIntegrationTests.cs" />
+    <Compile Include="Integration\CampaignRepositoryIntegrationTests.cs" />
     <Compile Include="Integration\UserRepositoryIntegrationTests.cs" />
     <Compile Include="Integration\SessionRepositoryIntegrationTests.cs" />
     <Compile Include="Integration\QrCodeRepositoryIntegrationTests.cs" />

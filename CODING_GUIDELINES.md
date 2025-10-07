@@ -472,7 +472,6 @@ public class Campaign
 <PackageReference Include="NUnit" Version="3.14.0" />
 <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
 <PackageReference Include="Moq" Version="4.20.69" />
-<PackageReference Include="FluentAssertions" Version="6.12.0" />
 <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
 <PackageReference Include="coverlet.collector" Version="6.0.0" />
 ```
@@ -547,7 +546,7 @@ csharp_new_line_before_finally = true
 - [ ] **Tests sind selbsterklärend** (kein Kommentar nötig)
 - [ ] **Arrange-Act-Assert** Struktur befolgt
 - [ ] **Test Data Builder** für komplexe Objekte
-- [ ] **FluentAssertions** für bessere Lesbarkeit
+- [ ] **NUnit Assertions** für bessere Lesbarkeit
 - [ ] **Mocks korrekt konfiguriert** und verifiziert
 - [ ] **Edge Cases getestet**
 - [ ] **Negative Tests** für Fehlerbehandlung
