@@ -1,0 +1,145 @@
+@model ScanQrCodeViewModel
+@{
+    ViewData["Title"] = "QR-Code scannen";
+    Layout = "~/Views/Employee/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1>QR-Code scannen</h1>
+        <p class="lead text-muted">Scannen Sie einen QR-Code, um einen Fund zu registrieren</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">QR-Code eingeben</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="ScanQrCode" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="QrCode" class="form-label">QR-Code</label>
+                        <input asp-for="QrCode" class="form-control form-control-lg" 
+                               placeholder="QR-Code hier eingeben oder scannen..." 
+                               autofocus />
+                        <span asp-validation-for="QrCode" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-qrcode"></i> QR-Code scannen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Anleitung</h5>
+            </div>
+            <div class="card-body">
+                <ol class="list-unstyled">
+                    <li class="mb-3">
+                        <i class="fas fa-search text-primary"></i>
+                        <strong>QR-Code finden</strong><br>
+                        <small class="text-muted">Suchen Sie nach QR-Codes in Ihrer Umgebung</small>
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-camera text-success"></i>
+                        <strong>QR-Code scannen</strong><br>
+                        <small class="text-muted">Verwenden Sie die Kamera oder geben Sie den Code ein</small>
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-check text-warning"></i>
+                        <strong>Fund registrieren</strong><br>
+                        <small class="text-muted">Ihr Fund wird automatisch gespeichert</small>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Tipps</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                        <small>QR-Codes sind eindeutig - jeder kann nur einmal gescannt werden</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                        <small>Überprüfen Sie die Lesbarkeit des QR-Codes</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-lightbulb text-warning"></i>
+                        <small>Bei Problemen können Sie den Code manuell eingeben</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Aktionen</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a asp-action="Index" class="btn btn-primary w-100">
+                            <i class="fas fa-arrow-left"></i> Zurück zu Kampagnen
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a asp-action="Leaderboard" class="btn btn-info w-100">
+                            <i class="fas fa-trophy"></i> Leaderboard
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-secondary w-100" onclick="clearForm()">
+                            <i class="fas fa-eraser"></i> Formular leeren
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-success w-100" onclick="startCamera()">
+                            <i class="fas fa-camera"></i> Kamera starten
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function clearForm() {
+            document.getElementById('QrCode').value = '';
+            document.getElementById('QrCode').focus();
+        }
+
+        function startCamera() {
+            // TODO: Implement camera functionality
+            alert('Kamera-Funktionalität ist noch nicht implementiert. Bitte geben Sie den QR-Code manuell ein.');
+        }
+
+        // Auto-focus on QR-Code input
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('QrCode').focus();
+        });
+    </script>
+}

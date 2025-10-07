@@ -1,0 +1,101 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-4">Admin Dashboard</h1>
+        <p class="lead">Verwalten Sie Ihre Easter Egg Hunt Kampagnen</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Aktive Kampagnen</h5>
+                <h2 class="card-text">@Model.ActiveCampaigns</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Gesamt Benutzer</h5>
+                <h2 class="card-text">@Model.TotalUsers</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Alle Kampagnen</h5>
+                <h2 class="card-text">@Model.Campaigns.Count</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Kampagnen</h2>
+            <a asp-action="CreateCampaign" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Neue Kampagne
+            </a>
+        </div>
+
+        @if (Model.Campaigns.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Beschreibung</th>
+                            <th>Status</th>
+                            <th>Erstellt</th>
+                            <th>Erstellt von</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var campaign in Model.Campaigns)
+                        {
+                            <tr>
+                                <td>@campaign.Name</td>
+                                <td>@campaign.Description</td>
+                                <td>
+                                    @if (campaign.IsActive)
+                                    {
+                                        <span class="badge bg-success">Aktiv</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inaktiv</span>
+                                    }
+                                </td>
+                                <td>@campaign.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@campaign.CreatedBy</td>
+                                <td>
+                                    <a asp-action="CampaignDetails" asp-route-id="@campaign.Id" class="btn btn-sm btn-outline-primary">
+                                        Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <h4>Keine Kampagnen vorhanden</h4>
+                <p>Erstellen Sie Ihre erste Kampagne, um zu beginnen.</p>
+                <a asp-action="CreateCampaign" class="btn btn-primary">Kampagne erstellen</a>
+            </div>
+        }
+    </div>
+</div>

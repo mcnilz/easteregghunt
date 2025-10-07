@@ -1,0 +1,145 @@
+@model List<UserViewModel>
+@{
+    ViewData["Title"] = "Benutzer-Übersicht";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1>Benutzer-Übersicht</h1>
+        <p class="lead text-muted">Verwalten Sie alle registrierten Benutzer</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Benutzer-Statistiken</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h3 class="text-primary">@Model.Count</h3>
+                        <p class="text-muted">Gesamt Benutzer</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-success">@Model.Count(u => u.User.IsActive)</h3>
+                        <p class="text-muted">Aktive Benutzer</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-info">@Model.Sum(u => u.FindCount)</h3>
+                        <p class="text-muted">Gesamt Funde</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="text-warning">@(Model.Count > 0 ? (Model.Sum(u => u.FindCount) / (double)Model.Count).ToString("F1") : "0")</h3>
+                        <p class="text-muted">Ø Funde pro Benutzer</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Benutzername</th>
+                            <th>Status</th>
+                            <th>Funde</th>
+                            <th>Letzter Besuch</th>
+                            <th>Registriert</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.OrderByDescending(u => u.FindCount))
+                        {
+                            <tr>
+                                <td>@user.User.Id</td>
+                                <td>
+                                    <strong>@user.User.Name</strong>
+                                </td>
+                                <td>
+                                    @if (user.User.IsActive)
+                                    {
+                                        <span class="badge bg-success">Aktiv</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inaktiv</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@user.FindCount</span>
+                                </td>
+                                <td>
+                                    <span title="@user.User.LastSeen.ToString("dd.MM.yyyy HH:mm:ss")">
+                                        @user.User.LastSeen.ToString("dd.MM.yyyy HH:mm")
+                                    </span>
+                                </td>
+                                <td>
+                                    <span title="@user.User.FirstSeen.ToString("dd.MM.yyyy HH:mm:ss")">
+                                        @user.User.FirstSeen.ToString("dd.MM.yyyy")
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewUser(@user.User.Id)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    @if (user.User.IsActive)
+                                    {
+                                        <button class="btn btn-sm btn-outline-warning" onclick="deactivateUser(@user.User.Id)">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-success" onclick="activateUser(@user.User.Id)">
+                                            <i class="fas fa-user-check"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <h4>Keine Benutzer vorhanden</h4>
+                <p>Es sind noch keine Benutzer registriert.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewUser(id) {
+            // TODO: Implement Benutzer-Details anzeigen
+            alert('Benutzer-Details anzeigen: ' + id);
+        }
+
+        function deactivateUser(id) {
+            if (confirm('Möchten Sie diesen Benutzer wirklich deaktivieren?')) {
+                // TODO: Implement Benutzer deaktivieren
+                alert('Benutzer deaktivieren: ' + id);
+            }
+        }
+
+        function activateUser(id) {
+            if (confirm('Möchten Sie diesen Benutzer wirklich aktivieren?')) {
+                // TODO: Implement Benutzer aktivieren
+                alert('Benutzer aktivieren: ' + id);
+            }
+        }
+    </script>
+}

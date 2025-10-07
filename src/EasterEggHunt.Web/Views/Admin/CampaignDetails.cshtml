@@ -1,0 +1,193 @@
+@model CampaignDetailsViewModel
+@{
+    ViewData["Title"] = "Kampagnen-Details";
+}
+
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.Campaign.Name</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1>@Model.Campaign.Name</h1>
+                <p class="lead text-muted">@Model.Campaign.Description</p>
+            </div>
+            <div>
+                @if (Model.Campaign.IsActive)
+                {
+                    <span class="badge bg-success fs-6">Aktiv</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary fs-6">Inaktiv</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">QR-Codes</h5>
+                <h2 class="card-text text-primary">@Model.QrCodes.Count</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Funde</h5>
+                <h2 class="card-text text-success">@Model.TotalFinds</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Finder</h5>
+                <h2 class="card-text text-info">@Model.UniqueFinders</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Erstellt</h5>
+                <h6 class="card-text text-muted">@Model.Campaign.CreatedAt.ToString("dd.MM.yyyy")</h6>
+                <small class="text-muted">von @Model.Campaign.CreatedBy</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>QR-Codes</h3>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQrCodeModal">
+                <i class="fas fa-plus"></i> QR-Code hinzufügen
+            </button>
+        </div>
+
+        @if (Model.QrCodes.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Titel</th>
+                            <th>Interne Notiz</th>
+                            <th>Status</th>
+                            <th>Sortierung</th>
+                            <th>Funde</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var qrCode in Model.QrCodes.OrderBy(q => q.SortOrder))
+                        {
+                            <tr>
+                                <td>@qrCode.Title</td>
+                                <td>@qrCode.InternalNote</td>
+                                <td>
+                                    @if (qrCode.IsActive)
+                                    {
+                                        <span class="badge bg-success">Aktiv</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inaktiv</span>
+                                    }
+                                </td>
+                                <td>@qrCode.SortOrder</td>
+                                <td>
+                                    <span class="badge bg-info">0</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewQrCode(@qrCode.Id)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="editQrCode(@qrCode.Id)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <h4>Keine QR-Codes vorhanden</h4>
+                <p>Fügen Sie QR-Codes zu dieser Kampagne hinzu, um zu beginnen.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQrCodeModal">
+                    Ersten QR-Code hinzufügen
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- QR-Code hinzufügen Modal -->
+<div class="modal fade" id="addQrCodeModal" tabindex="-1" aria-labelledby="addQrCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addQrCodeModalLabel">QR-Code hinzufügen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addQrCodeForm">
+                    <div class="mb-3">
+                        <label for="qrCodeTitle" class="form-label">Titel</label>
+                        <input type="text" class="form-control" id="qrCodeTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="qrCodeNote" class="form-label">Interne Notiz</label>
+                        <textarea class="form-control" id="qrCodeNote" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="qrCodeSortOrder" class="form-label">Sortierung</label>
+                        <input type="number" class="form-control" id="qrCodeSortOrder" value="0" min="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="addQrCode()">Hinzufügen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewQrCode(id) {
+            // TODO: Implement QR-Code anzeigen
+            alert('QR-Code anzeigen: ' + id);
+        }
+
+        function editQrCode(id) {
+            // TODO: Implement QR-Code bearbeiten
+            alert('QR-Code bearbeiten: ' + id);
+        }
+
+        function addQrCode() {
+            // TODO: Implement QR-Code hinzufügen
+            alert('QR-Code hinzufügen');
+        }
+    </script>
+}

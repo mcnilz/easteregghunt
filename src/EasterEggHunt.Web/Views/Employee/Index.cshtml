@@ -1,0 +1,102 @@
+@model List<CampaignOverviewViewModel>
+@{
+    ViewData["Title"] = "Kampagnen";
+    Layout = "~/Views/Employee/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-4">Verfügbare Kampagnen</h1>
+        <p class="lead">Wählen Sie eine Kampagne aus, um zu beginnen</p>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var campaign in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">@campaign.Campaign.Name</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">@campaign.Campaign.Description</p>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <h6 class="text-primary">@campaign.TotalQrCodes</h6>
+                                <small class="text-muted">QR-Codes</small>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="text-success">@campaign.TotalFinds</h6>
+                                <small class="text-muted">Funde</small>
+                            </div>
+                        </div>
+
+                        @if (campaign.TotalQrCodes > 0)
+                        {
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: @((campaign.TotalFinds / (double)campaign.TotalQrCodes) * 100)%">
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                @(((campaign.TotalFinds / (double)campaign.TotalQrCodes) * 100).ToString("F1"))% gefunden
+                            </small>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="CampaignDetails" asp-route-id="@campaign.Campaign.Id" class="btn btn-primary w-100">
+                            <i class="fas fa-play"></i> Kampagne starten
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h4>Keine aktiven Kampagnen verfügbar</h4>
+                <p>Es sind derzeit keine Kampagnen verfügbar. Bitte versuchen Sie es später erneut.</p>
+                <button class="btn btn-primary" onclick="location.reload()">
+                    <i class="fas fa-sync-alt"></i> Aktualisieren
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Schnellzugriff</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <a asp-action="ScanQrCode" class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-qrcode"></i> QR-Code scannen
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-action="Leaderboard" class="btn btn-info w-100 mb-2">
+                            <i class="fas fa-trophy"></i> Leaderboard
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-secondary w-100 mb-2" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Aktualisieren
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
