@@ -109,7 +109,7 @@ public class SessionService : ISessionService
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Session-ID darf nicht leer sein", nameof(id));
-        
+
         if (string.IsNullOrWhiteSpace(data))
             throw new ArgumentException("Session-Daten dürfen nicht leer sein", nameof(data));
 

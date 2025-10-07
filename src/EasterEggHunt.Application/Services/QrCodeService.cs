@@ -14,7 +14,7 @@ public class QrCodeService : IQrCodeService
     private readonly ILogger<QrCodeService> _logger;
 
     public QrCodeService(
-        IQrCodeRepository qrCodeRepository, 
+        IQrCodeRepository qrCodeRepository,
         ICampaignRepository campaignRepository,
         ILogger<QrCodeService> logger)
     {
@@ -42,7 +42,7 @@ public class QrCodeService : IQrCodeService
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("QR-Code Titel darf nicht leer sein", nameof(title));
-        
+
         if (string.IsNullOrWhiteSpace(internalNote))
             throw new ArgumentException("Interne Notiz darf nicht leer sein", nameof(internalNote));
 
@@ -68,7 +68,7 @@ public class QrCodeService : IQrCodeService
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("QR-Code Titel darf nicht leer sein", nameof(title));
-        
+
         if (string.IsNullOrWhiteSpace(internalNote))
             throw new ArgumentException("Interne Notiz darf nicht leer sein", nameof(internalNote));
 

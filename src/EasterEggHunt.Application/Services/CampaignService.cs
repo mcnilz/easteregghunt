@@ -37,10 +37,10 @@ public class CampaignService : ICampaignService
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Kampagnenname darf nicht leer sein", nameof(name));
-        
+
         if (string.IsNullOrWhiteSpace(description))
             throw new ArgumentException("Kampagnenbeschreibung darf nicht leer sein", nameof(description));
-        
+
         if (string.IsNullOrWhiteSpace(createdBy))
             throw new ArgumentException("Erstellt von darf nicht leer sein", nameof(createdBy));
 
@@ -59,7 +59,7 @@ public class CampaignService : ICampaignService
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Kampagnenname darf nicht leer sein", nameof(name));
-        
+
         if (string.IsNullOrWhiteSpace(description))
             throw new ArgumentException("Kampagnenbeschreibung darf nicht leer sein", nameof(description));
 

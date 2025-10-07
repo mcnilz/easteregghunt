@@ -24,7 +24,7 @@ public class SeedDataServiceTests
         // File-based SQLite für Tests (bessere Kompatibilität)
         var testDbPath = Path.GetTempFileName();
         var services = new ServiceCollection();
-        
+
         services.AddDbContext<EasterEggHuntDbContext>(options =>
         {
             options.UseSqlite($"Data Source={testDbPath}");
@@ -124,7 +124,7 @@ public class SeedDataServiceTests
             .FirstAsync(c => c.Name == "Ostern 2025");
 
         Assert.That(easterCampaign.QrCodes, Has.Count.EqualTo(10));
-        Assert.That(easterCampaign.QrCodes, Has.All.Matches<Domain.Entities.QrCode>(qr => 
+        Assert.That(easterCampaign.QrCodes, Has.All.Matches<Domain.Entities.QrCode>(qr =>
             qr.CampaignId == easterCampaign.Id));
 
         var qrCodeWithFinds = await _context.QrCodes
@@ -150,8 +150,8 @@ public class SeedDataServiceTests
 
         Assert.That(sessions, Has.Count.EqualTo(3));
         Assert.That(sessions, Has.All.Matches<Domain.Entities.Session>(session =>
-            session.User != null && 
-            session.ExpiresAt > DateTime.UtcNow && 
+            session.User != null &&
+            session.ExpiresAt > DateTime.UtcNow &&
             session.CreatedAt < DateTime.UtcNow));
     }
 

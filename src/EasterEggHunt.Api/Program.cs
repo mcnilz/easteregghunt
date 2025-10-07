@@ -1,5 +1,5 @@
-using EasterEggHunt.Infrastructure;
 using EasterEggHunt.Application;
+using EasterEggHunt.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 

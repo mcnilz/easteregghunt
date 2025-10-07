@@ -31,7 +31,7 @@ public class FindService : IFindService
     {
         if (string.IsNullOrWhiteSpace(ipAddress))
             throw new ArgumentException("IP-Adresse darf nicht leer sein", nameof(ipAddress));
-        
+
         if (string.IsNullOrWhiteSpace(userAgent))
             throw new ArgumentException("User-Agent darf nicht leer sein", nameof(userAgent));
 

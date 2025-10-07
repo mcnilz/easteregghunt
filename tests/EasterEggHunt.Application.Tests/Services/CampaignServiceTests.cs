@@ -18,7 +18,7 @@ public class CampaignServiceTests
         var logger = new Mock<ILogger<CampaignService>>().Object;
 
         // Act & Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => 
+        var ex = Assert.Throws<ArgumentNullException>(() =>
             new CampaignService(null!, logger));
         Assert.That(ex.ParamName, Is.EqualTo("campaignRepository"));
     }
@@ -30,7 +30,7 @@ public class CampaignServiceTests
         var repository = new Mock<ICampaignRepository>().Object;
 
         // Act & Assert
-        var ex = Assert.Throws<ArgumentNullException>(() => 
+        var ex = Assert.Throws<ArgumentNullException>(() =>
             new CampaignService(repository, null!));
         Assert.That(ex.ParamName, Is.EqualTo("logger"));
     }

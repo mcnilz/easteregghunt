@@ -159,19 +159,19 @@ public class SeedDataService : IHostedService
 
         // Max hat einige QR-Codes gefunden
         var maxUser = testUsers[0];
-        var maxFinds = qrCodes.Take(3).Select(qrCode => 
+        var maxFinds = qrCodes.Take(3).Select(qrCode =>
             new Find(qrCode.Id, maxUser.Id, "192.168.1.100", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"));
         finds.AddRange(maxFinds);
 
         // Anna hat auch einige gefunden
         var annaUser = testUsers[1];
-        var annaFinds = qrCodes.Skip(2).Take(4).Select(qrCode => 
+        var annaFinds = qrCodes.Skip(2).Take(4).Select(qrCode =>
             new Find(qrCode.Id, annaUser.Id, "192.168.1.101", "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)"));
         finds.AddRange(annaFinds);
 
         // Tom hat alle gefunden
         var tomUser = testUsers[2];
-        var tomFinds = qrCodes.Select(qrCode => 
+        var tomFinds = qrCodes.Select(qrCode =>
             new Find(qrCode.Id, tomUser.Id, "192.168.1.102", "Mozilla/5.0 (Android 12; Mobile; rv:68.0) Gecko/68.0 Firefox/88.0"));
         finds.AddRange(tomFinds);
 
