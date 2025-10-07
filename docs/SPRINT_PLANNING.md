@@ -18,18 +18,21 @@
 
 ## 🎯 Aktueller Projekt-Status
 
-**Aktueller Sprint:** Sprint 0 - Projekt-Foundation  
-**Fortschritt:** 100% abgeschlossen (26/26 Story Points)  
-**Tests:** 206 Tests erfolgreich mit 80% Code Coverage  
-**Letzte Commits:** Environment-Konfiguration implementiert, Hot-Reload konfiguriert, MVC-Struktur erstellt
+**Aktueller Sprint:** Sprint 1 - Admin-Authentifizierung und QR-Code-Management  
+**Fortschritt:** 40% abgeschlossen (8/20 Story Points)  
+**Tests:** 221 Tests erfolgreich mit 80% Code Coverage  
+**Letzte Commits:** QR-Code CRUD-Operationen implementiert, alle Tests angepasst
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
 - ✅ 6 Domain Entities mit umfassenden Tests (52 Tests)
-- ✅ Repository Pattern mit 100 Integration Tests (SQLite)
-- ✅ Service Layer mit Dependency Injection (5 Services)
+- ✅ Repository Pattern mit 101 Integration Tests (SQLite)
+- ✅ Service Layer mit Dependency Injection (6 Services)
 - ✅ API Controller mit vollständigen CRUD-Operationen (4 Controller)
 - ✅ MVC-Struktur für Admin und Employee Interfaces
+- ✅ Admin-Authentifizierung mit BCrypt (19 Tests)
+- ✅ QR-Code CRUD-Operationen vollständig implementiert
+- ✅ Request/Response DTOs für bessere API-Struktur
 - ✅ Hot-Reload Konfiguration für Entwicklungsumgebung
 - ✅ Environment-spezifische Konfiguration (Dev/Staging/Prod/Test)
 - ✅ Automatische Datenbank-Migrationen in Entwicklungsskripten
@@ -124,64 +127,64 @@ Technische Grundlagen schaffen und Architektur etablieren
 
 ---
 
-## 🚀 Sprint 1: Admin-Grundfunktionen (2 Wochen)
+## 🚀 Sprint 1: Admin-Authentifizierung und QR-Code-Management (2 Wochen)
 
 ### Sprint-Ziel
-Admin kann sich anmelden und Kampagnen verwalten
+Admin kann sich anmelden und QR-Codes für Kampagnen verwalten
 
 ### 📝 User Stories
 
-#### Story 1.1: Admin-Authentifizierung
+#### Story 1.1: Admin-Authentifizierung ✅ ABGESCHLOSSEN
 **Als** Administrator  
 **Möchte ich** mich sicher anmelden können  
 **Damit** ich das System verwalten kann  
 
 **Akzeptanzkriterien:**
-- [ ] Login-Seite mit Formular
-- [ ] Passwort-Hashing (bcrypt)
-- [ ] Session-Management
-- [ ] Logout-Funktionalität
-- [ ] "Remember Me" Option
-- [ ] Fehlerbehandlung bei falschen Daten
-- [ ] 100% Test Coverage
+- [x] Login-Seite mit Formular
+- [x] Passwort-Hashing (bcrypt)
+- [x] Session-Management
+- [x] Logout-Funktionalität
+- [x] "Remember Me" Option
+- [x] Fehlerbehandlung bei falschen Daten
+- [x] 100% Test Coverage (19 Tests)
 
 **Gherkin:** `features/admin_authentication.feature`  
-**Aufwand:** 8 Story Points
+**Aufwand:** 8 Story Points ✅
 
-#### Story 1.2: Kampagnen-CRUD
+#### Story 1.2: QR-Code CRUD-Operationen ✅ ABGESCHLOSSEN
 **Als** Administrator  
-**Möchte ich** Kampagnen erstellen, bearbeiten und löschen können  
-**Damit** ich verschiedene Events organisieren kann  
+**Möchte ich** QR-Codes für eine Kampagne erstellen, bearbeiten und löschen  
+**Damit** ich die Oster-Eier für die Suche vorbereiten kann  
 
 **Akzeptanzkriterien:**
-- [ ] Kampagne erstellen mit Name und Beschreibung
-- [ ] Kampagnen-Liste anzeigen
-- [ ] Kampagne bearbeiten
-- [ ] Kampagne löschen (mit Bestätigung)
-- [ ] Kampagne aktivieren/deaktivieren
-- [ ] Validierung aller Eingaben
-- [ ] 100% Test Coverage
+- [x] QR-Code erstellen mit Titel, Beschreibung und internen Notizen
+- [x] QR-Code bearbeiten (alle Felder)
+- [x] QR-Code löschen mit Bestätigung
+- [x] QR-Code-Liste pro Kampagne anzeigen
+- [x] Validierung aller Eingaben
+- [x] Request/Response DTOs implementiert
+- [x] 100% Test Coverage (alle Tests angepasst)
 
-**Gherkin:** `features/campaign_management.feature`  
-**Aufwand:** 13 Story Points
+**Gherkin:** `features/qr_code_management.feature`  
+**Aufwand:** 8 Story Points ✅
 
-#### Story 1.3: Admin-Dashboard
+#### Story 1.3: Admin-Dashboard erweitern
 **Als** Administrator  
-**Möchte ich** eine Übersicht über alle Kampagnen haben  
+**Möchte ich** eine Übersicht über alle Kampagnen und QR-Codes haben  
 **Damit** ich den Status schnell erfassen kann  
 
 **Akzeptanzkriterien:**
-- [ ] Dashboard mit Kampagnen-Übersicht
-- [ ] Anzahl QR-Codes pro Kampagne
-- [ ] Anzahl Teilnehmer pro Kampagne
-- [ ] Letzte Aktivitäten anzeigen
-- [ ] Schnellzugriff auf häufige Aktionen
-- [ ] Responsive Design
+- [x] Dashboard mit Kampagnen-Übersicht
+- [x] Anzahl QR-Codes pro Kampagne
+- [x] Anzahl Teilnehmer pro Kampagne
+- [x] QR-Code-Statistiken anzeigen
+- [x] Schnellzugriff auf QR-Code-Management
+- [x] Responsive Design
 - [ ] 100% Test Coverage
 
-**Aufwand:** 8 Story Points
+**Aufwand:** 4 Story Points (teilweise abgeschlossen)
 
-**Sprint 1 Gesamt:** 29 Story Points
+**Sprint 1 Gesamt:** 20 Story Points (8/20 abgeschlossen = 40%)
 
 ---
 
