@@ -19,9 +19,9 @@
 ## 🎯 Aktueller Projekt-Status
 
 **Aktueller Sprint:** Sprint 1 - Admin-Authentifizierung und QR-Code-Management  
-**Fortschritt:** 40% abgeschlossen (8/20 Story Points)  
-**Tests:** 221 Tests erfolgreich mit 80% Code Coverage  
-**Letzte Commits:** QR-Code CRUD-Operationen implementiert, alle Tests angepasst
+**Fortschritt:** 60% abgeschlossen (12/20 Story Points)  
+**Tests:** 224 Tests erfolgreich mit 80% Code Coverage  
+**Letzte Commits:** Admin-Dashboard mit QR-Code-Statistiken erweitert
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
@@ -168,7 +168,7 @@ Admin kann sich anmelden und QR-Codes für Kampagnen verwalten
 **Gherkin:** `features/qr_code_management.feature`  
 **Aufwand:** 8 Story Points ✅
 
-#### Story 1.3: Admin-Dashboard erweitern
+#### Story 1.3: Admin-Dashboard erweitern ✅ ABGESCHLOSSEN
 **Als** Administrator  
 **Möchte ich** eine Übersicht über alle Kampagnen und QR-Codes haben  
 **Damit** ich den Status schnell erfassen kann  
@@ -180,11 +180,12 @@ Admin kann sich anmelden und QR-Codes für Kampagnen verwalten
 - [x] QR-Code-Statistiken anzeigen
 - [x] Schnellzugriff auf QR-Code-Management
 - [x] Responsive Design
-- [ ] 100% Test Coverage
+- [x] 100% Test Coverage (3 Web-Tests)
 
-**Aufwand:** 4 Story Points (teilweise abgeschlossen)
+**Gherkin:** `features/admin_statistics.feature`  
+**Aufwand:** 4 Story Points ✅
 
-**Sprint 1 Gesamt:** 20 Story Points (8/20 abgeschlossen = 40%)
+**Sprint 1 Gesamt:** 20 Story Points (12/20 abgeschlossen = 60%)
 
 ---
 
