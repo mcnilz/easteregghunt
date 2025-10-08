@@ -24,6 +24,7 @@ param(
 # Globale Variablen
 $ScriptDir = $PSScriptRoot
 $ProjectRoot = Split-Path $ScriptDir -Parent
+$OriginalLocation = Get-Location
 $ApiProject = "src/EasterEggHunt.Api"
 $WebProject = "src/EasterEggHunt.Web"
 $InfrastructureProject = "src/EasterEggHunt.Infrastructure"
@@ -338,5 +339,5 @@ catch {
 }
 finally {
     # Zurück zum ursprünglichen Verzeichnis
-    Set-Location $ScriptDir
+    Set-Location $OriginalLocation
 }

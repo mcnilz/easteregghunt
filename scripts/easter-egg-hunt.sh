@@ -5,6 +5,7 @@
 # Globale Variablen
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+ORIGINAL_LOCATION="$(pwd)"
 API_PROJECT="src/EasterEggHunt.Api"
 WEB_PROJECT="src/EasterEggHunt.Web"
 INFRASTRUCTURE_PROJECT="src/EasterEggHunt.Infrastructure"
@@ -345,6 +346,14 @@ main() {
             ;;
     esac
 }
+
+# Cleanup-Funktion
+cleanup() {
+    cd "$ORIGINAL_LOCATION"
+}
+
+# Signal-Handler für sauberes Beenden
+trap cleanup EXIT
 
 # Script ausführen
 main "$@"

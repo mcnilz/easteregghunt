@@ -13,7 +13,7 @@ namespace EasterEggHunt.Web.Tests.Controllers;
 /// Tests für AdminController
 /// </summary>
 [TestFixture]
-public class AdminControllerTests
+public class AdminControllerTests : IDisposable
 {
     private Mock<ICampaignService> _mockCampaignService = null!;
     private Mock<IQrCodeService> _mockQrCodeService = null!;
@@ -93,7 +93,7 @@ public class AdminControllerTests
         Assert.That(result, Is.InstanceOf<ViewResult>());
         var viewResult = result as ViewResult;
         Assert.That(viewResult!.Model, Is.InstanceOf<AdminDashboardViewModel>());
-        
+
         var viewModel = viewResult.Model as AdminDashboardViewModel;
         Assert.That(viewModel!.TotalUsers, Is.EqualTo(2));
         Assert.That(viewModel.ActiveCampaigns, Is.EqualTo(1));
@@ -119,7 +119,7 @@ public class AdminControllerTests
         Assert.That(result, Is.InstanceOf<ViewResult>());
         var viewResult = result as ViewResult;
         Assert.That(viewResult!.Model, Is.InstanceOf<AdminDashboardViewModel>());
-        
+
         var viewModel = viewResult.Model as AdminDashboardViewModel;
         Assert.That(viewModel!.TotalUsers, Is.EqualTo(0));
         Assert.That(viewModel.ActiveCampaigns, Is.EqualTo(0));
@@ -143,5 +143,19 @@ public class AdminControllerTests
         Assert.That(result, Is.InstanceOf<ViewResult>());
         var viewResult = result as ViewResult;
         Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _controller?.Dispose();
+        }
     }
 }
