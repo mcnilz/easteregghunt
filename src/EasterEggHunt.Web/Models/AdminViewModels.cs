@@ -24,6 +24,26 @@ public class AdminDashboardViewModel
     public int ActiveCampaigns { get; set; }
 
     /// <summary>
+    /// Gesamtanzahl der QR-Codes
+    /// </summary>
+    public int TotalQrCodes { get; set; }
+
+    /// <summary>
+    /// Gesamtanzahl der Funde
+    /// </summary>
+    public int TotalFinds { get; set; }
+
+    /// <summary>
+    /// Anzahl der aktiven QR-Codes
+    /// </summary>
+    public int ActiveQrCodes { get; set; }
+
+    /// <summary>
+    /// Letzte Aktivitäten (QR-Code Funde)
+    /// </summary>
+    public IReadOnlyList<RecentActivityViewModel> RecentActivities { get; set; } = new List<RecentActivityViewModel>();
+
+    /// <summary>
     /// Konstruktor für AdminDashboardViewModel
     /// </summary>
     /// <param name="campaigns">Liste der Kampagnen</param>
@@ -241,4 +261,35 @@ public class DeleteQrCodeViewModel
     /// Beschreibung des QR-Codes
     /// </summary>
     public string Description { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// ViewModel für letzte Aktivitäten
+/// </summary>
+public class RecentActivityViewModel
+{
+    /// <summary>
+    /// Benutzername
+    /// </summary>
+    public string UserName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// QR-Code Titel
+    /// </summary>
+    public string QrCodeTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Kampagnenname
+    /// </summary>
+    public string CampaignName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Zeitpunkt des Fundes
+    /// </summary>
+    public DateTime FoundAt { get; set; }
+
+    /// <summary>
+    /// IP-Adresse des Fundes
+    /// </summary>
+    public string IpAddress { get; set; } = string.Empty;
 }

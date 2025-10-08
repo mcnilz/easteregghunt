@@ -11,7 +11,7 @@
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card text-white bg-primary">
             <div class="card-body">
                 <h5 class="card-title">Aktive Kampagnen</h5>
@@ -19,7 +19,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card text-white bg-success">
             <div class="card-body">
                 <h5 class="card-title">Gesamt Benutzer</h5>
@@ -27,11 +27,21 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card text-white bg-info">
             <div class="card-body">
-                <h5 class="card-title">Alle Kampagnen</h5>
-                <h2 class="card-text">@Model.Campaigns.Count</h2>
+                <h5 class="card-title">QR-Codes</h5>
+                <h2 class="card-text">@Model.TotalQrCodes</h2>
+                <small class="text-light">@Model.ActiveQrCodes aktiv</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Funde</h5>
+                <h2 class="card-text">@Model.TotalFinds</h2>
+                <small class="text-light">Gesamt gefunden</small>
             </div>
         </div>
     </div>
@@ -99,3 +109,41 @@
         }
     </div>
 </div>
+
+@if (Model.RecentActivities.Any())
+{
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>Letzte Aktivitäten</h3>
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Benutzer</th>
+                                    <th>QR-Code</th>
+                                    <th>Kampagne</th>
+                                    <th>Gefunden</th>
+                                    <th>IP-Adresse</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var activity in Model.RecentActivities)
+                                {
+                                    <tr>
+                                        <td>@activity.UserName</td>
+                                        <td>@activity.QrCodeTitle</td>
+                                        <td>@activity.CampaignName</td>
+                                        <td>@activity.FoundAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td>@activity.IpAddress</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

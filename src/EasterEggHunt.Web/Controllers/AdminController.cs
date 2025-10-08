@@ -1,5 +1,6 @@
 using EasterEggHunt.Application.Requests;
 using EasterEggHunt.Application.Services;
+using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,10 +44,53 @@ public class AdminController : Controller
             var campaigns = await _campaignService.GetActiveCampaignsAsync();
             var users = await _userService.GetActiveUsersAsync();
 
+            // QR-Code Statistiken berechnen
+            var allQrCodes = new List<QrCode>();
+            var allFinds = new List<Find>();
+            var recentActivities = new List<RecentActivityViewModel>();
+
+            foreach (var campaign in campaigns)
+            {
+                var qrCodes = await _qrCodeService.GetQrCodesByCampaignIdAsync(campaign.Id);
+                allQrCodes.AddRange(qrCodes);
+
+                // Letzte Funde für diese Kampagne sammeln
+                foreach (var qrCode in qrCodes)
+                {
+                    var finds = await _findService.GetFindsByQrCodeIdAsync(qrCode.Id);
+                    allFinds.AddRange(finds);
+
+                    // Recent Activities für die letzten 10 Funde
+                    var recentFinds = finds
+                        .OrderByDescending(f => f.FoundAt)
+                        .Take(10)
+                        .Select(f => new RecentActivityViewModel
+                        {
+                            UserName = f.User?.Name ?? "Unbekannter Benutzer",
+                            QrCodeTitle = qrCode.Title,
+                            CampaignName = campaign.Name,
+                            FoundAt = f.FoundAt,
+                            IpAddress = f.IpAddress
+                        });
+
+                    recentActivities.AddRange(recentFinds);
+                }
+            }
+
+            // Recent Activities sortieren und auf 10 begrenzen
+            recentActivities = recentActivities
+                .OrderByDescending(a => a.FoundAt)
+                .Take(10)
+                .ToList();
+
             var viewModel = new AdminDashboardViewModel(campaigns)
             {
                 TotalUsers = users.Count(),
-                ActiveCampaigns = campaigns.Count(c => c.IsActive)
+                ActiveCampaigns = campaigns.Count(c => c.IsActive),
+                TotalQrCodes = allQrCodes.Count,
+                ActiveQrCodes = allQrCodes.Count(q => q.IsActive),
+                TotalFinds = allFinds.Count,
+                RecentActivities = recentActivities
             };
 
             return View(viewModel);
