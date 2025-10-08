@@ -1,13 +1,13 @@
 using EasterEggHunt.Integration.Tests;
 using NUnit.Framework;
 
-namespace EasterEggHunt.Integration.Tests.Controllers;
+namespace EasterEggHunt.Integration.Tests.Repositories;
 
 /// <summary>
-/// Integration Tests für Datenbank-Operationen mit echter SQLite-Datenbank
+/// Integration Tests für Admin Repository mit echter SQLite-Datenbank
 /// </summary>
 [TestFixture]
-public class AdminControllerIntegrationTests : IntegrationTestBase
+public class AdminRepositoryIntegrationTests : IntegrationTestBase
 {
     [SetUp]
     public void Setup()

@@ -1,17 +1,14 @@
-using System.Net;
-using System.Text;
-using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Integration.Tests;
 using NUnit.Framework;
 
-namespace EasterEggHunt.Integration.Tests.Controllers;
+namespace EasterEggHunt.Integration.Tests.Repositories;
 
 /// <summary>
-/// Integration Tests für QrCodesController mit echter SQLite-Datenbank
+/// Integration Tests für QrCode Repository mit echter SQLite-Datenbank
 /// </summary>
 [TestFixture]
-public class QrCodesControllerIntegrationTests : IntegrationTestBase
+public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
 {
     [SetUp]
     public void Setup()
