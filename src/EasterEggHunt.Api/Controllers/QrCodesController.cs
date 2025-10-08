@@ -254,6 +254,34 @@ public class QrCodesController : ControllerBase
             return StatusCode(500, "Interner Serverfehler");
         }
     }
+
+    /// <summary>
+    /// Löscht einen QR-Code
+    /// </summary>
+    /// <param name="id">QR-Code-ID</param>
+    /// <returns>Erfolgsstatus</returns>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> DeleteQrCode(int id)
+    {
+        try
+        {
+            var success = await _qrCodeService.DeleteQrCodeAsync(id);
+            if (!success)
+            {
+                return NotFound($"QR-Code mit ID {id} nicht gefunden");
+            }
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Löschen des QR-Codes {QrCodeId}", id);
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
 }
 
 /// <summary>

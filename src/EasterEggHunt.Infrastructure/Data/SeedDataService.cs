@@ -1,5 +1,6 @@
 using EasterEggHunt.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -13,16 +14,19 @@ public class SeedDataService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SeedDataService> _logger;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// Konstruktor für Dependency Injection
     /// </summary>
     /// <param name="serviceProvider">Service Provider für DbContext</param>
     /// <param name="logger">Logger für Seed-Operationen</param>
-    public SeedDataService(IServiceProvider serviceProvider, ILogger<SeedDataService> logger)
+    /// <param name="configuration">Konfiguration</param>
+    public SeedDataService(IServiceProvider serviceProvider, ILogger<SeedDataService> logger, IConfiguration configuration)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -32,6 +36,14 @@ public class SeedDataService : IHostedService
     /// <returns>Task</returns>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        // Prüfe, ob Seeding aktiviert ist
+        var isSeedDataEnabled = _configuration.GetValue<bool>("EasterEggHunt:Database:SeedData", true);
+        if (!isSeedDataEnabled)
+        {
+            _logger.LogInformation("SeedData ist deaktiviert. Überspringe Seed-Prozess.");
+            return;
+        }
+
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<EasterEggHuntDbContext>();
 

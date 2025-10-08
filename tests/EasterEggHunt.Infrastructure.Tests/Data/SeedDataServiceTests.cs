@@ -1,5 +1,6 @@
 using EasterEggHunt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -44,7 +45,16 @@ public class SeedDataServiceTests
         _context = _serviceProvider.GetRequiredService<EasterEggHuntDbContext>();
         _context.Database.EnsureCreated();
 
-        _seedService = new SeedDataService(_serviceProvider, mockLogger.Object);
+        // Erstelle eine echte IConfiguration mit Dictionary
+        var configurationData = new Dictionary<string, string?>
+        {
+            ["EasterEggHunt:Database:SeedData"] = "true"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurationData)
+            .Build();
+
+        _seedService = new SeedDataService(_serviceProvider, mockLogger.Object, configuration);
     }
 
     [TearDown]
@@ -167,9 +177,17 @@ public class SeedDataServiceTests
     {
         // Arrange
         var mockLogger = new Mock<ILogger<SeedDataService>>();
+        // Erstelle eine echte IConfiguration mit Dictionary
+        var configurationData = new Dictionary<string, string?>
+        {
+            ["EasterEggHunt:Database:SeedData"] = "true"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurationData)
+            .Build();
 
         // Act
-        var service = new SeedDataService(_serviceProvider, mockLogger.Object);
+        var service = new SeedDataService(_serviceProvider, mockLogger.Object, configuration);
 
         // Assert
         Assert.That(service, Is.Not.Null);

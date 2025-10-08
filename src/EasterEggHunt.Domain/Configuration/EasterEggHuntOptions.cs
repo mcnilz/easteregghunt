@@ -47,6 +47,16 @@ public class DatabaseOptions
     /// Verbindungszeichenfolge
     /// </summary>
     public string ConnectionString { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Automatische Migration beim Start aktivieren
+    /// </summary>
+    public bool AutoMigrate { get; set; } = true;
+
+    /// <summary>
+    /// Seed-Daten beim Start laden
+    /// </summary>
+    public bool SeedData { get; set; } = true;
 }
 
 /// <summary>
