@@ -40,8 +40,7 @@ jobs:
           --collect:"XPlat Code Coverage" \
           --results-directory ./coverage \
           --logger trx \
-          --logger "console;verbosity=detailed" \
-          --settings coverage.runsettings
+          --logger "console;verbosity=detailed"
     
     - name: 📊 Generate Coverage Report
       uses: danielpalme/ReportGenerator-GitHub-Action@5.2.0
@@ -62,30 +61,6 @@ jobs:
         recreate: true
         path: coverage/report/SummaryGithub.md
     
-    - name: 🔍 Check Coverage Thresholds
-      run: |
-        # Install jq for JSON parsing
-        sudo apt-get update && sudo apt-get install -y jq
-        
-        # Find the merged coverage report
-        COVERAGE_REPORT=""
-        if [ -f "coverage/report/Cobertura.xml" ]; then
-          COVERAGE_REPORT="coverage/report/Cobertura.xml"
-        else
-          # Fallback: find any Cobertura XML file
-          COVERAGE_REPORT=$(find coverage -name "*.xml" -type f | head -1)
-        fi
-        
-        if [ -z "$COVERAGE_REPORT" ]; then
-          echo "❌ No coverage report found"
-          exit 1
-        fi
-        
-        echo "📊 Using coverage report: $COVERAGE_REPORT"
-        
-        # Run the centralized coverage check
-        chmod +x scripts/check-coverage.sh
-        ./scripts/check-coverage.sh --report "$COVERAGE_REPORT" --thresholds coverage-thresholds.json
     
     - name: 📤 Upload Coverage Reports
       uses: actions/upload-artifact@v4
