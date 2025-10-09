@@ -311,4 +311,281 @@ public class AuthServiceTests
         // Assert
         Assert.That(result, Is.False);
     }
+
+    #region Constructor Tests
+    [Test]
+    public void AuthService_Constructor_WithNullRepository_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new AuthService(null!, _mockLogger.Object));
+    }
+
+    [Test]
+    public void AuthService_Constructor_WithNullLogger_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new AuthService(_mockRepository.Object, null!));
+    }
+
+    [Test]
+    public void AuthService_Constructor_WithValidParameters_ShouldCreateInstance()
+    {
+        // Act
+        var service = new AuthService(_mockRepository.Object, _mockLogger.Object);
+
+        // Assert
+        Assert.That(service, Is.Not.Null);
+    }
+    #endregion
+
+    #region Argument Validation Tests
+    [Test]
+    public void AuthenticateAdminAsync_WithEmptyUsername_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.AuthenticateAdminAsync("", "password"));
+    }
+
+    [Test]
+    public void AuthenticateAdminAsync_WithWhitespaceUsername_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.AuthenticateAdminAsync("   ", "password"));
+    }
+
+    [Test]
+    public void AuthenticateAdminAsync_WithNullUsername_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.AuthenticateAdminAsync(null!, "password"));
+    }
+
+    [Test]
+    public void AuthenticateAdminAsync_WithEmptyPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.AuthenticateAdminAsync("username", ""));
+    }
+
+    [Test]
+    public void AuthenticateAdminAsync_WithWhitespacePassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.AuthenticateAdminAsync("username", "   "));
+    }
+
+    [Test]
+    public void AuthenticateAdminAsync_WithNullPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.AuthenticateAdminAsync("username", null!));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithEmptyUsername_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync("", "email@test.com", "password"));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithWhitespaceUsername_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync("   ", "email@test.com", "password"));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithNullUsername_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync(null!, "email@test.com", "password"));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithEmptyEmail_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync("username", "", "password"));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithWhitespaceEmail_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync("username", "   ", "password"));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithNullEmail_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync("username", null!, "password"));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithEmptyPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync("username", "email@test.com", ""));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithWhitespacePassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync("username", "email@test.com", "   "));
+    }
+
+    [Test]
+    public void CreateAdminAsync_WithNullPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.CreateAdminAsync("username", "email@test.com", null!));
+    }
+
+    [Test]
+    public void ChangePasswordAsync_WithEmptyCurrentPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.ChangePasswordAsync(1, "", "newpassword"));
+    }
+
+    [Test]
+    public void ChangePasswordAsync_WithWhitespaceCurrentPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.ChangePasswordAsync(1, "   ", "newpassword"));
+    }
+
+    [Test]
+    public void ChangePasswordAsync_WithNullCurrentPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.ChangePasswordAsync(1, null!, "newpassword"));
+    }
+
+    [Test]
+    public void ChangePasswordAsync_WithEmptyNewPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.ChangePasswordAsync(1, "currentpassword", ""));
+    }
+
+    [Test]
+    public void ChangePasswordAsync_WithWhitespaceNewPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.ChangePasswordAsync(1, "currentpassword", "   "));
+    }
+
+    [Test]
+    public void ChangePasswordAsync_WithNullNewPassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _authService.ChangePasswordAsync(1, "currentpassword", null!));
+    }
+
+    [Test]
+    public void HashPassword_WithWhitespacePassword_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => _authService.HashPassword("   "));
+    }
+
+    [Test]
+    public void VerifyPassword_WithEmptyPassword_ReturnsFalse()
+    {
+        // Arrange
+        var hash = "somehash";
+
+        // Act
+        var result = _authService.VerifyPassword("", hash);
+
+        // Assert
+        Assert.That(result, Is.False);
+    }
+
+    [Test]
+    public void VerifyPassword_WithWhitespacePassword_ReturnsFalse()
+    {
+        // Arrange
+        var hash = "somehash";
+
+        // Act
+        var result = _authService.VerifyPassword("   ", hash);
+
+        // Assert
+        Assert.That(result, Is.False);
+    }
+
+    [Test]
+    public void VerifyPassword_WithEmptyHash_ReturnsFalse()
+    {
+        // Arrange
+        var password = "testpassword";
+
+        // Act
+        var result = _authService.VerifyPassword(password, "");
+
+        // Assert
+        Assert.That(result, Is.False);
+    }
+
+    [Test]
+    public void VerifyPassword_WithWhitespaceHash_ReturnsFalse()
+    {
+        // Arrange
+        var password = "testpassword";
+
+        // Act
+        var result = _authService.VerifyPassword(password, "   ");
+
+        // Assert
+        Assert.That(result, Is.False);
+    }
+    #endregion
+
+    #region Edge Cases
+    [Test]
+    public async Task ChangePasswordAsync_WithNonExistentAdmin_ReturnsFalse()
+    {
+        // Arrange
+        var adminId = 999;
+        var currentPassword = "currentpassword";
+        var newPassword = "newpassword";
+
+        _mockRepository.Setup(r => r.GetByIdAsync(adminId))
+            .ReturnsAsync((AdminUser?)null);
+
+        // Act
+        var result = await _authService.ChangePasswordAsync(adminId, currentPassword, newPassword);
+
+        // Assert
+        Assert.That(result, Is.False);
+        _mockRepository.Verify(r => r.SaveAsync(It.IsAny<AdminUser>()), Times.Never);
+    }
+
+    [Test]
+    public async Task ChangePasswordAsync_WithInactiveAdmin_ReturnsFalse()
+    {
+        // Arrange
+        var adminId = 1;
+        var currentPassword = "currentpassword";
+        var newPassword = "newpassword";
+        var hashedPassword = _authService.HashPassword(currentPassword);
+        var adminUser = new AdminUser("admin", "admin@test.com", hashedPassword);
+        adminUser.Deactivate();
+
+        _mockRepository.Setup(r => r.GetByIdAsync(adminId))
+            .ReturnsAsync(adminUser);
+
+        // Act
+        var result = await _authService.ChangePasswordAsync(adminId, currentPassword, newPassword);
+
+        // Assert
+        Assert.That(result, Is.False);
+        _mockRepository.Verify(r => r.SaveAsync(It.IsAny<AdminUser>()), Times.Never);
+    }
+    #endregion
 }

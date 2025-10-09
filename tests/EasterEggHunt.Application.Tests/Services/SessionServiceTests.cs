@@ -31,6 +31,53 @@ public class SessionServiceTests
             _mockLogger.Object);
     }
 
+    #region Constructor Tests
+
+    [Test]
+    public void SessionService_Constructor_WithNullSessionRepository_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new SessionService(
+            null!,
+            _mockUserRepository.Object,
+            _mockLogger.Object));
+    }
+
+    [Test]
+    public void SessionService_Constructor_WithNullUserRepository_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new SessionService(
+            _mockSessionRepository.Object,
+            null!,
+            _mockLogger.Object));
+    }
+
+    [Test]
+    public void SessionService_Constructor_WithNullLogger_ShouldThrowArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new SessionService(
+            _mockSessionRepository.Object,
+            _mockUserRepository.Object,
+            null!));
+    }
+
+    [Test]
+    public void SessionService_Constructor_WithValidParameters_ShouldCreateInstance()
+    {
+        // Act
+        var service = new SessionService(
+            _mockSessionRepository.Object,
+            _mockUserRepository.Object,
+            _mockLogger.Object);
+
+        // Assert
+        Assert.That(service, Is.Not.Null);
+    }
+
+    #endregion
+
     [Test]
     public async Task CreateSessionAsync_WithValidUserId_ReturnsSession()
     {
@@ -42,7 +89,7 @@ public class SessionServiceTests
         _mockUserRepository.Setup(x => x.GetByIdAsync(userId))
             .ReturnsAsync(user);
         _mockSessionRepository.Setup(x => x.AddAsync(It.IsAny<Session>()))
-            .Callback<Session>(s => s.Id = "test-session-id");
+            .ReturnsAsync((Session s) => s);
         _mockSessionRepository.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(1);
 
@@ -55,6 +102,19 @@ public class SessionServiceTests
         Assert.That(result.ExpiresAt, Is.GreaterThan(DateTime.UtcNow));
         _mockSessionRepository.Verify(x => x.AddAsync(It.IsAny<Session>()), Times.Once);
         _mockSessionRepository.Verify(x => x.SaveChangesAsync(), Times.Once);
+    }
+
+    [Test]
+    public void CreateSessionAsync_WithNonExistentUser_ThrowsArgumentException()
+    {
+        // Arrange
+        var userId = 999;
+        _mockUserRepository.Setup(x => x.GetByIdAsync(userId))
+            .ReturnsAsync((User?)null);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<ArgumentException>(() => _sessionService.CreateSessionAsync(userId));
+        Assert.That(ex!.Message, Does.Contain($"Benutzer mit ID {userId} nicht gefunden"));
     }
 
     [Test]
@@ -88,6 +148,27 @@ public class SessionServiceTests
 
         // Assert
         Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public void GetSessionByIdAsync_WithEmptyId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.GetSessionByIdAsync(""));
+    }
+
+    [Test]
+    public void GetSessionByIdAsync_WithWhitespaceId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.GetSessionByIdAsync("   "));
+    }
+
+    [Test]
+    public void GetSessionByIdAsync_WithNullId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.GetSessionByIdAsync(null!));
     }
 
     [Test]
@@ -149,6 +230,27 @@ public class SessionServiceTests
     }
 
     [Test]
+    public void ExtendSessionAsync_WithEmptyId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.ExtendSessionAsync("", 7));
+    }
+
+    [Test]
+    public void ExtendSessionAsync_WithWhitespaceId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.ExtendSessionAsync("   ", 7));
+    }
+
+    [Test]
+    public void ExtendSessionAsync_WithNullId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.ExtendSessionAsync(null!, 7));
+    }
+
+    [Test]
     public async Task DeactivateSessionAsync_WithValidId_ReturnsTrue()
     {
         // Arrange
@@ -182,6 +284,27 @@ public class SessionServiceTests
 
         // Assert
         Assert.That(result, Is.False);
+    }
+
+    [Test]
+    public void DeactivateSessionAsync_WithEmptyId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.DeactivateSessionAsync(""));
+    }
+
+    [Test]
+    public void DeactivateSessionAsync_WithWhitespaceId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.DeactivateSessionAsync("   "));
+    }
+
+    [Test]
+    public void DeactivateSessionAsync_WithNullId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.DeactivateSessionAsync(null!));
     }
 
     [Test]
@@ -219,6 +342,48 @@ public class SessionServiceTests
 
         // Assert
         Assert.That(result, Is.False);
+    }
+
+    [Test]
+    public void UpdateSessionDataAsync_WithEmptyId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.UpdateSessionDataAsync("", "data"));
+    }
+
+    [Test]
+    public void UpdateSessionDataAsync_WithWhitespaceId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.UpdateSessionDataAsync("   ", "data"));
+    }
+
+    [Test]
+    public void UpdateSessionDataAsync_WithNullId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.UpdateSessionDataAsync(null!, "data"));
+    }
+
+    [Test]
+    public void UpdateSessionDataAsync_WithEmptyData_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.UpdateSessionDataAsync("session-id", ""));
+    }
+
+    [Test]
+    public void UpdateSessionDataAsync_WithWhitespaceData_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.UpdateSessionDataAsync("session-id", "   "));
+    }
+
+    [Test]
+    public void UpdateSessionDataAsync_WithNullData_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.UpdateSessionDataAsync("session-id", null!));
     }
 
     [Test]
@@ -268,5 +433,26 @@ public class SessionServiceTests
 
         // Assert
         Assert.That(result, Is.False);
+    }
+
+    [Test]
+    public void ValidateSessionAsync_WithEmptyId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.ValidateSessionAsync(""));
+    }
+
+    [Test]
+    public void ValidateSessionAsync_WithWhitespaceId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.ValidateSessionAsync("   "));
+    }
+
+    [Test]
+    public void ValidateSessionAsync_WithNullId_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _sessionService.ValidateSessionAsync(null!));
     }
 }
