@@ -293,3 +293,29 @@ public class RecentActivityViewModel
     /// </summary>
     public string IpAddress { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// ViewModel für QR-Code Druckansicht
+/// </summary>
+public class PrintQrCodesViewModel
+{
+    /// <summary>
+    /// Die Kampagne
+    /// </summary>
+    public Campaign Campaign { get; set; } = null!;
+
+    /// <summary>
+    /// Liste der zu druckenden QR-Codes
+    /// </summary>
+    public IReadOnlyList<QrCode> QrCodes { get; set; } = new List<QrCode>();
+
+    /// <summary>
+    /// Größe der QR-Codes in Pixeln
+    /// </summary>
+    public int Size { get; set; } = 200;
+
+    /// <summary>
+    /// Ob Titel angezeigt werden sollen
+    /// </summary>
+    public bool ShowTitles { get; set; } = true;
+}

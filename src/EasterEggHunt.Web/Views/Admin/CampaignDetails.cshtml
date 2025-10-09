@@ -75,9 +75,17 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3>QR-Codes</h3>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQrCodeModal">
-                <i class="fas fa-plus"></i> QR-Code hinzufügen
-            </button>
+            <div>
+                @if (Model.QrCodes.Any())
+                {
+                    <button class="btn btn-outline-secondary me-2" onclick="openPrintDialog()">
+                        <i class="fas fa-print"></i> Drucken
+                    </button>
+                }
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQrCodeModal">
+                    <i class="fas fa-plus"></i> QR-Code hinzufügen
+                </button>
+            </div>
         </div>
 
         @if (Model.QrCodes.Any())
@@ -173,6 +181,65 @@
     </div>
 </div>
 
+<!-- QR-Code Drucken Modal -->
+<div class="modal fade" id="printQrCodesModal" tabindex="-1" aria-labelledby="printQrCodesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="printQrCodesModalLabel">QR-Codes drucken</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="printQrCodesForm">
+                    <div class="mb-3">
+                        <label class="form-label">QR-Codes auswählen</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAllQrCodes" checked>
+                            <label class="form-check-label" for="selectAllQrCodes">
+                                Alle QR-Codes auswählen
+                            </label>
+                        </div>
+                        <div class="mt-2" style="max-height: 200px; overflow-y: auto;">
+                            @foreach (var qrCode in Model.QrCodes.OrderBy(q => q.SortOrder))
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input qr-code-checkbox" type="checkbox" value="@qrCode.Id" id="qrCode_@qrCode.Id" checked>
+                                    <label class="form-check-label" for="qrCode_@qrCode.Id">
+                                        @qrCode.Title
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="qrCodeSize" class="form-label">QR-Code-Größe (Pixel)</label>
+                        <input type="range" class="form-range" id="qrCodeSize" min="100" max="400" value="200" step="50">
+                        <div class="d-flex justify-content-between">
+                            <small>100px</small>
+                            <small id="qrCodeSizeValue">200px</small>
+                            <small>400px</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showTitles" checked>
+                            <label class="form-check-label" for="showTitles">
+                                Titel anzeigen
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" onclick="printSelectedQrCodes()">
+                    <i class="fas fa-print"></i> Drucken
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         function viewQrCode(id) {
@@ -189,5 +256,62 @@
             // QR-Code add functionality can be implemented in future sprints
             alert('QR-Code hinzufügen');
         }
+
+        function openPrintDialog() {
+            $('#printQrCodesModal').modal('show');
+        }
+
+        function printSelectedQrCodes() {
+            const selectedIds = Array.from(document.querySelectorAll('.qr-code-checkbox:checked'))
+                .map(cb => cb.value)
+                .join(',');
+            
+            const size = document.getElementById('qrCodeSize').value;
+            const showTitles = document.getElementById('showTitles').checked;
+            
+            if (selectedIds === '') {
+                alert('Bitte wählen Sie mindestens einen QR-Code aus.');
+                return;
+            }
+
+            // Druckansicht in neuem Tab öffnen
+            const printUrl = `/Admin/PrintQrCodes?campaignId=@Model.Campaign.Id&qrCodeIds=${selectedIds}&size=${size}&showTitles=${showTitles}`;
+            window.open(printUrl, '_blank');
+            
+            // Modal schließen
+            $('#printQrCodesModal').modal('hide');
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // QR-Code-Größe Slider
+            const sizeSlider = document.getElementById('qrCodeSize');
+            const sizeValue = document.getElementById('qrCodeSizeValue');
+            
+            sizeSlider.addEventListener('input', function() {
+                sizeValue.textContent = this.value + 'px';
+            });
+
+            // Alle QR-Codes auswählen/abwählen
+            const selectAllCheckbox = document.getElementById('selectAllQrCodes');
+            const qrCodeCheckboxes = document.querySelectorAll('.qr-code-checkbox');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                qrCodeCheckboxes.forEach(cb => {
+                    cb.checked = this.checked;
+                });
+            });
+
+            // Einzelne QR-Code-Checkboxes
+            qrCodeCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const checkedCount = document.querySelectorAll('.qr-code-checkbox:checked').length;
+                    const totalCount = qrCodeCheckboxes.length;
+                    
+                    selectAllCheckbox.checked = checkedCount === totalCount;
+                    selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < totalCount;
+                });
+            });
+        });
     </script>
 }

@@ -593,5 +593,77 @@ public class AdminController : Controller
         }
     }
 
+    /// <summary>
+    /// QR-Code Druckansicht für eine Kampagne
+    /// </summary>
+    /// <param name="campaignId">Kampagnen-ID</param>
+    /// <param name="qrCodeIds">Komma-getrennte Liste der QR-Code-IDs (optional)</param>
+    /// <param name="size">QR-Code-Größe in Pixeln (Standard: 200)</param>
+    /// <param name="showTitles">Titel anzeigen (Standard: true)</param>
+    /// <returns>Druckansicht</returns>
+    public async Task<IActionResult> PrintQrCodes(int campaignId, string? qrCodeIds = null, int size = 200, bool showTitles = true)
+    {
+        try
+        {
+            _logger.LogInformation("QR-Code Druckansicht für Kampagne {CampaignId}", campaignId);
+
+            var campaign = await _apiClient.GetCampaignByIdAsync(campaignId);
+            if (campaign == null)
+            {
+                return NotFound();
+            }
+
+            var allQrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaignId);
+            var qrCodesToPrint = allQrCodes.ToList();
+
+            // Filter nach spezifischen QR-Code-IDs falls angegeben
+            if (!string.IsNullOrWhiteSpace(qrCodeIds))
+            {
+                var selectedIds = qrCodeIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(id => int.TryParse(id.Trim(), out var parsedId) ? parsedId : -1)
+                    .Where(id => id > 0)
+                    .ToList();
+
+                if (selectedIds.Any())
+                {
+                    var filteredQrCodes = qrCodesToPrint.Where(q => selectedIds.Contains(q.Id)).ToList();
+                    // Nur filtern wenn tatsächlich QR-Codes gefunden wurden
+                    if (filteredQrCodes.Any())
+                    {
+                        qrCodesToPrint = filteredQrCodes;
+                    }
+                }
+            }
+
+            // Sortierung nach SortOrder
+            qrCodesToPrint = qrCodesToPrint.OrderBy(q => q.SortOrder).ToList();
+
+            var viewModel = new PrintQrCodesViewModel
+            {
+                Campaign = campaign,
+                QrCodes = qrCodesToPrint,
+                Size = Math.Max(50, Math.Min(500, size)), // Zwischen 50 und 500 Pixeln begrenzen
+                ShowTitles = showTitles
+            };
+
+            return View(viewModel);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code Druckansicht für Kampagne {CampaignId}", campaignId);
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code Druckansicht für Kampagne {CampaignId}", campaignId);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code Druckansicht für Kampagne {CampaignId}", campaignId);
+            return View("Error");
+        }
+    }
+
     #endregion
 }

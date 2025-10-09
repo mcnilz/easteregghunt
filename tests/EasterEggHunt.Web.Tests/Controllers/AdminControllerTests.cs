@@ -284,6 +284,236 @@ public sealed class AdminControllerTests : IDisposable
         Assert.That(viewModel.TotalFinds, Is.EqualTo(8)); // 2 campaigns * 2 qr codes * 2 finds each
     }
 
+    #region QR-Code Druckfunktionalität Tests
+
+    [Test]
+    public async Task PrintQrCodes_WithValidCampaignId_ReturnsViewWithPrintData()
+    {
+        // Arrange
+        var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin")
+        {
+            Id = campaignId,
+            IsActive = true
+        };
+
+        var qrCodes = new List<QrCode>
+        {
+            new QrCode(campaignId, "QR Code 1", "Description 1", "Note 1") { Id = 1, IsActive = true, SortOrder = 1 },
+            new QrCode(campaignId, "QR Code 2", "Description 2", "Note 2") { Id = 2, IsActive = true, SortOrder = 2 },
+            new QrCode(campaignId, "QR Code 3", "Description 3", "Note 3") { Id = 3, IsActive = false, SortOrder = 3 }
+        };
+
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync(campaign);
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(campaignId))
+            .ReturnsAsync(qrCodes);
+
+        // Act
+        var result = await _controller.PrintQrCodes(campaignId);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = (ViewResult)result;
+        Assert.That(viewResult.Model, Is.Not.Null);
+        Assert.That(viewResult.Model, Is.InstanceOf<PrintQrCodesViewModel>());
+
+        var viewModel = (PrintQrCodesViewModel)viewResult.Model!;
+        Assert.That(viewModel.Campaign, Is.EqualTo(campaign));
+        Assert.That(viewModel.QrCodes.Count(), Is.EqualTo(3));
+        Assert.That(viewModel.Size, Is.EqualTo(200)); // Default size
+        Assert.That(viewModel.ShowTitles, Is.True); // Default show titles
+    }
+
+    [Test]
+    public async Task PrintQrCodes_WithSpecificQrCodeIds_ReturnsFilteredQrCodes()
+    {
+        // Arrange
+        var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin")
+        {
+            Id = campaignId,
+            IsActive = true
+        };
+
+        var qrCodes = new List<QrCode>
+        {
+            new QrCode(campaignId, "QR Code 1", "Description 1", "Note 1") { Id = 1, IsActive = true, SortOrder = 1 },
+            new QrCode(campaignId, "QR Code 2", "Description 2", "Note 2") { Id = 2, IsActive = true, SortOrder = 2 },
+            new QrCode(campaignId, "QR Code 3", "Description 3", "Note 3") { Id = 3, IsActive = true, SortOrder = 3 }
+        };
+
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync(campaign);
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(campaignId))
+            .ReturnsAsync(qrCodes);
+
+        // Act
+        var result = await _controller.PrintQrCodes(campaignId, "1,3");
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = (ViewResult)result;
+        var viewModel = (PrintQrCodesViewModel)viewResult.Model!;
+
+        Assert.That(viewModel.QrCodes.Count(), Is.EqualTo(2));
+        Assert.That(viewModel.QrCodes.Any(q => q.Id == 1), Is.True);
+        Assert.That(viewModel.QrCodes.Any(q => q.Id == 3), Is.True);
+        Assert.That(viewModel.QrCodes.Any(q => q.Id == 2), Is.False);
+    }
+
+    [Test]
+    public async Task PrintQrCodes_WithCustomSizeAndShowTitles_ReturnsCorrectSettings()
+    {
+        // Arrange
+        var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin")
+        {
+            Id = campaignId,
+            IsActive = true
+        };
+
+        var qrCodes = new List<QrCode>
+        {
+            new QrCode(campaignId, "QR Code 1", "Description 1", "Note 1") { Id = 1, IsActive = true }
+        };
+
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync(campaign);
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(campaignId))
+            .ReturnsAsync(qrCodes);
+
+        // Act
+        var result = await _controller.PrintQrCodes(campaignId, null, 300, false);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = (ViewResult)result;
+        var viewModel = (PrintQrCodesViewModel)viewResult.Model!;
+
+        Assert.That(viewModel.Size, Is.EqualTo(300));
+        Assert.That(viewModel.ShowTitles, Is.False);
+    }
+
+    [Test]
+    public async Task PrintQrCodes_WithInvalidCampaignId_ReturnsNotFound()
+    {
+        // Arrange
+        var campaignId = 999;
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync((Campaign?)null);
+
+        // Act
+        var result = await _controller.PrintQrCodes(campaignId);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<NotFoundResult>());
+    }
+
+    [Test]
+    public async Task PrintQrCodes_WithInvalidQrCodeIds_ReturnsAllQrCodes()
+    {
+        // Arrange
+        var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin")
+        {
+            Id = campaignId,
+            IsActive = true
+        };
+
+        var qrCodes = new List<QrCode>
+        {
+            new QrCode(campaignId, "QR Code 1", "Description 1", "Note 1") { Id = 1, IsActive = true },
+            new QrCode(campaignId, "QR Code 2", "Description 2", "Note 2") { Id = 2, IsActive = true }
+        };
+
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync(campaign);
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(campaignId))
+            .ReturnsAsync(qrCodes);
+
+        // Act - Invalid QR-Code IDs (non-existent)
+        var result = await _controller.PrintQrCodes(campaignId, "999,1000");
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = (ViewResult)result;
+        var viewModel = (PrintQrCodesViewModel)viewResult.Model!;
+
+        // Should return all QR-Codes when invalid IDs are provided (no matches found)
+        Assert.That(viewModel.QrCodes.Count(), Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task PrintQrCodes_WithSizeLimits_ClampsSizeCorrectly()
+    {
+        // Arrange
+        var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin")
+        {
+            Id = campaignId,
+            IsActive = true
+        };
+
+        var qrCodes = new List<QrCode>
+        {
+            new QrCode(campaignId, "QR Code 1", "Description 1", "Note 1") { Id = 1, IsActive = true }
+        };
+
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync(campaign);
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(campaignId))
+            .ReturnsAsync(qrCodes);
+
+        // Act - Size too small (should be clamped to 50)
+        var resultSmall = await _controller.PrintQrCodes(campaignId, null, 25);
+        var viewModelSmall = (PrintQrCodesViewModel)((ViewResult)resultSmall).Model!;
+
+        // Act - Size too large (should be clamped to 500)
+        var resultLarge = await _controller.PrintQrCodes(campaignId, null, 600);
+        var viewModelLarge = (PrintQrCodesViewModel)((ViewResult)resultLarge).Model!;
+
+        // Assert
+        Assert.That(viewModelSmall.Size, Is.EqualTo(50));
+        Assert.That(viewModelLarge.Size, Is.EqualTo(500));
+    }
+
+    [Test]
+    public async Task PrintQrCodes_WithEmptyQrCodeIds_ReturnsAllQrCodes()
+    {
+        // Arrange
+        var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin")
+        {
+            Id = campaignId,
+            IsActive = true
+        };
+
+        var qrCodes = new List<QrCode>
+        {
+            new QrCode(campaignId, "QR Code 1", "Description 1", "Note 1") { Id = 1, IsActive = true },
+            new QrCode(campaignId, "QR Code 2", "Description 2", "Note 2") { Id = 2, IsActive = true }
+        };
+
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync(campaign);
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(campaignId))
+            .ReturnsAsync(qrCodes);
+
+        // Act - Empty QR-Code IDs
+        var result = await _controller.PrintQrCodes(campaignId, "");
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = (ViewResult)result;
+        var viewModel = (PrintQrCodesViewModel)viewResult.Model!;
+
+        // Should return all QR-Codes when empty string is provided
+        Assert.That(viewModel.QrCodes.Count(), Is.EqualTo(2));
+    }
+
+    #endregion
+
     [TearDown]
     public void TearDown()
     {
