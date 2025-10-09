@@ -64,4 +64,22 @@ public interface IQrCodeService
     /// <param name="id">QR-Code-ID</param>
     /// <returns>True wenn erfolgreich deaktiviert</returns>
     Task<bool> DeactivateQrCodeAsync(int id);
+
+    /// <summary>
+    /// Generiert ein QR-Code Bild als Base64-String
+    /// </summary>
+    /// <param name="id">QR-Code-ID</param>
+    /// <param name="size">Größe des QR-Codes in Pixeln (Standard: 200)</param>
+    /// <returns>Base64-String des QR-Code Bildes</returns>
+    Task<string?> GenerateQrCodeImageAsync(int id, int size = 200);
+
+    /// <summary>
+    /// Generiert QR-Code Bild für eine URL
+    /// </summary>
+    /// <param name="url">URL für den QR-Code</param>
+    /// <param name="size">Größe des QR-Codes in Pixeln (Standard: 200)</param>
+    /// <returns>Base64-String des QR-Code Bildes</returns>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:Uri parameters should not be strings", Justification = "URL wird als String verarbeitet")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1055:Uri return values should not be strings", Justification = "Base64-String wird zurückgegeben")]
+    string GenerateQrCodeImageForUrl(string url, int size = 200);
 }

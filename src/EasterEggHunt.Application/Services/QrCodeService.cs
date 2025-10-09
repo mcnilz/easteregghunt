@@ -2,6 +2,7 @@ using EasterEggHunt.Application.Requests;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Repositories;
 using Microsoft.Extensions.Logging;
+using QRCoder;
 
 namespace EasterEggHunt.Application.Services;
 
@@ -163,5 +164,51 @@ public class QrCodeService : IQrCodeService
 
         _logger.LogInformation("QR-Code mit ID {QrCodeId} erfolgreich gelöscht", id);
         return true;
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> GenerateQrCodeImageAsync(int id, int size = 200)
+    {
+        _logger.LogInformation("Generieren des QR-Code Bildes für ID {QrCodeId} mit Größe {Size}", id, size);
+
+        var qrCode = await _qrCodeRepository.GetByIdAsync(id);
+        if (qrCode == null)
+        {
+            _logger.LogWarning("QR-Code mit ID {QrCodeId} nicht gefunden", id);
+            return null;
+        }
+
+        return GenerateQrCodeImageForUrl(qrCode.UniqueUrl.ToString(), size);
+    }
+
+    /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1055:Uri return values should not be strings", Justification = "Base64-String wird zurückgegeben")]
+    public string GenerateQrCodeImageForUrl(string url, int size = 200)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            throw new ArgumentException("URL darf nicht leer sein", nameof(url));
+        }
+
+        if (size <= 0 || size > 1000)
+        {
+            throw new ArgumentException("Größe muss zwischen 1 und 1000 Pixeln liegen", nameof(size));
+        }
+
+        try
+        {
+            using var qrGenerator = new QRCodeGenerator();
+            using var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
+            using var qrCode = new Base64QRCode(qrCodeData);
+            var base64String = qrCode.GetGraphic(size);
+
+            _logger.LogDebug("QR-Code Bild erfolgreich generiert für URL {Url} mit Größe {Size}", url, size);
+            return $"data:image/png;base64,{base64String}";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Generieren des QR-Code Bildes für URL {Url}", url);
+            throw new InvalidOperationException("Fehler beim Generieren des QR-Code Bildes", ex);
+        }
     }
 }

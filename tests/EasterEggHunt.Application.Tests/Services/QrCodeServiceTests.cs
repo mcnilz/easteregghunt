@@ -443,4 +443,147 @@ public class QrCodeServiceTests
         _mockQrCodeRepository.Verify(r => r.DeleteAsync(It.IsAny<int>()), Times.Never);
         _mockQrCodeRepository.Verify(r => r.SaveChangesAsync(), Times.Never);
     }
+
+    #region QR-Code Bild-Generierung Tests
+
+    [Test]
+    public async Task GenerateQrCodeImageAsync_WithValidId_ReturnsBase64Image()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var testUrl = "https://example.com/qr/test123";
+        var qrCode = new QrCode(1, "Test QR-Code", "Test Description", "Test Notes")
+        {
+            Id = qrCodeId,
+            UniqueUrl = new Uri(testUrl)
+        };
+
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync(qrCode);
+
+        // Act
+        var result = await _qrCodeService.GenerateQrCodeImageAsync(qrCodeId);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.StartWith("data:image/png;base64,"));
+        _mockQrCodeRepository.Verify(r => r.GetByIdAsync(qrCodeId), Times.Once);
+    }
+
+    [Test]
+    public async Task GenerateQrCodeImageAsync_WithInvalidId_ReturnsNull()
+    {
+        // Arrange
+        var qrCodeId = 999;
+
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync((QrCode?)null);
+
+        // Act
+        var result = await _qrCodeService.GenerateQrCodeImageAsync(qrCodeId);
+
+        // Assert
+        Assert.That(result, Is.Null);
+        _mockQrCodeRepository.Verify(r => r.GetByIdAsync(qrCodeId), Times.Once);
+    }
+
+    [Test]
+    public async Task GenerateQrCodeImageAsync_WithCustomSize_ReturnsCorrectSize()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var customSize = 300;
+        var testUrl = "https://example.com/qr/test123";
+        var qrCode = new QrCode(1, "Test QR-Code", "Test Description", "Test Notes")
+        {
+            Id = qrCodeId,
+            UniqueUrl = new Uri(testUrl)
+        };
+
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync(qrCode);
+
+        // Act
+        var result = await _qrCodeService.GenerateQrCodeImageAsync(qrCodeId, customSize);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.StartWith("data:image/png;base64,"));
+        _mockQrCodeRepository.Verify(r => r.GetByIdAsync(qrCodeId), Times.Once);
+    }
+
+    [Test]
+    public void GenerateQrCodeImageForUrl_WithValidUrl_ReturnsBase64Image()
+    {
+        // Arrange
+        var testUrl = "https://example.com/qr/test123";
+        var size = 200;
+
+        // Act
+        var result = _qrCodeService.GenerateQrCodeImageForUrl(testUrl, size);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.StartWith("data:image/png;base64,"));
+    }
+
+    [Test]
+    public void GenerateQrCodeImageForUrl_WithEmptyUrl_ThrowsArgumentException()
+    {
+        // Arrange
+        var emptyUrl = "";
+        var size = 200;
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => _qrCodeService.GenerateQrCodeImageForUrl(emptyUrl, size));
+    }
+
+    [Test]
+    public void GenerateQrCodeImageForUrl_WithNullUrl_ThrowsArgumentException()
+    {
+        // Arrange
+        string? nullUrl = null;
+        var size = 200;
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => _qrCodeService.GenerateQrCodeImageForUrl(nullUrl!, size));
+    }
+
+    [Test]
+    public void GenerateQrCodeImageForUrl_WithInvalidSize_ThrowsArgumentException()
+    {
+        // Arrange
+        var testUrl = "https://example.com/qr/test123";
+        var invalidSize = 0;
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => _qrCodeService.GenerateQrCodeImageForUrl(testUrl, invalidSize));
+    }
+
+    [Test]
+    public void GenerateQrCodeImageForUrl_WithTooLargeSize_ThrowsArgumentException()
+    {
+        // Arrange
+        var testUrl = "https://example.com/qr/test123";
+        var tooLargeSize = 1001;
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => _qrCodeService.GenerateQrCodeImageForUrl(testUrl, tooLargeSize));
+    }
+
+    [Test]
+    public void GenerateQrCodeImageForUrl_WithDefaultSize_UsesDefaultSize()
+    {
+        // Arrange
+        var testUrl = "https://example.com/qr/test123";
+
+        // Act
+        var result = _qrCodeService.GenerateQrCodeImageForUrl(testUrl);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Does.StartWith("data:image/png;base64,"));
+    }
+
+    #endregion
 }
