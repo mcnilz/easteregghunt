@@ -10,6 +10,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
+    <script src="~/js/qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -89,10 +90,12 @@
             margin-bottom: 10px;
         }
 
-        .qr-code-image img {
+        .qr-code-image div {
             max-width: 100%;
             height: auto;
             border: 1px solid #ccc;
+            display: block;
+            margin: 0 auto;
         }
 
         .qr-code-title {
@@ -214,9 +217,10 @@
             {
                 <div class="qr-code-item">
                     <div class="qr-code-image">
-                        <img src="/api/qrcodes/@qrCode.Id/image?size=@Model.Size" 
-                             alt="QR-Code für @qrCode.Title" 
-                             title="@qrCode.Title" />
+                        <div id="qrcode-@qrCode.Id" 
+                             data-url="@qrCode.UniqueUrl" 
+                             data-size="@Model.Size"
+                             title="@qrCode.Title"></div>
                     </div>
                     
                     @if (Model.ShowTitles)
@@ -248,6 +252,38 @@
     </div>
 
     <script>
+        // QR-Code-Generierung beim Laden der Seite
+        document.addEventListener('DOMContentLoaded', function() {
+            generateQrCodes();
+        });
+
+        function generateQrCodes() {
+            const qrContainers = document.querySelectorAll('div[id^="qrcode-"]');
+            
+            qrContainers.forEach(container => {
+                const url = container.getAttribute('data-url');
+                const size = parseInt(container.getAttribute('data-size')) || 200;
+                
+                if (url) {
+                    try {
+                        // QRCode.js verwendet new QRCode() mit Container-Element
+                        const qrCode = new QRCode(container, {
+                            text: url,
+                            width: size,
+                            height: size,
+                            colorDark: '#000000',
+                            colorLight: '#FFFFFF',
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    } catch (error) {
+                        console.error('QR-Code-Generierung fehlgeschlagen:', error);
+                        // Fallback: Text anzeigen
+                        container.innerHTML = '<div style="color: red; text-align: center;">QR-Code Fehler</div>';
+                    }
+                }
+            });
+        }
+
         // Nach dem Drucken zur vorherigen Seite zurückkehren (optional)
         window.onafterprint = function() {
             // Optional: Fenster schließen nach dem Drucken

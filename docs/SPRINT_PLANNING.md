@@ -18,10 +18,10 @@
 
 ## 🎯 Aktueller Projekt-Status
 
-**Aktueller Sprint:** Sprint 1 - Admin-Authentifizierung und QR-Code-Management  
-**Fortschritt:** 100% abgeschlossen (20/20 Story Points) ✅  
-**Tests:** 116 Tests erfolgreich mit exzellenter Code Coverage  
-**Letzte Commits:** Coverage-Verbesserung (Infrastructure: 0% → 33.44%), Script-Vereinfachung, Coding Guidelines Compliance
+**Aktueller Sprint:** Sprint 2 - QR-Code Management  
+**Fortschritt:** 66% abgeschlossen (8/12 Story Points) ✅  
+**Tests:** 162 Tests erfolgreich mit exzellenter Code Coverage  
+**Letzte Commits:** Client-side QR-Code-Generierung mit QRCode.js, Lizenzkonforme lokale Bibliothek
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
@@ -44,6 +44,8 @@
 - ✅ **Code Coverage: Application 94.66%, Infrastructure 33.44%, Domain 81.35%**
 - ✅ **ReportGenerator für Coverage-Visualisierung**
 - ✅ **Vereinfachte Coverage-Checks mit dotnet test Thresholds**
+- ✅ **Client-side QR-Code-Generierung mit QRCode.js (MIT-Lizenz)**
+- ✅ **QR-Code Drucklayout mit A4-Optimierung und Größenanpassung**
 
 ---
 
@@ -208,13 +210,13 @@ Admin kann QR-Codes erstellen und verwalten
 **Damit** Mitarbeiter sie finden können  
 
 **Akzeptanzkriterien:**
-- [ ] QR-Code mit Titel und interner Notiz erstellen
-- [ ] QR-Code bearbeiten
-- [ ] QR-Code löschen
-- [ ] QR-Code aktivieren/deaktivieren
-- [ ] Eindeutige URLs generieren
-- [ ] QR-Code Bild generieren
-- [ ] 100% Test Coverage
+- [x] QR-Code mit Titel und interner Notiz erstellen
+- [x] QR-Code bearbeiten
+- [x] QR-Code löschen
+- [x] QR-Code aktivieren/deaktivieren
+- [x] Eindeutige URLs generieren
+- [x] QR-Code Bild generieren (Client-side mit QRCode.js)
+- [x] 100% Test Coverage
 
 **Gherkin:** `features/qr_code_management.feature`  
 **Aufwand:** 13 Story Points
@@ -225,13 +227,13 @@ Admin kann QR-Codes erstellen und verwalten
 **Damit** ich sie ausdrucken und verstecken kann  
 
 **Akzeptanzkriterien:**
-- [ ] Druckansicht für alle QR-Codes
-- [ ] Auswahl spezifischer QR-Codes
-- [ ] A4-optimiertes Layout
-- [ ] Anpassbare QR-Code-Größe
-- [ ] Titel ein-/ausblendbar
-- [ ] Browser-Druckdialog Integration
-- [ ] 100% Test Coverage
+- [x] Druckansicht für alle QR-Codes
+- [x] Auswahl spezifischer QR-Codes
+- [x] A4-optimiertes Layout
+- [x] Anpassbare QR-Code-Größe
+- [x] Titel ein-/ausblendbar
+- [x] Browser-Druckdialog Integration
+- [x] 100% Test Coverage
 
 **Gherkin:** `features/print_layout.feature`  
 **Aufwand:** 8 Story Points

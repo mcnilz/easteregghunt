@@ -283,45 +283,6 @@ public class QrCodesController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Generiert ein QR-Code Bild
-    /// </summary>
-    /// <param name="id">QR-Code-ID</param>
-    /// <param name="size">Größe des QR-Codes in Pixeln (Standard: 200)</param>
-    /// <returns>QR-Code Bild als Base64-String</returns>
-    [HttpGet("{id}/image")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<string>> GetQrCodeImage(int id, [FromQuery] int size = 200)
-    {
-        try
-        {
-            if (size <= 0 || size > 1000)
-            {
-                return BadRequest("Größe muss zwischen 1 und 1000 Pixeln liegen");
-            }
-
-            var imageData = await _qrCodeService.GenerateQrCodeImageAsync(id, size);
-            if (imageData == null)
-            {
-                return NotFound($"QR-Code mit ID {id} nicht gefunden");
-            }
-
-            return Ok(new { imageData, size });
-        }
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Ungültige Parameter beim Generieren des QR-Code Bildes für ID {QrCodeId}", id);
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogError(ex, "Fehler beim Generieren des QR-Code Bildes für ID {QrCodeId}", id);
-            return StatusCode(500, "Interner Serverfehler");
-        }
-    }
 }
 
 /// <summary>
