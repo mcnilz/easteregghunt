@@ -7,13 +7,13 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    
+
     <!-- Coverage Configuration -->
     <CollectCoverage>true</CollectCoverage>
     <CoverletOutputFormat>cobertura</CoverletOutputFormat>
-        <Threshold>30</Threshold>
+    <Threshold>30</Threshold>
     <ThresholdType>line</ThresholdType>
-    <RunSettingsFilePath>../../coverage.runsettings</RunSettingsFilePath>
+    <RunSettingsFilePath>coverage.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,7 +41,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\EasterEggHunt.Infrastructure\EasterEggHunt.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\EasterEggHunt.Application\EasterEggHunt.Application.csproj" />
     <ProjectReference Include="..\..\src\EasterEggHunt.Domain\EasterEggHunt.Domain.csproj" />
   </ItemGroup>
 

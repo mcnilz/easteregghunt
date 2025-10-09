@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EasterEggHunt.Domain\EasterEggHunt.Domain.csproj" />
-    <ProjectReference Include="..\EasterEggHunt.Application\EasterEggHunt.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
