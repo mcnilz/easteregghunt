@@ -25,7 +25,7 @@ public class UsersController : ControllerBase
     /// Ruft alle aktiven Benutzer ab
     /// </summary>
     /// <returns>Liste aller aktiven Benutzer</returns>
-    [HttpGet]
+    [HttpGet("active")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<User>>> GetActiveUsers()

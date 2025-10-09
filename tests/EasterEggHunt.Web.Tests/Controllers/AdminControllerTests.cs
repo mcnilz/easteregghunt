@@ -1,7 +1,7 @@
-using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Controllers;
 using EasterEggHunt.Web.Models;
+using EasterEggHunt.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -10,39 +10,24 @@ using NUnit.Framework;
 namespace EasterEggHunt.Web.Tests.Controllers;
 
 /// <summary>
-/// Tests für AdminController
+/// Tests für AdminController mit API-Client
 /// </summary>
 [TestFixture]
-public class AdminControllerTests : IDisposable
+public sealed class AdminControllerTests : IDisposable
 {
-    private Mock<ICampaignService> _mockCampaignService = null!;
-    private Mock<IQrCodeService> _mockQrCodeService = null!;
-    private Mock<IUserService> _mockUserService = null!;
-    private Mock<IFindService> _mockFindService = null!;
+    private Mock<IEasterEggHuntApiClient> _mockApiClient = null!;
     private Mock<ILogger<AdminController>> _mockLogger = null!;
     private AdminController _controller = null!;
 
     [SetUp]
     public void Setup()
     {
-        _mockCampaignService = new Mock<ICampaignService>();
-        _mockQrCodeService = new Mock<IQrCodeService>();
-        _mockUserService = new Mock<IUserService>();
-        _mockFindService = new Mock<IFindService>();
+        _mockApiClient = new Mock<IEasterEggHuntApiClient>();
         _mockLogger = new Mock<ILogger<AdminController>>();
 
         _controller = new AdminController(
-            _mockCampaignService.Object,
-            _mockQrCodeService.Object,
-            _mockUserService.Object,
-            _mockFindService.Object,
+            _mockApiClient.Object,
             _mockLogger.Object);
-    }
-
-    [TearDown]
-    public void TearDown()
-    {
-        _controller?.Dispose();
     }
 
     [Test]
@@ -73,89 +58,241 @@ public class AdminControllerTests : IDisposable
             new Find(2, 2, "127.0.0.1", "Test Agent") { Id = 2, FoundAt = DateTime.UtcNow.AddMinutes(-5) }
         };
 
-        _mockCampaignService.Setup(x => x.GetActiveCampaignsAsync())
+        _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
             .ReturnsAsync(campaigns);
-        _mockUserService.Setup(x => x.GetActiveUsersAsync())
+        _mockApiClient.Setup(x => x.GetActiveUsersAsync())
             .ReturnsAsync(users);
-        _mockQrCodeService.Setup(x => x.GetQrCodesByCampaignIdAsync(1))
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(It.IsAny<int>()))
             .ReturnsAsync(qrCodes);
-        _mockQrCodeService.Setup(x => x.GetQrCodesByCampaignIdAsync(2))
-            .ReturnsAsync(new List<QrCode>());
-        _mockFindService.Setup(x => x.GetFindsByQrCodeIdAsync(1))
-            .ReturnsAsync(finds.Where(f => f.QrCodeId == 1));
-        _mockFindService.Setup(x => x.GetFindsByQrCodeIdAsync(2))
-            .ReturnsAsync(finds.Where(f => f.QrCodeId == 2));
+        _mockApiClient.Setup(x => x.GetFindsByQrCodeIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(finds);
 
         // Act
         var result = await _controller.Index();
 
         // Assert
         Assert.That(result, Is.InstanceOf<ViewResult>());
-        var viewResult = result as ViewResult;
-        Assert.That(viewResult!.Model, Is.InstanceOf<AdminDashboardViewModel>());
+        var viewResult = (ViewResult)result;
+        Assert.That(viewResult.Model, Is.Not.Null);
+        Assert.That(viewResult.Model, Is.InstanceOf<AdminDashboardViewModel>());
 
-        var viewModel = viewResult.Model as AdminDashboardViewModel;
-        Assert.That(viewModel!.TotalUsers, Is.EqualTo(2));
+        var viewModel = (AdminDashboardViewModel)viewResult.Model!;
+        Assert.That(viewModel.Campaigns.Count(), Is.EqualTo(2));
+        Assert.That(viewModel.TotalUsers, Is.EqualTo(2));
+        Assert.That(viewModel.TotalQrCodes, Is.EqualTo(4)); // 2 campaigns * 2 qr codes each
+        Assert.That(viewModel.TotalFinds, Is.EqualTo(8)); // 2 campaigns * 2 qr codes * 2 finds each
         Assert.That(viewModel.ActiveCampaigns, Is.EqualTo(1));
-        Assert.That(viewModel.TotalQrCodes, Is.EqualTo(2));
-        Assert.That(viewModel.ActiveQrCodes, Is.EqualTo(1));
-        Assert.That(viewModel.TotalFinds, Is.EqualTo(2));
-        Assert.That(viewModel.RecentActivities, Has.Count.EqualTo(2));
+        Assert.That(viewModel.ActiveQrCodes, Is.EqualTo(2));
     }
 
     [Test]
-    public async Task Index_WithNoData_ReturnsViewWithEmptyData()
+    public async Task CampaignDetails_WithValidId_ReturnsViewWithCampaignData()
     {
         // Arrange
-        _mockCampaignService.Setup(x => x.GetActiveCampaignsAsync())
-            .ReturnsAsync(new List<Campaign>());
-        _mockUserService.Setup(x => x.GetActiveUsersAsync())
-            .ReturnsAsync(new List<User>());
+        var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin")
+        {
+            Id = campaignId,
+            IsActive = true
+        };
+
+        var qrCodes = new List<QrCode>
+        {
+            new QrCode(campaignId, "QR Code 1", "Description 1", "Note 1") { Id = 1, IsActive = true },
+            new QrCode(campaignId, "QR Code 2", "Description 2", "Note 2") { Id = 2, IsActive = false }
+        };
+
+        var finds = new List<Find>
+        {
+            new Find(1, 1, "127.0.0.1", "Test Agent") { Id = 1, FoundAt = DateTime.UtcNow },
+            new Find(2, 2, "127.0.0.1", "Test Agent") { Id = 2, FoundAt = DateTime.UtcNow.AddMinutes(-5) }
+        };
+
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync(campaign);
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(campaignId))
+            .ReturnsAsync(qrCodes);
+        _mockApiClient.Setup(x => x.GetFindsByQrCodeIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(finds);
 
         // Act
-        var result = await _controller.Index();
+        var result = await _controller.CampaignDetails(campaignId);
 
         // Assert
         Assert.That(result, Is.InstanceOf<ViewResult>());
-        var viewResult = result as ViewResult;
-        Assert.That(viewResult!.Model, Is.InstanceOf<AdminDashboardViewModel>());
+        var viewResult = (ViewResult)result;
+        Assert.That(viewResult.Model, Is.Not.Null);
+        Assert.That(viewResult.Model, Is.InstanceOf<CampaignDetailsViewModel>());
 
-        var viewModel = viewResult.Model as AdminDashboardViewModel;
-        Assert.That(viewModel!.TotalUsers, Is.EqualTo(0));
-        Assert.That(viewModel.ActiveCampaigns, Is.EqualTo(0));
-        Assert.That(viewModel.TotalQrCodes, Is.EqualTo(0));
-        Assert.That(viewModel.ActiveQrCodes, Is.EqualTo(0));
-        Assert.That(viewModel.TotalFinds, Is.EqualTo(0));
-        Assert.That(viewModel.RecentActivities, Is.Empty);
+        var viewModel = (CampaignDetailsViewModel)viewResult.Model!;
+        Assert.That(viewModel.Campaign, Is.EqualTo(campaign));
+        Assert.That(viewModel.QrCodes.Count(), Is.EqualTo(2));
+        Assert.That(viewModel.TotalFinds, Is.EqualTo(4)); // 2 qr codes * 2 finds each
+        Assert.That(viewModel.UniqueFinders, Is.EqualTo(2)); // 2 unique users
     }
 
     [Test]
-    public async Task Index_WithException_ReturnsErrorView()
+    public async Task CampaignDetails_WithInvalidId_ReturnsNotFound()
     {
         // Arrange
-        _mockCampaignService.Setup(x => x.GetActiveCampaignsAsync())
-            .ThrowsAsync(new InvalidOperationException("Test exception"));
+        var campaignId = 999;
+        _mockApiClient.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync((Campaign?)null);
 
         // Act
-        var result = await _controller.Index();
+        var result = await _controller.CampaignDetails(campaignId);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<NotFoundResult>());
+    }
+
+    [Test]
+    public async Task CreateCampaign_WithValidModel_ReturnsRedirectToCampaignDetails()
+    {
+        // Arrange
+        var viewModel = new CreateCampaignViewModel
+        {
+            Name = "New Campaign",
+            Description = "New Description"
+        };
+
+        var createdCampaign = new Campaign(viewModel.Name, viewModel.Description, "Admin")
+        {
+            Id = 1,
+            IsActive = true
+        };
+
+        _mockApiClient.Setup(x => x.CreateCampaignAsync(
+            viewModel.Name,
+            viewModel.Description,
+            "Admin"))
+            .ReturnsAsync(createdCampaign);
+
+        // Act
+        var result = await _controller.CreateCampaign(viewModel);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        var redirectResult = (RedirectToActionResult)result;
+        Assert.That(redirectResult.ActionName, Is.EqualTo(nameof(AdminController.CampaignDetails)));
+        Assert.That(redirectResult.RouteValues?["id"], Is.EqualTo(createdCampaign.Id));
+    }
+
+    [Test]
+    public async Task CreateCampaign_WithInvalidModel_ReturnsViewWithModel()
+    {
+        // Arrange
+        var viewModel = new CreateCampaignViewModel
+        {
+            Name = "", // Invalid - empty name
+            Description = "Valid Description"
+        };
+
+        _controller.ModelState.AddModelError("Name", "Name is required");
+
+        // Act
+        var result = await _controller.CreateCampaign(viewModel);
 
         // Assert
         Assert.That(result, Is.InstanceOf<ViewResult>());
-        var viewResult = result as ViewResult;
-        Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
+        var viewResult = (ViewResult)result;
+        Assert.That(viewResult.Model, Is.EqualTo(viewModel));
+    }
+
+    [Test]
+    public async Task Users_ReturnsViewWithUserData()
+    {
+        // Arrange
+        var users = new List<User>
+        {
+            new User("User 1") { Id = 1 },
+            new User("User 2") { Id = 2 }
+        };
+
+        _mockApiClient.Setup(x => x.GetActiveUsersAsync())
+            .ReturnsAsync(users);
+        _mockApiClient.Setup(x => x.GetFindCountByUserIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(5);
+
+        // Act
+        var result = await _controller.Users();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = (ViewResult)result;
+        Assert.That(viewResult.Model, Is.Not.Null);
+        Assert.That(viewResult.Model, Is.InstanceOf<List<UserViewModel>>());
+
+        var viewModel = (List<UserViewModel>)viewResult.Model!;
+        Assert.That(viewModel.Count, Is.EqualTo(2));
+        Assert.That(viewModel[0].User, Is.EqualTo(users[0]));
+        Assert.That(viewModel[0].FindCount, Is.EqualTo(5));
+    }
+
+    [Test]
+    public async Task Statistics_ReturnsViewWithStatisticsData()
+    {
+        // Arrange
+        var campaigns = new List<Campaign>
+        {
+            new Campaign("Campaign 1", "Description 1", "Admin") { Id = 1, IsActive = true },
+            new Campaign("Campaign 2", "Description 2", "Admin") { Id = 2, IsActive = false }
+        };
+
+        var users = new List<User>
+        {
+            new User("User 1") { Id = 1, IsActive = true },
+            new User("User 2") { Id = 2, IsActive = false }
+        };
+
+        var qrCodes = new List<QrCode>
+        {
+            new QrCode(1, "QR Code 1", "Description 1", "Note 1") { Id = 1, IsActive = true },
+            new QrCode(1, "QR Code 2", "Description 2", "Note 2") { Id = 2, IsActive = false }
+        };
+
+        var finds = new List<Find>
+        {
+            new Find(1, 1, "127.0.0.1", "Test Agent") { Id = 1, FoundAt = DateTime.UtcNow },
+            new Find(2, 2, "127.0.0.1", "Test Agent") { Id = 2, FoundAt = DateTime.UtcNow.AddMinutes(-5) }
+        };
+
+        _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
+            .ReturnsAsync(campaigns);
+        _mockApiClient.Setup(x => x.GetActiveUsersAsync())
+            .ReturnsAsync(users);
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(qrCodes);
+        _mockApiClient.Setup(x => x.GetFindsByQrCodeIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(finds);
+
+        // Act
+        var result = await _controller.Statistics();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = (ViewResult)result;
+        Assert.That(viewResult.Model, Is.Not.Null);
+        Assert.That(viewResult.Model, Is.InstanceOf<StatisticsViewModel>());
+
+        var viewModel = (StatisticsViewModel)viewResult.Model!;
+        Assert.That(viewModel.TotalCampaigns, Is.EqualTo(2));
+        Assert.That(viewModel.ActiveCampaigns, Is.EqualTo(1));
+        Assert.That(viewModel.TotalUsers, Is.EqualTo(2));
+        Assert.That(viewModel.ActiveUsers, Is.EqualTo(1));
+        Assert.That(viewModel.TotalQrCodes, Is.EqualTo(4)); // 2 campaigns * 2 qr codes each
+        Assert.That(viewModel.TotalFinds, Is.EqualTo(8)); // 2 campaigns * 2 qr codes * 2 finds each
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _controller?.Dispose();
     }
 
     public void Dispose()
     {
-        Dispose(true);
+        _controller?.Dispose();
         GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _controller?.Dispose();
-        }
     }
 }

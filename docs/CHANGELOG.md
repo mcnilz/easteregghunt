@@ -8,23 +8,34 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefügt
+- **API-Client Architektur**: Web-Projekt kommuniziert jetzt über HTTP mit der API
+- **EasterEggHunt.Common Projekt**: Shared Configuration und Utilities für zukünftige Verwendung
+- **Automatisches Prozess-Management**: Entwicklungsskript beendet automatisch laufende Prozesse
+- **Migration-Korrektur**: Datenbank-Migrationen laufen jetzt über API-Projekt statt Web-Projekt
 - **Projekt-Setup**: Vollständige .NET Core 8.0 Solution mit Clean Architecture
 - **Docker-Integration**: Docker Compose, Dockerfiles, Buildx Bake Setup
 - **Datenbank-Schema**: 6 Domain Entities (Campaign, QrCode, User, Find, Session, AdminUser)
 - **Repository Pattern**: Vollständige Implementierung mit 6 Repository-Interfaces und -Implementierungen
 - **Integration Tests**: 95 umfassende Tests mit echter SQLite-Datenbank
 - **Domain Tests**: 52 Unit Tests für alle Domain Entities
-- **CI/CD Pipeline**: GitHub Actions mit Build, Test, Code Quality und Security Scan
-- **Dokumentation**: 
-  - Umfassende Architektur-Dokumentation
-  - Datenbank-Schema mit Mermaid ER-Diagramm
-  - Build-Dokumentation für Docker Buildx Bake
-  - Sprint Planning mit detaillierten User Stories
-- **Code Quality**: EditorConfig, Code Analysis Ruleset, Clean Code Guidelines
-- **Gherkin Features**: Spezifikationen für alle Hauptfunktionen
-- **Projekt-Struktur**: 4-Layer Clean Architecture (Domain, Application, Infrastructure, Presentation)
 
 ### Geändert
+- **Web-Projekt**: Entfernte direkte Datenbankverbindung, verwendet jetzt API-Client
+- **AdminController**: Refaktoriert für API-Client-Architektur
+- **Entwicklungsskript**: Korrigierte Migration-Startup-Projekt von Web auf API
+- **Projekt-Referenzen**: Entfernte Common-Projekt-Referenzen aus API und Web
+- **CommonConfigurationExtensions**: Verschoben von Common-Projekt ins API-Projekt
+
+### Behoben
+- **Migration-Fehler**: "EasterEggHunt.Infrastructure.dll not found" beim Web-Projekt
+- **Error.cshtml**: NullReferenceException durch null-safe Prüfung behoben
+- **API-URL-Konfiguration**: Korrigierte Port-Konfiguration (7001 statt 7002)
+
+### Entfernt
+- **Direkte DB-Zugriffe**: Web-Projekt hat keine direkte Datenbankverbindung mehr
+- **Service-Abhängigkeiten**: Web-Projekt verwendet keine Application/Infrastructure Services mehr
+
+### Geändert (Legacy)
 - **Test Coverage**: Ziel von 100% auf 80% Minimum realistisch angepasst
 - **Coverage-Konfiguration**: Nur für Domain.Tests und Infrastructure.Tests aktiviert
 - **Docker Compose**: Von `docker-compose` zu `docker compose` aktualisiert

@@ -62,6 +62,40 @@ test_dotnet() {
     print_info ".NET SDK Version: $version"
 }
 
+stop_running_processes() {
+    print_info "Beende laufende Easter Egg Hunt Prozesse..."
+    
+    # Beende EasterEggHunt.exe Prozesse
+    local api_processes=$(pgrep -f "EasterEggHunt.Api" 2>/dev/null || true)
+    local web_processes=$(pgrep -f "EasterEggHunt.Web" 2>/dev/null || true)
+    
+    if [ -n "$api_processes" ]; then
+        local count=$(echo "$api_processes" | wc -l)
+        print_info "Beende $count API-Prozess(e)..."
+        echo "$api_processes" | xargs kill -9 2>/dev/null || true
+    fi
+    
+    if [ -n "$web_processes" ]; then
+        local count=$(echo "$web_processes" | wc -l)
+        print_info "Beende $count Web-Prozess(e)..."
+        echo "$web_processes" | xargs kill -9 2>/dev/null || true
+    fi
+    
+    # Beende dotnet Prozesse die EasterEggHunt Projekte ausführen
+    local dotnet_processes=$(pgrep -f "dotnet.*EasterEggHunt" 2>/dev/null || true)
+    
+    if [ -n "$dotnet_processes" ]; then
+        local count=$(echo "$dotnet_processes" | wc -l)
+        print_info "Beende $count dotnet-Prozess(e)..."
+        echo "$dotnet_processes" | xargs kill -9 2>/dev/null || true
+    fi
+    
+    # Kurz warten damit Prozesse vollständig beendet sind
+    sleep 2
+    
+    print_success "Alle laufenden Prozesse beendet"
+}
+
 set_environment() {
     local env=$1
     export ASPNETCORE_ENVIRONMENT=$env
@@ -72,7 +106,7 @@ invoke_database_migration() {
     print_info "Führe Datenbank-Migrationen aus..."
     cd "$PROJECT_ROOT"
     
-    if dotnet ef database update --project "$INFRASTRUCTURE_PROJECT" --startup-project "$WEB_PROJECT"; then
+    if dotnet ef database update --project "$INFRASTRUCTURE_PROJECT" --startup-project "$API_PROJECT"; then
         print_success "Datenbank-Migrationen erfolgreich ausgeführt"
     else
         print_warning "Fehler bei Datenbank-Migrationen"
@@ -314,6 +348,11 @@ done
 main() {
     # Prüfe .NET SDK
     test_dotnet
+    
+    # Beende laufende Prozesse (außer bei help und clean)
+    if [ "$COMMAND" != "help" ] && [ "$COMMAND" != "clean" ]; then
+        stop_running_processes
+    fi
     
     # Wechsle zum Projektverzeichnis
     cd "$PROJECT_ROOT"

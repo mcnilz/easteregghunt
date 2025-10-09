@@ -78,6 +78,40 @@ function Test-DotNet {
     Write-Info ".NET SDK Version: $version"
 }
 
+function Stop-RunningProcesses {
+    Write-Info "Beende laufende Easter Egg Hunt Prozesse..."
+    
+    # Beende EasterEggHunt.exe Prozesse
+    $apiProcesses = Get-Process -Name "EasterEggHunt.Api" -ErrorAction SilentlyContinue
+    $webProcesses = Get-Process -Name "EasterEggHunt.Web" -ErrorAction SilentlyContinue
+    
+    if ($apiProcesses) {
+        Write-Info "Beende $($apiProcesses.Count) API-Prozess(e)..."
+        $apiProcesses | Stop-Process -Force
+    }
+    
+    if ($webProcesses) {
+        Write-Info "Beende $($webProcesses.Count) Web-Prozess(e)..."
+        $webProcesses | Stop-Process -Force
+    }
+    
+    # Beende dotnet Prozesse die EasterEggHunt Projekte ausführen
+    $dotnetProcesses = Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Where-Object {
+        $_.CommandLine -like "*EasterEggHunt*" -or 
+        $_.MainWindowTitle -like "*EasterEggHunt*"
+    }
+    
+    if ($dotnetProcesses) {
+        Write-Info "Beende $($dotnetProcesses.Count) dotnet-Prozess(e)..."
+        $dotnetProcesses | Stop-Process -Force
+    }
+    
+    # Kurz warten damit Prozesse vollständig beendet sind
+    Start-Sleep -Seconds 2
+    
+    Write-Success "Alle laufenden Prozesse beendet"
+}
+
 function Set-Environment {
     param([string]$Env)
     $env:ASPNETCORE_ENVIRONMENT = $Env
@@ -88,7 +122,7 @@ function Invoke-DatabaseMigration {
     Write-Info "Führe Datenbank-Migrationen aus..."
     try {
         Set-Location $ProjectRoot
-        dotnet ef database update --project $InfrastructureProject --startup-project $WebProject
+        dotnet ef database update --project $InfrastructureProject --startup-project $ApiProject
         Write-Success "Datenbank-Migrationen erfolgreich ausgeführt"
     }
     catch {
@@ -298,6 +332,11 @@ function Show-Help {
 try {
     # Prüfe .NET SDK
     Test-DotNet
+    
+    # Beende laufende Prozesse (außer bei help und clean)
+    if ($Command -ne "help" -and $Command -ne "clean") {
+        Stop-RunningProcesses
+    }
     
     # Wechsle zum Projektverzeichnis
     Set-Location $ProjectRoot

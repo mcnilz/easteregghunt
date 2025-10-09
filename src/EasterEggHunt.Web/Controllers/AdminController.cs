@@ -1,9 +1,9 @@
-using EasterEggHunt.Application.Requests;
-using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Models;
+using EasterEggHunt.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
+#pragma warning disable CA1031 // Do not catch general exception types
 namespace EasterEggHunt.Web.Controllers;
 
 /// <summary>
@@ -11,23 +11,14 @@ namespace EasterEggHunt.Web.Controllers;
 /// </summary>
 public class AdminController : Controller
 {
-    private readonly ICampaignService _campaignService;
-    private readonly IQrCodeService _qrCodeService;
-    private readonly IUserService _userService;
-    private readonly IFindService _findService;
+    private readonly IEasterEggHuntApiClient _apiClient;
     private readonly ILogger<AdminController> _logger;
 
     public AdminController(
-        ICampaignService campaignService,
-        IQrCodeService qrCodeService,
-        IUserService userService,
-        IFindService findService,
+        IEasterEggHuntApiClient apiClient,
         ILogger<AdminController> logger)
     {
-        _campaignService = campaignService ?? throw new ArgumentNullException(nameof(campaignService));
-        _qrCodeService = qrCodeService ?? throw new ArgumentNullException(nameof(qrCodeService));
-        _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-        _findService = findService ?? throw new ArgumentNullException(nameof(findService));
+        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -41,8 +32,8 @@ public class AdminController : Controller
         {
             _logger.LogInformation("Admin Dashboard wird geladen");
 
-            var campaigns = await _campaignService.GetActiveCampaignsAsync();
-            var users = await _userService.GetActiveUsersAsync();
+            var campaigns = await _apiClient.GetActiveCampaignsAsync();
+            var users = await _apiClient.GetActiveUsersAsync();
 
             // QR-Code Statistiken berechnen
             var allQrCodes = new List<QrCode>();
@@ -51,13 +42,13 @@ public class AdminController : Controller
 
             foreach (var campaign in campaigns)
             {
-                var qrCodes = await _qrCodeService.GetQrCodesByCampaignIdAsync(campaign.Id);
+                var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign.Id);
                 allQrCodes.AddRange(qrCodes);
 
                 // Letzte Funde für diese Kampagne sammeln
                 foreach (var qrCode in qrCodes)
                 {
-                    var finds = await _findService.GetFindsByQrCodeIdAsync(qrCode.Id);
+                    var finds = await _apiClient.GetFindsByQrCodeIdAsync(qrCode.Id);
                     allFinds.AddRange(finds);
 
                     // Recent Activities für die letzten 10 Funde
@@ -95,9 +86,19 @@ public class AdminController : Controller
 
             return View(viewModel);
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Laden des Admin Dashboards");
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden des Admin Dashboards");
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden des Admin Dashboards");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden des Admin Dashboards");
             return View("Error");
         }
     }
@@ -113,19 +114,19 @@ public class AdminController : Controller
         {
             _logger.LogInformation("Kampagnen-Details werden geladen für ID {CampaignId}", id);
 
-            var campaign = await _campaignService.GetCampaignByIdAsync(id);
+            var campaign = await _apiClient.GetCampaignByIdAsync(id);
             if (campaign == null)
             {
                 return NotFound();
             }
 
-            var qrCodes = await _qrCodeService.GetQrCodesByCampaignIdAsync(id);
+            var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(id);
             var totalFinds = 0;
             var uniqueFinders = new HashSet<int>();
 
             foreach (var qrCode in qrCodes)
             {
-                var finds = await _findService.GetFindsByQrCodeIdAsync(qrCode.Id);
+                var finds = await _apiClient.GetFindsByQrCodeIdAsync(qrCode.Id);
                 totalFinds += finds.Count();
 
                 foreach (var find in finds)
@@ -143,9 +144,19 @@ public class AdminController : Controller
 
             return View(viewModel);
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Laden der Kampagnen-Details für ID {CampaignId}", id);
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der Kampagnen-Details für ID {CampaignId}", id);
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden der Kampagnen-Details für ID {CampaignId}", id);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Kampagnen-Details für ID {CampaignId}", id);
             return View("Error");
         }
     }
@@ -177,16 +188,28 @@ public class AdminController : Controller
         {
             _logger.LogInformation("Neue Kampagne wird erstellt: {CampaignName}", model.Name);
 
-            var campaign = await _campaignService.CreateCampaignAsync(
+            var campaign = await _apiClient.CreateCampaignAsync(
                 model.Name,
                 model.Description,
                 "Admin"); // In future sprints, get from authenticated user context
 
             return RedirectToAction(nameof(CampaignDetails), new { id = campaign.Id });
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Erstellen der Kampagne {CampaignName}", model.Name);
+            _logger.LogError(ex, "API-Verbindungsfehler beim Erstellen der Kampagne {CampaignName}", model.Name);
+            ModelState.AddModelError("", "Verbindungsfehler zur API. Bitte versuchen Sie es erneut.");
+            return View(model);
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Erstellen der Kampagne {CampaignName}", model.Name);
+            ModelState.AddModelError("", "Die Anfrage dauerte zu lange. Bitte versuchen Sie es erneut.");
+            return View(model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Erstellen der Kampagne {CampaignName}", model.Name);
             ModelState.AddModelError("", "Fehler beim Erstellen der Kampagne. Bitte versuchen Sie es erneut.");
             return View(model);
         }
@@ -202,12 +225,12 @@ public class AdminController : Controller
         {
             _logger.LogInformation("Benutzer-Übersicht wird geladen");
 
-            var users = await _userService.GetActiveUsersAsync();
+            var users = await _apiClient.GetActiveUsersAsync();
             var userViewModels = new List<UserViewModel>();
 
             foreach (var user in users)
             {
-                var findCount = await _findService.GetFindCountByUserIdAsync(user.Id);
+                var findCount = await _apiClient.GetFindCountByUserIdAsync(user.Id);
                 userViewModels.Add(new UserViewModel
                 {
                     User = user,
@@ -217,9 +240,19 @@ public class AdminController : Controller
 
             return View(userViewModels);
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Laden der Benutzer-Übersicht");
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der Benutzer-Übersicht");
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden der Benutzer-Übersicht");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Benutzer-Übersicht");
             return View("Error");
         }
     }
@@ -234,19 +267,19 @@ public class AdminController : Controller
         {
             _logger.LogInformation("Statistiken werden geladen");
 
-            var campaigns = await _campaignService.GetActiveCampaignsAsync();
-            var users = await _userService.GetActiveUsersAsync();
+            var campaigns = await _apiClient.GetActiveCampaignsAsync();
+            var users = await _apiClient.GetActiveUsersAsync();
             var totalFinds = 0;
             var totalQrCodes = 0;
 
             foreach (var campaign in campaigns)
             {
-                var qrCodes = await _qrCodeService.GetQrCodesByCampaignIdAsync(campaign.Id);
+                var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign.Id);
                 totalQrCodes += qrCodes.Count();
 
                 foreach (var qrCode in qrCodes)
                 {
-                    var finds = await _findService.GetFindsByQrCodeIdAsync(qrCode.Id);
+                    var finds = await _apiClient.GetFindsByQrCodeIdAsync(qrCode.Id);
                     totalFinds += finds.Count();
                 }
             }
@@ -263,9 +296,19 @@ public class AdminController : Controller
 
             return View(viewModel);
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Laden der Statistiken");
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der Statistiken");
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden der Statistiken");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Statistiken");
             return View("Error");
         }
     }
@@ -283,7 +326,7 @@ public class AdminController : Controller
         {
             _logger.LogInformation("QR-Code erstellen für Kampagne {CampaignId}", campaignId);
 
-            var campaign = await _campaignService.GetCampaignByIdAsync(campaignId);
+            var campaign = await _apiClient.GetCampaignByIdAsync(campaignId);
             if (campaign == null)
             {
                 return NotFound();
@@ -297,9 +340,19 @@ public class AdminController : Controller
 
             return View(viewModel);
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Laden der QR-Code erstellen Seite für Kampagne {CampaignId}", campaignId);
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code erstellen Seite für Kampagne {CampaignId}", campaignId);
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code erstellen Seite für Kampagne {CampaignId}", campaignId);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code erstellen Seite für Kampagne {CampaignId}", campaignId);
             return View("Error");
         }
     }
@@ -330,14 +383,26 @@ public class AdminController : Controller
                 InternalNotes = viewModel.InternalNotes
             };
 
-            await _qrCodeService.CreateQrCodeAsync(request);
+            await _apiClient.CreateQrCodeAsync(request);
 
             _logger.LogInformation("QR-Code erfolgreich erstellt für Kampagne {CampaignId}", viewModel.CampaignId);
             return RedirectToAction(nameof(CampaignDetails), new { id = viewModel.CampaignId });
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Erstellen des QR-Codes für Kampagne {CampaignId}", viewModel.CampaignId);
+            _logger.LogError(ex, "API-Verbindungsfehler beim Erstellen des QR-Codes für Kampagne {CampaignId}", viewModel.CampaignId);
+            ModelState.AddModelError("", "Verbindungsfehler zur API. Bitte versuchen Sie es erneut.");
+            return View(viewModel);
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Erstellen des QR-Codes für Kampagne {CampaignId}", viewModel.CampaignId);
+            ModelState.AddModelError("", "Die Anfrage dauerte zu lange. Bitte versuchen Sie es erneut.");
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Erstellen des QR-Codes für Kampagne {CampaignId}", viewModel.CampaignId);
             ModelState.AddModelError("", "Fehler beim Erstellen des QR-Codes. Bitte versuchen Sie es erneut.");
             return View(viewModel);
         }
@@ -354,7 +419,7 @@ public class AdminController : Controller
         {
             _logger.LogInformation("QR-Code bearbeiten für ID {QrCodeId}", id);
 
-            var qrCode = await _qrCodeService.GetQrCodeByIdAsync(id);
+            var qrCode = await _apiClient.GetQrCodeByIdAsync(id);
             if (qrCode == null)
             {
                 return NotFound();
@@ -371,9 +436,19 @@ public class AdminController : Controller
 
             return View(viewModel);
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Laden der QR-Code bearbeiten Seite für ID {QrCodeId}", id);
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code bearbeiten Seite für ID {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code bearbeiten Seite für ID {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code bearbeiten Seite für ID {QrCodeId}", id);
             return View("Error");
         }
     }
@@ -404,14 +479,26 @@ public class AdminController : Controller
                 InternalNotes = viewModel.InternalNotes
             };
 
-            await _qrCodeService.UpdateQrCodeAsync(request);
+            await _apiClient.UpdateQrCodeAsync(request);
 
             _logger.LogInformation("QR-Code erfolgreich bearbeitet für ID {QrCodeId}", viewModel.Id);
             return RedirectToAction(nameof(CampaignDetails), new { id = viewModel.CampaignId });
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Bearbeiten des QR-Codes für ID {QrCodeId}", viewModel.Id);
+            _logger.LogError(ex, "API-Verbindungsfehler beim Bearbeiten des QR-Codes für ID {QrCodeId}", viewModel.Id);
+            ModelState.AddModelError("", "Verbindungsfehler zur API. Bitte versuchen Sie es erneut.");
+            return View(viewModel);
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Bearbeiten des QR-Codes für ID {QrCodeId}", viewModel.Id);
+            ModelState.AddModelError("", "Die Anfrage dauerte zu lange. Bitte versuchen Sie es erneut.");
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Bearbeiten des QR-Codes für ID {QrCodeId}", viewModel.Id);
             ModelState.AddModelError("", "Fehler beim Bearbeiten des QR-Codes. Bitte versuchen Sie es erneut.");
             return View(viewModel);
         }
@@ -428,13 +515,13 @@ public class AdminController : Controller
         {
             _logger.LogInformation("QR-Code löschen für ID {QrCodeId}", id);
 
-            var qrCode = await _qrCodeService.GetQrCodeByIdAsync(id);
+            var qrCode = await _apiClient.GetQrCodeByIdAsync(id);
             if (qrCode == null)
             {
                 return NotFound();
             }
 
-            var campaign = await _campaignService.GetCampaignByIdAsync(qrCode.CampaignId);
+            var campaign = await _apiClient.GetCampaignByIdAsync(qrCode.CampaignId);
             var viewModel = new DeleteQrCodeViewModel
             {
                 Id = qrCode.Id,
@@ -446,9 +533,19 @@ public class AdminController : Controller
 
             return View(viewModel);
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Laden der QR-Code löschen Seite für ID {QrCodeId}", id);
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code löschen Seite für ID {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code löschen Seite für ID {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code löschen Seite für ID {QrCodeId}", id);
             return View("Error");
         }
     }
@@ -467,21 +564,31 @@ public class AdminController : Controller
         {
             _logger.LogInformation("QR-Code wird gelöscht für ID {QrCodeId}", id);
 
-            var qrCode = await _qrCodeService.GetQrCodeByIdAsync(id);
+            var qrCode = await _apiClient.GetQrCodeByIdAsync(id);
             if (qrCode == null)
             {
                 return NotFound();
             }
 
             var campaignId = qrCode.CampaignId;
-            await _qrCodeService.DeleteQrCodeAsync(id);
+            await _apiClient.DeleteQrCodeAsync(id);
 
             _logger.LogInformation("QR-Code erfolgreich gelöscht für ID {QrCodeId}", id);
             return RedirectToAction(nameof(CampaignDetails), new { id = campaignId });
         }
-        catch (InvalidOperationException ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Löschen des QR-Codes für ID {QrCodeId}", id);
+            _logger.LogError(ex, "API-Verbindungsfehler beim Löschen des QR-Codes für ID {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Löschen des QR-Codes für ID {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Löschen des QR-Codes für ID {QrCodeId}", id);
             return View("Error");
         }
     }

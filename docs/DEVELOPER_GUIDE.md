@@ -11,9 +11,10 @@ EasterEggHunt/
 ├── src/
 │   ├── EasterEggHunt.Api/          # Web API (Backend)
 │   ├── EasterEggHunt.Application/  # Business Logic Layer
+│   ├── EasterEggHunt.Common/       # Shared Configuration & Utilities
 │   ├── EasterEggHunt.Domain/       # Domain Models & Interfaces
 │   ├── EasterEggHunt.Infrastructure/ # Data Access & External Services
-│   └── EasterEggHunt.Web/          # MVC Frontend
+│   └── EasterEggHunt.Web/          # MVC Frontend (API Client)
 ├── tests/                          # Test Projects
 ├── scripts/                        # Entwicklungsskripte
 ├── docs/                          # Dokumentation
@@ -97,6 +98,47 @@ Das Projekt verwendet ein konsolidiertes Skript für alle Entwicklungsaufgaben:
 # Build-Artefakte löschen
 ./easter-egg-hunt.sh clean
 ```
+
+## 🏗️ Architektur-Übersicht
+
+Das Easter Egg Hunt System folgt **Clean Architecture** mit klarer Trennung zwischen Frontend und Backend:
+
+### API-Client Architektur
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    WEB PROJECT (Frontend)                   │
+├─────────────────────────────────────────────────────────────┤
+│  MVC Controllers    │  Razor Views      │  API Client       │
+│  - AdminController  │  - Admin Views    │  - HttpClient     │
+│  - EmployeeController│  - Employee Views│  - JSON Serialization│
+└─────────────────────────────────────────────────────────────┘
+                                │ HTTP/JSON
+┌─────────────────────────────────────────────────────────────┐
+│                    API PROJECT (Backend)                    │
+├─────────────────────────────────────────────────────────────┤
+│  REST Controllers   │  Application Services │  Infrastructure │
+│  - CampaignsController│  - CampaignService   │  - EF Core      │
+│  - QrCodesController  │  - QrCodeService     │  - SQLite      │
+│  - UsersController    │  - UserService        │  - Repositories│
+│  - FindsController    │  - FindService        │                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Projekt-Verantwortlichkeiten
+
+- **EasterEggHunt.Web**: MVC Frontend mit API-Client (keine direkte DB-Verbindung)
+- **EasterEggHunt.Api**: REST API Backend mit Datenbankzugriff
+- **EasterEggHunt.Application**: Business Logic und Services
+- **EasterEggHunt.Domain**: Entities und Domain Models
+- **EasterEggHunt.Infrastructure**: Data Access und externe Services
+- **EasterEggHunt.Common**: Shared Configuration und Utilities (für zukünftige Verwendung)
+
+### Migration-Strategie
+
+- **Datenbank-Migrationen**: Werden über das API-Projekt ausgeführt
+- **Web-Projekt**: Hat keine direkte Datenbankverbindung mehr
+- **Entwicklungsskript**: Verwendet API-Projekt als Startup für Migrationen
 
 ## 🔥 Hot-Reload Konfiguration
 

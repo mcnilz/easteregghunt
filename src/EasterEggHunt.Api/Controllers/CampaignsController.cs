@@ -25,7 +25,7 @@ public class CampaignsController : ControllerBase
     /// Ruft alle aktiven Kampagnen ab
     /// </summary>
     /// <returns>Liste aller aktiven Kampagnen</returns>
-    [HttpGet]
+    [HttpGet("active")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Campaign>>> GetActiveCampaigns()

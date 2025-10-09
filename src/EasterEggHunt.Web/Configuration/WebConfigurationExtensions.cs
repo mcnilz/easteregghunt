@@ -1,10 +1,7 @@
 using EasterEggHunt.Domain.Configuration;
-using EasterEggHunt.Infrastructure.Data;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace EasterEggHunt.Web.Configuration;
 
@@ -72,11 +69,8 @@ public static class WebConfigurationExtensions
             return app;
         }
 
-        // Datenbank-Migration konfigurieren
-        if (options.Database.AutoMigrate)
-        {
-            app.ConfigureDatabaseMigration();
-        }
+        // Datenbank-Migration wird über die API gehandhabt
+        // Das Web-Projekt hat keine direkte Datenbank-Verbindung mehr
 
         // HTTPS-Redirect konfigurieren
         if (options.Security.RequireHttps)
@@ -97,28 +91,5 @@ public static class WebConfigurationExtensions
         }
 
         return app;
-    }
-
-    /// <summary>
-    /// Konfiguriert die Datenbank-Migration
-    /// </summary>
-    /// <param name="app">Web-Application</param>
-    private static void ConfigureDatabaseMigration(this WebApplication app)
-    {
-        using var scope = app.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<EasterEggHuntDbContext>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<WebApplication>>();
-
-        try
-        {
-            logger.LogInformation("Starte Datenbank-Migration...");
-            context.Database.Migrate();
-            logger.LogInformation("Datenbank-Migration erfolgreich abgeschlossen.");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Fehler bei der Datenbank-Migration");
-            throw;
-        }
     }
 }

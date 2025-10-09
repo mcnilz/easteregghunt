@@ -1,30 +1,19 @@
-using EasterEggHunt.Application;
-using EasterEggHunt.Infrastructure;
-using EasterEggHunt.Infrastructure.Configuration;
 using EasterEggHunt.Web.Configuration;
+using EasterEggHunt.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Add Easter Egg Hunt Configuration
-builder.Services.AddEasterEggHuntConfiguration(builder.Configuration);
-
-// Add CORS
-builder.Services.AddEasterEggHuntCors(builder.Configuration);
-
-// Add Easter Egg Hunt DbContext
-builder.Services.AddEasterEggHuntDbContext(builder.Configuration);
-
-// Add Repositories
-builder.Services.AddRepositories();
-
-// Add Application Services
-builder.Services.AddApplicationServices();
-
-// Add Seed Data Service (Development only)
-builder.Services.AddSeedDataService(builder.Environment);
+// Add HTTP Client for API communication
+builder.Services.AddHttpClient<IEasterEggHuntApiClient, EasterEggHuntApiClient>(client =>
+{
+    // Configure API base URL from configuration
+    var apiBaseUrl = builder.Configuration["EasterEggHunt:Api:BaseUrl"] ?? "https://localhost:7002";
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 
 var app = builder.Build();
 
@@ -41,14 +30,9 @@ else
     app.UseHsts();
 }
 
-// Configure EasterEggHunt environment-specific settings
-app.ConfigureEasterEggHuntEnvironment();
-
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseCors();
 
 app.UseAuthorization();
 
