@@ -41,8 +41,7 @@ jobs:
           --results-directory ./coverage \
           --logger trx \
           --logger "console;verbosity=detailed" \
-          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura \
-          -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[*.Tests]*,[*.Test]*,[xunit.*]*"
+          --settings coverage.runsettings
     
     - name: 📊 Generate Coverage Report
       uses: danielpalme/ReportGenerator-GitHub-Action@5.2.0
@@ -63,46 +62,30 @@ jobs:
         recreate: true
         path: coverage/report/SummaryGithub.md
     
-    - name: 🔍 Check Coverage Threshold
+    - name: 🔍 Check Coverage Thresholds
       run: |
-        # Debug: List all coverage files
-        echo "📁 Coverage files found:"
-        find coverage -name "*.xml" -type f
+        # Install jq for JSON parsing
+        sudo apt-get update && sudo apt-get install -y jq
         
-        # Extract coverage percentage from the merged Cobertura XML
+        # Find the merged coverage report
+        COVERAGE_REPORT=""
         if [ -f "coverage/report/Cobertura.xml" ]; then
-          # Extract line-rate from the root coverage element
-          COVERAGE=$(grep -o 'line-rate="[^"]*"' coverage/report/Cobertura.xml | head -1 | sed 's/line-rate="//' | sed 's/"//')
-          COVERAGE_PERCENT=$(echo "$COVERAGE * 100" | bc -l | cut -d. -f1)
-          echo "📊 Current overall coverage: $COVERAGE_PERCENT%"
-          
-          # Check if we have meaningful coverage for our core modules
-          # Look for Domain and Infrastructure coverage specifically
-          DOMAIN_COVERAGE=$(grep -A 5 -B 5 'EasterEggHunt.Domain' coverage/report/Cobertura.xml | grep 'line-rate=' | head -1 | sed 's/.*line-rate="//' | sed 's/".*//' || echo "0")
-          INFRA_COVERAGE=$(grep -A 5 -B 5 'EasterEggHunt.Infrastructure' coverage/report/Cobertura.xml | grep 'line-rate=' | head -1 | sed 's/.*line-rate="//' | sed 's/".*//' || echo "0")
-          
-          DOMAIN_PERCENT=$(echo "$DOMAIN_COVERAGE * 100" | bc -l | cut -d. -f1)
-          INFRA_PERCENT=$(echo "$INFRA_COVERAGE * 100" | bc -l | cut -d. -f1)
-          
-          echo "📊 Domain coverage: $DOMAIN_PERCENT%"
-          echo "📊 Infrastructure coverage: $INFRA_PERCENT%"
-          
-          # Check if core modules meet threshold (Domain and Infrastructure should be well tested)
-          # Temporarily lower threshold for Domain to 60% until coverage issue is resolved
-          if [ "$DOMAIN_PERCENT" -ge 60 ] && [ "$INFRA_PERCENT" -ge 80 ]; then
-            echo "✅ Core modules meet minimum threshold"
-            echo "✅ Domain: $DOMAIN_PERCENT% (threshold: 60%), Infrastructure: $INFRA_PERCENT% (threshold: 80%)"
-          else
-            echo "❌ Core modules below minimum threshold"
-            echo "❌ Domain: $DOMAIN_PERCENT% (threshold: 60%), Infrastructure: $INFRA_PERCENT% (threshold: 80%)"
-            exit 1
-          fi
+          COVERAGE_REPORT="coverage/report/Cobertura.xml"
         else
-          echo "❌ Coverage report not found at coverage/report/Cobertura.xml"
-          echo "📁 Available files in coverage/report/:"
-          ls -la coverage/report/ || echo "No report directory found"
+          # Fallback: find any Cobertura XML file
+          COVERAGE_REPORT=$(find coverage -name "*.xml" -type f | head -1)
+        fi
+        
+        if [ -z "$COVERAGE_REPORT" ]; then
+          echo "❌ No coverage report found"
           exit 1
         fi
+        
+        echo "📊 Using coverage report: $COVERAGE_REPORT"
+        
+        # Run the centralized coverage check
+        chmod +x scripts/check-coverage.sh
+        ./scripts/check-coverage.sh --report "$COVERAGE_REPORT" --thresholds coverage-thresholds.json
     
     - name: 📤 Upload Coverage Reports
       uses: actions/upload-artifact@v4

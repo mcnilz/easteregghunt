@@ -7,6 +7,13 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    
+    <!-- Coverage Configuration -->
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+        <Threshold>30</Threshold>
+    <ThresholdType>line</ThresholdType>
+    <RunSettingsFilePath>../../coverage.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
   <ItemGroup>
