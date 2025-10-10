@@ -6,6 +6,9 @@ using EasterEggHunt.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
@@ -50,14 +53,43 @@ public class EmployeeControllerTests : IDisposable
         mockServiceProvider.Setup(x => x.GetService(typeof(IAuthenticationService)))
             .Returns(mockAuthenticationService.Object);
 
+        // Setup MVC Services - Simplified approach
+        var mockUrlHelperFactory = new Mock<IUrlHelperFactory>();
+        var mockUrlHelper = new Mock<IUrlHelper>();
+        var mockRouteData = new Mock<RouteData>();
+
+        // Mock the IsLocalUrl method
+        mockUrlHelper.Setup(x => x.IsLocalUrl(It.IsAny<string>())).Returns(true);
+
+        mockUrlHelperFactory.Setup(x => x.GetUrlHelper(It.IsAny<ActionContext>()))
+            .Returns(mockUrlHelper.Object);
+
+        mockServiceProvider.Setup(x => x.GetService(typeof(IUrlHelperFactory)))
+            .Returns(mockUrlHelperFactory.Object);
+
+        // Setup TempData
+        var mockTempDataProvider = new Mock<ITempDataProvider>();
+        var tempData = new TempDataDictionary(_mockHttpContext.Object, mockTempDataProvider.Object);
+
+        mockServiceProvider.Setup(x => x.GetService(typeof(ITempDataProvider)))
+            .Returns(mockTempDataProvider.Object);
+
         _mockHttpContext.Setup(x => x.Connection).Returns(mockConnection.Object);
         _mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
         _mockHttpContext.Setup(x => x.RequestServices).Returns(mockServiceProvider.Object);
 
         _controller.ControllerContext = new ControllerContext
         {
-            HttpContext = _mockHttpContext.Object
+            HttpContext = _mockHttpContext.Object,
+            ActionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor(),
+            RouteData = mockRouteData.Object
         };
+
+        // Set Url property manually
+        _controller.Url = mockUrlHelper.Object;
+
+        // Set TempData manually
+        _controller.TempData = tempData;
     }
 
     [TearDown]
@@ -107,6 +139,7 @@ public class EmployeeControllerTests : IDisposable
     {
         // Arrange
         var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", "1"));
         var claimsPrincipal = new ClaimsPrincipal(identity);
         _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
 
