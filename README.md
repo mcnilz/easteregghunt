@@ -149,6 +149,15 @@ Nach dem Start sind folgende URLs verfügbar:
 - **API**: https://localhost:7001  
 - **Swagger UI**: https://localhost:7001/swagger
 
+### 🔐 Admin-Login
+
+**Login-Daten für den Default-Admin:**
+- **Benutzername:** `admin`
+- **Passwort:** `admin123`
+- **E-Mail:** `admin@easteregghunt.local`
+
+**Login-URL:** Automatische Weiterleitung zur Login-Seite beim Zugriff auf Admin-Bereich
+
 ### ⚡ Häufige Entwicklungskommandos
 
 ```bash

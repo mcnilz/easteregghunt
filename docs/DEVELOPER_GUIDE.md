@@ -267,12 +267,30 @@ dotnet ef database update PreviousMigration --project src/EasterEggHunt.Infrastr
 
 Entwicklungsdaten werden automatisch erstellt:
 
-- **Admin-Benutzer**: admin/admin123
+- **Admin-Benutzer**: 
+  - **Benutzername:** `admin`
+  - **Passwort:** `admin123`
+  - **E-Mail:** `admin@easteregghunt.local`
 - **3 Test-Kampagnen**
 - **15 QR-Codes**
 - **5 Test-Benutzer**
 - **17 Test-Funde**
 - **3 aktive Sessions**
+
+### 🔐 Admin-Login
+
+**Login-URL:** `http://localhost:5000/Auth/Login` (automatische Weiterleitung)
+
+**Login-Daten:**
+- **Benutzername:** `admin`
+- **Passwort:** `admin123`
+
+**Features:**
+- Cookie-basierte Authentifizierung
+- Session-Management (8 Stunden)
+- "Remember Me" Funktionalität
+- Automatische Weiterleitung nach Login
+- Logout-Button in der Navigation
 
 ## 🏗️ Build & Deployment
 

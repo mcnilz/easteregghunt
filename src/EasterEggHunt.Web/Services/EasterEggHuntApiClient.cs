@@ -28,6 +28,10 @@ public interface IEasterEggHuntApiClient
     // Find Operations
     Task<IEnumerable<Find>> GetFindsByQrCodeIdAsync(int qrCodeId);
     Task<int> GetFindCountByUserIdAsync(int userId);
+
+    // Authentication Operations
+    Task<LoginResponse?> LoginAsync(string username, string password, bool rememberMe = false);
+    Task LogoutAsync();
 }
 
 /// <summary>
@@ -291,6 +295,63 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der Fund-Anzahl für Benutzer {UserId}", userId);
+            throw;
+        }
+    }
+
+    #endregion
+
+    #region Authentication Operations
+
+    public async Task<LoginResponse?> LoginAsync(string username, string password, bool rememberMe = false)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: POST /api/auth/login");
+            var request = new LoginRequest
+            {
+                Username = username,
+                Password = password,
+                RememberMe = rememberMe
+            };
+
+            var json = JsonSerializer.Serialize(request, _jsonOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(new Uri("/api/auth/login", UriKind.Relative), content);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return null;
+            }
+
+            response.EnsureSuccessStatusCode();
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<LoginResponse>(responseContent, _jsonOptions);
+        }
+        catch (HttpRequestException ex) when (ex.Message.Contains("401", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning("Login fehlgeschlagen für Benutzer: {Username}", username);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Login für Benutzer: {Username}", username);
+            throw;
+        }
+    }
+
+    public async Task LogoutAsync()
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: POST /api/auth/logout");
+            var response = await _httpClient.PostAsync(new Uri("/api/auth/logout", UriKind.Relative), null);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Logout");
             throw;
         }
     }

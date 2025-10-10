@@ -1,0 +1,6 @@
+---
+description: vor jedem git commit
+alwaysApply: false
+---
+
+Wenn es Änderungen am Code gab muss vor dem commit ein "dotnet format" ausgeführt werden.

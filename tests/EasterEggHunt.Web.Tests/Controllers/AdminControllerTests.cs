@@ -2,6 +2,7 @@ using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Controllers;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -518,6 +519,18 @@ public sealed class AdminControllerTests : IDisposable
     public void TearDown()
     {
         _controller?.Dispose();
+    }
+
+    [Test]
+    public void AdminController_HasAuthorizeAttribute()
+    {
+        // Arrange & Act
+        var controllerType = typeof(AdminController);
+        var authorizeAttribute = controllerType.GetCustomAttributes(typeof(AuthorizeAttribute), false)
+            .FirstOrDefault() as AuthorizeAttribute;
+
+        // Assert
+        Assert.That(authorizeAttribute, Is.Not.Null, "AdminController sollte das [Authorize] Attribut haben");
     }
 
     public void Dispose()

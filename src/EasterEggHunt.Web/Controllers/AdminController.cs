@@ -1,6 +1,7 @@
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -9,6 +10,7 @@ namespace EasterEggHunt.Web.Controllers;
 /// <summary>
 /// MVC Controller für Admin-Interface
 /// </summary>
+[Authorize]
 public class AdminController : Controller
 {
     private readonly IEasterEggHuntApiClient _apiClient;
