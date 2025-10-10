@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
+using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
 using Microsoft.AspNetCore.Authentication;
@@ -234,10 +235,22 @@ public class EmployeeController : Controller
             // Prüfen ob User bereits gefunden hat
             var previousFind = await _apiClient.GetExistingFindAsync(qrCode.Id, userId.Value);
 
-            // Fund registrieren
-            var ipAddress = GetClientIpAddress();
-            var userAgent = GetUserAgent();
-            var currentFind = await _apiClient.RegisterFindAsync(qrCode.Id, userId.Value, ipAddress, userAgent);
+            // Fund nur registrieren wenn es der erste Fund ist
+            Find? currentFind = null;
+            if (previousFind == null)
+            {
+                // Erster Fund - registrieren
+                var ipAddress = GetClientIpAddress();
+                var userAgent = GetUserAgent();
+                currentFind = await _apiClient.RegisterFindAsync(qrCode.Id, userId.Value, ipAddress, userAgent);
+                _logger.LogInformation("Neuer Fund registriert für QR-Code {QrCodeId} und User {UserId}", qrCode.Id, userId.Value);
+            }
+            else
+            {
+                // Bereits gefunden - keinen neuen Fund registrieren
+                currentFind = previousFind;
+                _logger.LogInformation("QR-Code {QrCodeId} bereits von User {UserId} gefunden - kein neuer Fund", qrCode.Id, userId.Value);
+            }
 
             // User-Fortschritt berechnen
             var userTotalFinds = await _apiClient.GetFindCountByUserIdAsync(userId.Value);

@@ -317,6 +317,72 @@ public class EmployeeControllerTests : IDisposable
     }
 
     [Test]
+    public async Task ScanQrCode_ReturnsScanResultView_WhenQrCodeAlreadyFound()
+    {
+        // Arrange
+        var code = "test-code";
+        var userId = 1;
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", userId.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note")
+        {
+            Id = 1,
+            CampaignId = 1,
+            Code = "test-code"
+        };
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(It.IsAny<string>()))
+            .ReturnsAsync(qrCode);
+
+        var activeCampaigns = new List<Campaign>
+        {
+            new Campaign("Test Campaign 1", "Test Description", "Test Creator") { Id = 1 },
+            new Campaign("Test Campaign 2", "Test Description", "Test Creator") { Id = 2 }
+        };
+        _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
+            .ReturnsAsync(activeCampaigns);
+
+        // Bereits gefundener Fund
+        var existingFind = new Find(qrCode.Id, userId, "127.0.0.1", "TestAgent")
+        {
+            Id = 1,
+            FoundAt = DateTime.UtcNow.AddDays(-1)
+        };
+        _mockApiClient.Setup(x => x.GetExistingFindAsync(qrCode.Id, userId))
+            .ReturnsAsync(existingFind);
+
+        // RegisterFindAsync sollte NICHT aufgerufen werden
+        _mockApiClient.Setup(x => x.RegisterFindAsync(qrCode.Id, userId, It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(existingFind);
+
+        _mockApiClient.Setup(x => x.GetFindCountByUserIdAsync(userId))
+            .ReturnsAsync(1);
+
+        var campaignQrCodes = new List<QrCode> { qrCode };
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(qrCode.CampaignId))
+            .ReturnsAsync(campaignQrCodes);
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("ScanResult"));
+        Assert.That(viewResult.Model, Is.InstanceOf<ScanResultViewModel>());
+
+        var viewModel = viewResult.Model as ScanResultViewModel;
+        Assert.That(viewModel!.IsFirstFind, Is.False);
+        Assert.That(viewModel.PreviousFind, Is.EqualTo(existingFind));
+        Assert.That(viewModel.CurrentFind, Is.EqualTo(existingFind));
+
+        // Verify that RegisterFindAsync was NOT called
+        _mockApiClient.Verify(x => x.RegisterFindAsync(qrCode.Id, userId, It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
     public async Task ScanQrCode_ReturnsInvalidQrCodeView_WhenHttpRequestException()
     {
         // Arrange
