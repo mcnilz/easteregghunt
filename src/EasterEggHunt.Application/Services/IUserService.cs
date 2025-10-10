@@ -40,4 +40,11 @@ public interface IUserService
     /// <param name="id">Benutzer-ID</param>
     /// <returns>True wenn erfolgreich deaktiviert</returns>
     Task<bool> DeactivateUserAsync(int id);
+
+    /// <summary>
+    /// Prüft, ob ein Benutzername bereits existiert
+    /// </summary>
+    /// <param name="name">Benutzername zum Prüfen</param>
+    /// <returns>True wenn der Name bereits existiert</returns>
+    Task<bool> UserNameExistsAsync(string name);
 }

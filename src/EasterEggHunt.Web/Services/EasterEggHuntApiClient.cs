@@ -24,6 +24,8 @@ public interface IEasterEggHuntApiClient
 
     // User Operations
     Task<IEnumerable<User>> GetActiveUsersAsync();
+    Task<User> RegisterEmployeeAsync(string name);
+    Task<bool> CheckUserNameExistsAsync(string name);
 
     // Find Operations
     Task<IEnumerable<Find>> GetFindsByQrCodeIdAsync(int qrCodeId);
@@ -259,6 +261,81 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der aktiven Benutzer");
+            throw;
+        }
+    }
+
+    public async Task<User> RegisterEmployeeAsync(string name)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Name darf nicht leer sein", nameof(name));
+
+            _logger.LogDebug("API-Aufruf: POST /api/users (Registrierung: {Name})", name);
+
+            // Prüfen ob Name bereits existiert
+            var nameExists = await CheckUserNameExistsAsync(name);
+            if (nameExists)
+            {
+                throw new InvalidOperationException($"Benutzername '{name}' ist bereits vergeben");
+            }
+
+            var request = new { Name = name };
+            var json = JsonSerializer.Serialize(request, _jsonOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(new Uri("/api/users", UriKind.Relative), content);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Registrierung fehlgeschlagen: {errorContent}");
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var user = JsonSerializer.Deserialize<User>(responseContent, _jsonOptions);
+
+            if (user == null)
+                throw new InvalidOperationException("Benutzer konnte nicht erstellt werden");
+
+            _logger.LogInformation("Mitarbeiter erfolgreich registriert: {Name} (ID: {UserId})", name, user.Id);
+            return user;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler bei der Registrierung des Mitarbeiters {Name}", name);
+            throw;
+        }
+    }
+
+    public async Task<bool> CheckUserNameExistsAsync(string name)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Name darf nicht leer sein", nameof(name));
+
+            _logger.LogDebug("API-Aufruf: GET /api/users/check-name/{Name}", name);
+            var response = await _httpClient.GetAsync(new Uri($"/api/users/check-name/{Uri.EscapeDataString(name)}", UriKind.Relative));
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                return false;
+            }
+
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<CheckUserNameResponse>(content, _jsonOptions);
+
+            return result?.Exists ?? false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Prüfen des Benutzernamens {Name}", name);
             throw;
         }
     }

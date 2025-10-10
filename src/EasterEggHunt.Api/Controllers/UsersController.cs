@@ -22,6 +22,39 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
+    /// Prüft, ob ein Benutzername bereits existiert
+    /// </summary>
+    /// <param name="name">Benutzername zum Prüfen</param>
+    /// <returns>Objekt mit exists-Flag und Name</returns>
+    [HttpGet("check-name/{name}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<CheckUserNameResponse>> CheckUserName(string name)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return BadRequest("Benutzername darf nicht leer sein");
+            }
+
+            var exists = await _userService.UserNameExistsAsync(name);
+            return Ok(new CheckUserNameResponse { Exists = exists, Name = name });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Ungültiger Benutzername: {UserName}", name);
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Prüfen des Benutzernamens {UserName}", name);
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
+
+    /// <summary>
     /// Ruft alle aktiven Benutzer ab
     /// </summary>
     /// <returns>Liste aller aktiven Benutzer</returns>
@@ -168,6 +201,22 @@ public class CreateUserRequest
     /// Name des Benutzers
     /// </summary>
     [Required(ErrorMessage = "Name ist erforderlich")]
-    [StringLength(100, ErrorMessage = "Name darf maximal 100 Zeichen haben")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Name muss zwischen 2 und 100 Zeichen haben")]
+    public string Name { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Response-Model für Benutzername-Prüfung
+/// </summary>
+public class CheckUserNameResponse
+{
+    /// <summary>
+    /// Gibt an, ob der Name bereits existiert
+    /// </summary>
+    public bool Exists { get; set; }
+
+    /// <summary>
+    /// Der geprüfte Name
+    /// </summary>
     public string Name { get; set; } = string.Empty;
 }

@@ -1,6 +1,49 @@
+using System.ComponentModel.DataAnnotations;
 using EasterEggHunt.Domain.Entities;
 
 namespace EasterEggHunt.Web.Models;
+
+/// <summary>
+/// ViewModel für Mitarbeiter-Registrierung
+/// </summary>
+public class EmployeeRegistrationViewModel
+{
+    /// <summary>
+    /// Name des Mitarbeiters
+    /// </summary>
+    [Required(ErrorMessage = "Name ist erforderlich")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "Name muss zwischen 2 und 100 Zeichen haben")]
+    [RegularExpression(@"^[a-zA-ZäöüÄÖÜß\s\-\.]+$", ErrorMessage = "Name darf nur Buchstaben, Leerzeichen, Bindestriche und Punkte enthalten")]
+    [Display(Name = "Dein Name")]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// QR-Code URL für Weiterleitung nach Registrierung
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1056:URI-like properties should not be strings", Justification = "MVC Model Binding requires string for query parameters")]
+    public string? QrCodeUrl { get; set; }
+}
+
+/// <summary>
+/// Session-Informationen für Mitarbeiter
+/// </summary>
+public class EmployeeSessionInfo
+{
+    /// <summary>
+    /// Benutzer-ID
+    /// </summary>
+    public int UserId { get; set; }
+
+    /// <summary>
+    /// Name des Mitarbeiters
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Registrierungszeitpunkt
+    /// </summary>
+    public DateTime RegisteredAt { get; set; }
+}
 
 /// <summary>
 /// ViewModel für Kampagnen-Übersicht im Employee Interface

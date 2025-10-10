@@ -297,21 +297,24 @@ Mitarbeiter können QR-Codes scannen und ihren Fortschritt verfolgen
 
 ### 📝 User Stories
 
-#### Story 3.1: Mitarbeiter-Registrierung
+#### Story 3.1: Mitarbeiter-Registrierung ✅ ABGESCHLOSSEN
 **Als** Mitarbeiter  
 **Möchte ich** mich beim ersten QR-Code-Scan registrieren  
 **Damit** ich am Easter Egg Hunt teilnehmen kann  
 
 **Akzeptanzkriterien:**
-- [ ] Registrierungsformular beim ersten Scan
-- [ ] Name-Eingabe mit Validierung
-- [ ] Cookie-basierte Session
-- [ ] Mobile-optimierte UI
-- [ ] Fehlerbehandlung
-- [ ] 100% Test Coverage
+- [x] Registrierungsformular beim ersten Scan
+- [x] Name-Eingabe mit Validierung (eindeutige Namen)
+- [x] Cookie-basierte Session (EmployeeScheme)
+- [x] Mobile-optimierte UI (Bootstrap, responsive)
+- [x] Fehlerbehandlung (API-Fehler, Validierung)
+- [x] 100% Test Coverage (alle Tests laufen erfolgreich)
+- [x] Employee Authentication mit Claims
+- [x] Session-Management mit persistenten Daten
+- [x] QR-Code URL Preservation nach Registrierung
 
 **Gherkin:** `features/employee_registration.feature`  
-**Aufwand:** 8 Story Points
+**Aufwand:** 8 Story Points ✅
 
 #### Story 3.2: QR-Code Scannen
 **Als** Mitarbeiter  

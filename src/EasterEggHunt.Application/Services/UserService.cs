@@ -31,6 +31,14 @@ public class UserService : IUserService
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Benutzername darf nicht leer sein", nameof(name));
 
+        // Prüfen ob Name bereits existiert
+        var nameExists = await _userRepository.NameExistsAsync(name);
+        if (nameExists)
+        {
+            _logger.LogWarning("Benutzername bereits vergeben: {UserName}", name);
+            throw new InvalidOperationException($"Benutzername '{name}' ist bereits vergeben");
+        }
+
         _logger.LogInformation("Erstellen eines neuen Benutzers: {UserName}", name);
 
         var user = new User(name);
@@ -84,5 +92,15 @@ public class UserService : IUserService
 
         _logger.LogInformation("Benutzer mit ID {UserId} erfolgreich deaktiviert", id);
         return true;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> UserNameExistsAsync(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Benutzername darf nicht leer sein", nameof(name));
+
+        _logger.LogInformation("Prüfen ob Benutzername existiert: {UserName}", name);
+        return await _userRepository.NameExistsAsync(name);
     }
 }

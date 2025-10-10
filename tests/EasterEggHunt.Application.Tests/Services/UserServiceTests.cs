@@ -266,4 +266,103 @@ public class UserServiceTests
     }
 
     #endregion
+
+    #region UserNameExistsAsync Tests
+
+    [Test]
+    public async Task UserNameExistsAsync_WithExistingName_ReturnsTrue()
+    {
+        // Arrange
+        var userName = "existinguser";
+        _mockRepository.Setup(r => r.NameExistsAsync(userName))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _userService.UserNameExistsAsync(userName);
+
+        // Assert
+        Assert.That(result, Is.True);
+        _mockRepository.Verify(r => r.NameExistsAsync(userName), Times.Once);
+    }
+
+    [Test]
+    public async Task UserNameExistsAsync_WithNonExistingName_ReturnsFalse()
+    {
+        // Arrange
+        var userName = "newuser";
+        _mockRepository.Setup(r => r.NameExistsAsync(userName))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await _userService.UserNameExistsAsync(userName);
+
+        // Assert
+        Assert.That(result, Is.False);
+        _mockRepository.Verify(r => r.NameExistsAsync(userName), Times.Once);
+    }
+
+    [Test]
+    public void UserNameExistsAsync_WithEmptyName_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _userService.UserNameExistsAsync(""));
+    }
+
+    [Test]
+    public void UserNameExistsAsync_WithWhitespaceName_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _userService.UserNameExistsAsync("   "));
+    }
+
+    [Test]
+    public void UserNameExistsAsync_WithNullName_ThrowsArgumentException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentException>(() => _userService.UserNameExistsAsync(null!));
+    }
+
+    #endregion
+
+    #region CreateUserAsync with Duplicate Name Tests
+
+    [Test]
+    public void CreateUserAsync_WithExistingName_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var userName = "existinguser";
+        _mockRepository.Setup(r => r.NameExistsAsync(userName))
+            .ReturnsAsync(true);
+
+        // Act & Assert
+        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _userService.CreateUserAsync(userName));
+        Assert.That(ex!.Message, Does.Contain("bereits vergeben"));
+        _mockRepository.Verify(r => r.NameExistsAsync(userName), Times.Once);
+        _mockRepository.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
+    }
+
+    [Test]
+    public async Task CreateUserAsync_WithNonExistingName_CreatesUser()
+    {
+        // Arrange
+        var userName = "newuser";
+        _mockRepository.Setup(r => r.NameExistsAsync(userName))
+            .ReturnsAsync(false);
+        _mockRepository.Setup(r => r.AddAsync(It.IsAny<User>()))
+            .ReturnsAsync((User user) => user);
+        _mockRepository.Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _userService.CreateUserAsync(userName);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Name, Is.EqualTo(userName));
+        _mockRepository.Verify(r => r.NameExistsAsync(userName), Times.Once);
+        _mockRepository.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+        _mockRepository.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    #endregion
 }

@@ -1,0 +1,113 @@
+@model EmployeeRegistrationViewModel
+@{
+    ViewData["Title"] = "Registrierung";
+    Layout = "~/Views/Employee/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <h1 class="h3 mb-3">🥚 Willkommen!</h1>
+                        <p class="text-muted">
+                            Registriere dich, um am Easter Egg Hunt teilzunehmen.
+                        </p>
+                    </div>
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Bitte korrigiere folgende Fehler:</strong>
+                            <ul class="mb-0 mt-2">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <form asp-action="Register" method="post">
+                        <input type="hidden" asp-for="QrCodeUrl" />
+
+                        <div class="mb-4">
+                            <label asp-for="Name" class="form-label fw-bold">Dein Name</label>
+                            <input asp-for="Name" 
+                                   class="form-control form-control-lg" 
+                                   placeholder="z.B. Max Mustermann" 
+                                   autofocus 
+                                   autocomplete="name" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                            <div class="form-text">
+                                Dein Name wird für die Rangliste verwendet.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Jetzt teilnehmen
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Deine Daten werden nur für dieses Event verwendet.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    <a asp-controller="Home" asp-action="Index" class="text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Zurück zur Startseite
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Auto-Focus auf Name-Feld
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.querySelector('input[name="Name"]');
+            if (nameInput) {
+                nameInput.focus();
+            }
+        });
+
+        // Formular-Validierung Feedback
+        (function() {
+            'use strict';
+            const forms = document.querySelectorAll('form');
+            Array.from(forms).forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+}
+

@@ -218,4 +218,121 @@ public class UsersControllerTests
         var notFoundResult = result as NotFoundObjectResult;
         Assert.That(notFoundResult!.Value, Is.EqualTo("Benutzer mit ID 1 nicht gefunden"));
     }
+
+    #region CheckUserName Tests
+
+    [Test]
+    public async Task CheckUserName_ReturnsOkResult_WhenNameExists()
+    {
+        // Arrange
+        var userName = "existinguser";
+        _mockUserService.Setup(x => x.UserNameExistsAsync(userName))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.CheckUserName(userName);
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        var response = okResult!.Value as CheckUserNameResponse;
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.Exists, Is.True);
+        Assert.That(response.Name, Is.EqualTo(userName));
+    }
+
+    [Test]
+    public async Task CheckUserName_ReturnsOkResult_WhenNameDoesNotExist()
+    {
+        // Arrange
+        var userName = "newuser";
+        _mockUserService.Setup(x => x.UserNameExistsAsync(userName))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await _controller.CheckUserName(userName);
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        var response = okResult!.Value as CheckUserNameResponse;
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.Exists, Is.False);
+        Assert.That(response.Name, Is.EqualTo(userName));
+    }
+
+    [Test]
+    public async Task CheckUserName_ReturnsBadRequest_WhenNameIsEmpty()
+    {
+        // Act
+        var result = await _controller.CheckUserName("");
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult!.Value, Is.EqualTo("Benutzername darf nicht leer sein"));
+    }
+
+    [Test]
+    public async Task CheckUserName_ReturnsBadRequest_WhenNameIsWhitespace()
+    {
+        // Act
+        var result = await _controller.CheckUserName("   ");
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult!.Value, Is.EqualTo("Benutzername darf nicht leer sein"));
+    }
+
+    [Test]
+    public async Task CheckUserName_ReturnsInternalServerError_WhenExceptionOccurs()
+    {
+        // Arrange
+        var userName = "testuser";
+        _mockUserService.Setup(x => x.UserNameExistsAsync(userName))
+            .ThrowsAsync(new InvalidOperationException("Test exception"));
+
+        // Act
+        var result = await _controller.CheckUserName(userName);
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
+        var objectResult = result.Result as ObjectResult;
+        Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+    }
+
+    #endregion
+
+    #region CreateUser with Duplicate Name Tests
+
+    [Test]
+    public async Task CreateUser_ReturnsBadRequest_WhenNameIsTooShort()
+    {
+        // Arrange
+        var request = new CreateUserRequest { Name = "A" };
+
+        // Act
+        _controller.ModelState.AddModelError("Name", "Name muss zwischen 2 und 100 Zeichen haben");
+        var result = await _controller.CreateUser(request);
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
+    }
+
+    [Test]
+    public async Task CreateUser_ReturnsBadRequest_WhenNameIsTooLong()
+    {
+        // Arrange
+        var request = new CreateUserRequest { Name = new string('A', 101) };
+
+        // Act
+        _controller.ModelState.AddModelError("Name", "Name muss zwischen 2 und 100 Zeichen haben");
+        var result = await _controller.CreateUser(request);
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
+    }
+
+    #endregion
 }
