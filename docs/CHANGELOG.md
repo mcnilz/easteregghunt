@@ -8,30 +8,29 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefügt
-- **API-Client Architektur**: Web-Projekt kommuniziert jetzt über HTTP mit der API
-- **EasterEggHunt.Common Projekt**: Shared Configuration und Utilities für zukünftige Verwendung
-- **Automatisches Prozess-Management**: Entwicklungsskript beendet automatisch laufende Prozesse
-- **Migration-Korrektur**: Datenbank-Migrationen laufen jetzt über API-Projekt statt Web-Projekt
-- **Projekt-Setup**: Vollständige .NET Core 8.0 Solution mit Clean Architecture
-- **Docker-Integration**: Docker Compose, Dockerfiles, Buildx Bake Setup
-- **Datenbank-Schema**: 6 Domain Entities (Campaign, QrCode, User, Find, Session, AdminUser)
-- **Repository Pattern**: Vollständige Implementierung mit 6 Repository-Interfaces und -Implementierungen
-- **Integration Tests**: 95 umfassende Tests mit echter SQLite-Datenbank
-- **Domain Tests**: 52 Unit Tests für alle Domain Entities
+- **QR-Code URL-System Refactoring**: Dynamische URL-Generierung ohne Domain-Speicherung
+- **Mehrere aktive Kampagnen**: Unterstützung für gleichzeitige aktive Kampagnen
+- **Robuste JSON-Fehlerbehandlung**: Graceful Fallback bei API-Deserialisierungsfehlern
+- **QR-Code Mehrfach-Zählung verhindern**: Ein Nutzer kann QR-Code nur einmal finden
+- **Neue Tests**: Umfassende Test-Coverage für URL-System und Mehrfach-Scans
 
 ### Geändert
-- **Web-Projekt**: Entfernte direkte Datenbankverbindung, verwendet jetzt API-Client
-- **AdminController**: Refaktoriert für API-Client-Architektur
-- **Entwicklungsskript**: Korrigierte Migration-Startup-Projekt von Web auf API
-- **Projekt-Referenzen**: Entfernte Common-Projekt-Referenzen aus API und Web
-- **CommonConfigurationExtensions**: Verschoben von Common-Projekt ins API-Projekt
+- **QrCode Entity**: `UniqueUrl` (Uri) → `Code` (string) - nur Code ohne Domain
+- **Datenbank-Schema**: Migration von vollständigen URLs zu reinen Codes
+- **URL-Generierung**: Dynamische Erstellung zur Laufzeit mit `window.location.origin`
+- **API-Endpoints**: `/api/qrcodes/by-url/{uniqueUrl}` → `/api/qrcodes/by-code/{code}`
+- **Geschäftslogik**: Ein Benutzer kann denselben QR-Code nur einmal finden
+- **Dokumentation**: DATABASE_SCHEMA.md und ARCHITECTURE.md aktualisiert
 
 ### Behoben
-- **Migration-Fehler**: "EasterEggHunt.Infrastructure.dll not found" beim Web-Projekt
-- **Error.cshtml**: NullReferenceException durch null-safe Prüfung behoben
-- **API-URL-Konfiguration**: Korrigierte Port-Konfiguration (7001 statt 7002)
+- **Kampagnen-Mismatch**: QR-Codes werden jetzt gegen alle aktiven Kampagnen geprüft
+- **JSON-Deserialisierungsfehler**: Robuste Behandlung leerer API-Antworten
+- **Mehrfach-Zählung**: Verhindert doppelte Fund-Registrierung für denselben QR-Code
+- **Domain-Flexibilität**: Server-URL-Wechsel ohne Datenbank-Migration möglich
 
 ### Entfernt
+- **QrCodeUrl Value Object**: Nicht mehr benötigt durch Code-basiertes System
+- **Uri-Konvertierung**: Vereinfachte URL-Behandlung ohne Domain-Speicherung
 - **Direkte DB-Zugriffe**: Web-Projekt hat keine direkte Datenbankverbindung mehr
 - **Service-Abhängigkeiten**: Web-Projekt verwendet keine Application/Infrastructure Services mehr
 

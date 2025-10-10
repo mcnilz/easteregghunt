@@ -29,7 +29,7 @@ Das Easter Egg Hunt System folgt **Clean Architecture** Prinzipien mit klarer Tr
 │                     DOMAIN LAYER                            │
 ├─────────────────────────────────────────────────────────────┤
 │  Entities            │  Value Objects      │  Domain Events │
-│  - Campaign          │  - QrCodeUrl        │  - QrCodeFound │
+│  - Campaign          │  - QrCode           │  - QrCodeFound │
 │  - QrCode            │  - SessionId        │  - CampaignEnd │
 │  - User              │  - FindTimestamp    │  - UserJoined  │
 │  - Find              │                     │                │
@@ -104,8 +104,9 @@ erDiagram
         int Id PK "Primary Key"
         int CampaignId FK "Foreign Key to Campaigns"
         string Title "QR Code Title (200 chars)"
-        string InternalNote "Admin Note (1000 chars)"
-        string UniqueUrl "Unique QR Code URL"
+        string Description "Public Description (1000 chars)"
+        string InternalNotes "Admin Notes (1000 chars)"
+        string Code "Unique QR Code (12 chars, no domain)"
         datetime CreatedAt "Creation Timestamp"
         datetime UpdatedAt "Last Update Timestamp"
         bool IsActive "Active Status (default: true)"
@@ -160,7 +161,7 @@ CREATE INDEX IX_Campaigns_Name ON Campaigns(Name);
 CREATE INDEX IX_QrCodes_CampaignId ON QrCodes(CampaignId);
 CREATE INDEX IX_QrCodes_IsActive ON QrCodes(IsActive);
 CREATE INDEX IX_QrCodes_SortOrder ON QrCodes(SortOrder);
-CREATE UNIQUE INDEX IX_QrCodes_UniqueUrl ON QrCodes(UniqueUrl);
+CREATE UNIQUE INDEX IX_QrCodes_Code ON QrCodes(Code);
 
 CREATE INDEX IX_Users_IsActive ON Users(IsActive);
 CREATE INDEX IX_Users_FirstSeen ON Users(FirstSeen);

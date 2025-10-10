@@ -25,8 +25,9 @@ erDiagram
         int Id PK "Primary Key"
         int CampaignId FK "Foreign Key to Campaigns"
         string Title "QR Code Title (200 chars)"
-        string InternalNote "Admin Note (1000 chars)"
-        string UniqueUrl "Unique QR Code URL"
+        string Description "Public Description (1000 chars)"
+        string InternalNotes "Admin Notes (1000 chars)"
+        string Code "Unique QR Code (12 chars, no domain)"
         datetime CreatedAt "Creation Timestamp"
         datetime UpdatedAt "Last Update Timestamp"
         bool IsActive "Active Status (default: true)"
@@ -96,8 +97,9 @@ erDiagram
 | Id | INTEGER | Primärschlüssel | PRIMARY KEY, AUTOINCREMENT |
 | CampaignId | INTEGER | Fremdschlüssel zu Campaigns | NOT NULL, FK |
 | Title | TEXT(200) | Öffentlicher Titel | NOT NULL |
-| InternalNote | TEXT(1000) | Interne Notiz für Admins | NOT NULL |
-| UniqueUrl | TEXT | Eindeutige URL für QR-Code | NOT NULL, UNIQUE |
+| Description | TEXT(1000) | Öffentliche Beschreibung | NOT NULL |
+| InternalNotes | TEXT(1000) | Interne Notizen für Admins | NOT NULL |
+| Code | TEXT(50) | Eindeutiger QR-Code (ohne Domain) | NOT NULL, UNIQUE |
 | CreatedAt | TEXT | Erstellungszeitpunkt | NOT NULL |
 | UpdatedAt | TEXT | Letzte Aktualisierung | NOT NULL |
 | IsActive | INTEGER | Aktiv-Status | NOT NULL, DEFAULT 1 |
@@ -180,7 +182,7 @@ CREATE INDEX IX_Campaigns_Name ON Campaigns(Name);
 CREATE INDEX IX_QrCodes_CampaignId ON QrCodes(CampaignId);
 CREATE INDEX IX_QrCodes_IsActive ON QrCodes(IsActive);
 CREATE INDEX IX_QrCodes_SortOrder ON QrCodes(SortOrder);
-CREATE UNIQUE INDEX IX_QrCodes_UniqueUrl ON QrCodes(UniqueUrl);
+CREATE UNIQUE INDEX IX_QrCodes_Code ON QrCodes(Code);
 
 -- Users-Indizes
 CREATE INDEX IX_Users_IsActive ON Users(IsActive);
@@ -213,8 +215,9 @@ CREATE INDEX IX_AdminUsers_CreatedAt ON AdminUsers(CreatedAt);
 
 ### QrCodes
 - QR-Codes können nur zu aktiven Kampagnen hinzugefügt werden
-- Jeder QR-Code hat eine eindeutige URL
+- Jeder QR-Code hat einen eindeutigen Code (ohne Domain)
 - QR-Codes können mehrfach gefunden werden (bleiben liegen)
+- Domain wird dynamisch zur Laufzeit hinzugefügt
 
 ### Users
 - Benutzer werden automatisch erstellt beim ersten QR-Code-Scan
@@ -223,7 +226,7 @@ CREATE INDEX IX_AdminUsers_CreatedAt ON AdminUsers(CreatedAt);
 
 ### Finds
 - Jeder Fund wird protokolliert mit Zeitstempel, IP und User-Agent
-- Ein Benutzer kann denselben QR-Code mehrfach finden
+- Ein Benutzer kann denselben QR-Code nur einmal finden (keine Duplikate)
 - Funde können nicht gelöscht werden (Audit-Trail)
 
 ### Sessions
@@ -256,6 +259,49 @@ CREATE INDEX IX_AdminUsers_CreatedAt ON AdminUsers(CreatedAt);
 - Regelmäßige Bereinigung abgelaufener Sessions
 - Archivierung alter Kampagnen nach 2 Jahren
 - Komprimierung von Session-Daten bei Bedarf
+
+## 🔗 QR-Code URL-System
+
+### Dynamische URL-Generierung
+
+Das System verwendet ein flexibles URL-System, das Server-URL-Wechsel ohne Datenbank-Migrationen ermöglicht:
+
+**Speicherung:**
+- QR-Codes werden nur mit einem eindeutigen Code gespeichert (z.B. `d90cffe8f07b`)
+- Keine Domain oder vollständige URL in der Datenbank
+
+**URL-Generierung zur Laufzeit:**
+```javascript
+// Frontend (JavaScript)
+const baseUrl = window.location.origin; // z.B. https://localhost:7002
+const qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(qrCode.code)}`;
+// Ergebnis: https://localhost:7002/qr/d90cffe8f07b
+```
+
+**Vorteile:**
+- Server-URL-Wechsel ohne Datenbank-Migration
+- Flexible Domain-Konfiguration
+- Einfache Entwicklungsumgebung (localhost) und Produktion
+- Konsistente URLs über alle Umgebungen hinweg
+
+### Migration von UniqueUrl zu Code
+
+Das System wurde von vollständigen URLs (`UniqueUrl`) zu reinen Codes (`Code`) migriert:
+
+**Vorher:**
+```sql
+UniqueUrl: "https://easteregghunt.local/qr/d90cffe8f07b"
+```
+
+**Nachher:**
+```sql
+Code: "d90cffe8f07b"
+```
+
+**Migration:**
+- Automatische Extraktion des Codes aus bestehenden URLs
+- EF Core Migration mit Daten-Konvertierung
+- Rückwärtskompatibilität durch Down-Migration
 
 ---
 
