@@ -207,19 +207,19 @@ public class EmployeeController : Controller
                 return View("InvalidQrCode");
             }
 
-            // Prüfen ob QR-Code zu aktiver Kampagne gehört
+            // Prüfen ob QR-Code zu einer aktiven Kampagne gehört
             var activeCampaigns = await _apiClient.GetActiveCampaignsAsync();
-            var activeCampaign = activeCampaigns.FirstOrDefault();
-            if (activeCampaign == null)
+            if (!activeCampaigns.Any())
             {
-                _logger.LogWarning("Keine aktive Kampagne gefunden");
+                _logger.LogWarning("Keine aktiven Kampagnen gefunden");
                 return View("NoCampaign");
             }
 
-            if (qrCode.CampaignId != activeCampaign.Id)
+            var qrCodeCampaign = activeCampaigns.FirstOrDefault(c => c.Id == qrCode.CampaignId);
+            if (qrCodeCampaign == null)
             {
-                _logger.LogWarning("QR-Code gehört nicht zur aktiven Kampagne. QR-Code CampaignId: {QrCodeCampaignId}, Active CampaignId: {ActiveCampaignId}",
-                    qrCode.CampaignId, activeCampaign.Id);
+                _logger.LogWarning("QR-Code gehört nicht zu einer aktiven Kampagne. QR-Code CampaignId: {QrCodeCampaignId}, Active CampaignIds: {ActiveCampaignIds}",
+                    qrCode.CampaignId, string.Join(", ", activeCampaigns.Select(c => c.Id)));
                 return View("InvalidQrCode");
             }
 
@@ -241,7 +241,7 @@ public class EmployeeController : Controller
 
             // User-Fortschritt berechnen
             var userTotalFinds = await _apiClient.GetFindCountByUserIdAsync(userId.Value);
-            var campaignQrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(activeCampaign.Id);
+            var campaignQrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(qrCodeCampaign.Id);
             var campaignTotalQrCodes = campaignQrCodes.Count();
             var progressPercentage = campaignTotalQrCodes > 0 ? (int)((double)userTotalFinds / campaignTotalQrCodes * 100) : 0;
 

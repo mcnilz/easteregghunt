@@ -261,23 +261,17 @@
             const qrContainers = document.querySelectorAll('div[id^="qrcode-"]');
             
             qrContainers.forEach(container => {
-                const relativeUrl = container.getAttribute('data-url');
+                const code = container.getAttribute('data-url');
                 const size = parseInt(container.getAttribute('data-size')) || 200;
                 
-                if (relativeUrl) {
+                if (code) {
                     try {
                         // URL für QR-Code bestimmen
                         let qrCodeUrl;
                         
-                        // Prüfen ob relativeUrl bereits eine vollständige URL ist
-                        if (relativeUrl.startsWith('http://') || relativeUrl.startsWith('https://')) {
-                            // Bereits vollständige URL - direkt verwenden
-                            qrCodeUrl = relativeUrl;
-                        } else {
-                            // Relative URL - mit aktueller Domain kombinieren
-                            const baseUrl = window.location.origin;
-                            qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(relativeUrl)}`;
-                        }
+                        // Mit aktueller Domain kombinieren
+                        const baseUrl = window.location.origin;
+                        qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(code)}`;
                         
                         // QR-Code mit korrekter URL generieren
                         const qrCode = new QRCode(container, {

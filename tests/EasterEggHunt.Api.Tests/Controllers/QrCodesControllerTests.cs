@@ -347,7 +347,7 @@ public class QrCodesControllerTests
         // Assert
         Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult!.Value, Is.EqualTo($"QR-Code mit UniqueUrl '{code}' nicht gefunden"));
+        Assert.That(notFoundResult!.Value, Is.EqualTo($"QR-Code mit Code '{code}' nicht gefunden"));
     }
 
     [Test]

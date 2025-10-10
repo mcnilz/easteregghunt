@@ -444,7 +444,28 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug("API-Antwort: '{Content}'", content);
+
+            // Prüfen ob die Antwort leer ist oder nur Whitespace
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                _logger.LogDebug("Leere API-Antwort für QR-Code {QrCodeId} und User {UserId} - kein Fund vorhanden", qrCodeId, userId);
+                return null;
+            }
+
+            // Prüfen ob die Antwort "null" ist (JSON null)
+            if (content.Trim() == "null")
+            {
+                _logger.LogDebug("JSON null-Antwort für QR-Code {QrCodeId} und User {UserId} - kein Fund vorhanden", qrCodeId, userId);
+                return null;
+            }
+
             return JsonSerializer.Deserialize<Find?>(content, _jsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON-Deserialisierungsfehler beim Abrufen des bestehenden Funds für QR-Code {QrCodeId} und Benutzer {UserId}", qrCodeId, userId);
+            return null; // Graceful fallback
         }
         catch (Exception ex)
         {

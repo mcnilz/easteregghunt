@@ -138,6 +138,13 @@ public class FindsController : ControllerBase
         try
         {
             var existingFind = await _findService.GetExistingFindAsync(qrCodeId, userId);
+
+            // Explizit null zurückgeben, damit es korrekt als JSON null serialisiert wird
+            if (existingFind == null)
+            {
+                return Ok((Find?)null);
+            }
+
             return Ok(existingFind);
         }
         catch (InvalidOperationException ex)

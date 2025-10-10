@@ -559,7 +559,7 @@ public class QrCodeServiceTests
 
         // Assert
         Assert.That(result, Is.Null);
-        _mockQrCodeRepository.Verify(r => r.GetByCodeAsync(It.IsAny<string>()), Times.Never);
+        _mockQrCodeRepository.Verify(r => r.GetByCodeAsync(code), Times.Once);
     }
 
     [Test]

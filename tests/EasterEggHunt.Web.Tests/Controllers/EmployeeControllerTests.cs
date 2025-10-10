@@ -212,17 +212,19 @@ public class EmployeeControllerTests : IDisposable
 
         var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note")
         {
-            CampaignId = 2
+            CampaignId = 2 // QR-Code gehört zu Kampagne 2
         };
         _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ReturnsAsync(qrCode);
 
-        var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
+        // Aktive Kampagnen sind nur Kampagne 1 und 3, nicht 2
+        var activeCampaigns = new List<Campaign>
         {
-            Id = 1
+            new Campaign("Test Campaign 1", "Test Description", "Test Creator") { Id = 1 },
+            new Campaign("Test Campaign 3", "Test Description", "Test Creator") { Id = 3 }
         };
         _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
-            .ReturnsAsync(new List<Campaign> { activeCampaign });
+            .ReturnsAsync(activeCampaigns);
 
         // Act
         var result = await _controller.ScanQrCode(code);
@@ -246,12 +248,12 @@ public class EmployeeControllerTests : IDisposable
         _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ReturnsAsync(qrCode);
 
-        var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
+        var activeCampaigns = new List<Campaign>
         {
-            Id = 1
+            new Campaign("Test Campaign", "Test Description", "Test Creator") { Id = 1 }
         };
         _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
-            .ReturnsAsync(new List<Campaign> { activeCampaign });
+            .ReturnsAsync(activeCampaigns);
 
         // Act
         var result = await _controller.ScanQrCode(code);
@@ -282,12 +284,13 @@ public class EmployeeControllerTests : IDisposable
         _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(It.IsAny<string>()))
             .ReturnsAsync(qrCode);
 
-        var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
+        var activeCampaigns = new List<Campaign>
         {
-            Id = 1
+            new Campaign("Test Campaign 1", "Test Description", "Test Creator") { Id = 1 },
+            new Campaign("Test Campaign 2", "Test Description", "Test Creator") { Id = 2 }
         };
         _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
-            .ReturnsAsync(new List<Campaign> { activeCampaign });
+            .ReturnsAsync(activeCampaigns);
 
         var currentFind = new Find(qrCode.Id, userId, "127.0.0.1", "TestAgent");
         _mockApiClient.Setup(x => x.RegisterFindAsync(qrCode.Id, userId, It.IsAny<string>(), It.IsAny<string>()))
@@ -300,7 +303,7 @@ public class EmployeeControllerTests : IDisposable
             .ReturnsAsync(1);
 
         var campaignQrCodes = new List<QrCode> { qrCode };
-        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(activeCampaign.Id))
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(qrCode.CampaignId))
             .ReturnsAsync(campaignQrCodes);
 
         // Act
