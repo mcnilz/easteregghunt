@@ -1,4 +1,5 @@
 @model CampaignDetailsViewModel
+@using System.Text.Json
 @{
     ViewData["Title"] = "Kampagnen-Details";
 }
@@ -254,11 +255,167 @@
     </div>
 </div>
 
+<!-- QR-Code Detail Modal -->
+<div class="modal fade" id="qrCodeDetailModal" tabindex="-1" aria-labelledby="qrCodeDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrCodeDetailModalLabel">QR-Code Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>QR-Code Bild</h6>
+                        <div id="qrCodeImage" class="text-center mb-3">
+                            <!-- QR-Code wird hier generiert -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Details</h6>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Titel:</label>
+                            <p id="qrCodeTitle" class="mb-2"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Interne Notiz:</label>
+                            <p id="qrCodeNotes" class="mb-2"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Sortierung:</label>
+                            <p id="qrCodeSortOrder" class="mb-2"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Status:</label>
+                            <p id="qrCodeStatus" class="mb-2"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>QR-Code URL</h6>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="qrCodeUrl" readonly>
+                            <button class="btn btn-outline-primary" type="button" id="copyUrlBtn" onclick="copyQrCodeUrl()">
+                                <i class="fas fa-copy"></i> Kopieren
+                            </button>
+                        </div>
+                        <small class="text-muted">Diese URL kann direkt gescannt oder kopiert werden.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <button type="button" class="btn btn-primary" onclick="openQrCodeInNewTab()">
+                    <i class="fas fa-external-link-alt"></i> In neuem Tab öffnen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <script src="~/js/qrcode.min.js"></script>
     <script>
+        // QR-Code Daten für JavaScript verfügbar machen
+        const qrCodesData = @Html.Raw(Json.Serialize(Model.QrCodes.Select(q => new {
+            Id = q.Id,
+            Title = q.Title,
+            InternalNotes = q.InternalNotes,
+            SortOrder = q.SortOrder,
+            IsActive = q.IsActive,
+            UniqueUrl = q.UniqueUrl?.ToString() ?? ""
+        })));
+
         function viewQrCode(id) {
-            // QR-Code display functionality can be implemented in future sprints
-            alert('QR-Code anzeigen: ' + id);
+            console.log('viewQrCode called with id:', id);
+            console.log('qrCodesData:', qrCodesData);
+            
+            const qrCode = qrCodesData.find(q => q.id === id);
+            if (!qrCode) {
+                console.error('QR-Code nicht gefunden für ID:', id);
+                alert('QR-Code nicht gefunden');
+                return;
+            }
+            
+            console.log('Found QR-Code:', qrCode);
+
+            // Modal mit QR-Code-Daten füllen
+            document.getElementById('qrCodeTitle').textContent = qrCode.title;
+            document.getElementById('qrCodeNotes').textContent = qrCode.internalNotes || 'Keine Notiz';
+            document.getElementById('qrCodeSortOrder').textContent = qrCode.sortOrder;
+            document.getElementById('qrCodeStatus').textContent = qrCode.isActive ? 'Aktiv' : 'Inaktiv';
+            
+            // QR-Code URL generieren - IMMER mit aktueller Domain
+            const baseUrl = window.location.origin;
+            let qrCodeUrl;
+            
+            // Prüfen ob UniqueUrl bereits eine vollständige URL ist
+            if (qrCode.uniqueUrl.startsWith('http://') || qrCode.uniqueUrl.startsWith('https://')) {
+                // Vollständige URL - extrahiere nur den Pfad-Teil und verwende aktuelle Domain
+                try {
+                    const url = new URL(qrCode.uniqueUrl);
+                    const pathPart = url.pathname.split('/').pop(); // Letzter Teil nach dem letzten /
+                    qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(pathPart)}`;
+                } catch (e) {
+                    // Fallback: Verwende die URL direkt
+                    qrCodeUrl = qrCode.uniqueUrl;
+                }
+            } else {
+                // Relative URL - mit aktueller Domain kombinieren
+                qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(qrCode.uniqueUrl)}`;
+            }
+            
+            document.getElementById('qrCodeUrl').value = qrCodeUrl;
+
+            // QR-Code Bild generieren
+            const qrCodeImageDiv = document.getElementById('qrCodeImage');
+            qrCodeImageDiv.innerHTML = ''; // Clear previous QR code
+            
+            // QR-Code mit QRCode.js generieren
+            new QRCode(qrCodeImageDiv, {
+                text: qrCodeUrl,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#FFFFFF',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+
+            // Modal anzeigen
+            $('#qrCodeDetailModal').modal('show');
+        }
+
+        function copyQrCodeUrl() {
+            const urlInput = document.getElementById('qrCodeUrl');
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); // Für mobile Geräte
+            
+            try {
+                document.execCommand('copy');
+                
+                // Button-Feedback
+                const copyBtn = document.getElementById('copyUrlBtn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Kopiert!';
+                copyBtn.classList.remove('btn-outline-primary');
+                copyBtn.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.classList.remove('btn-success');
+                    copyBtn.classList.add('btn-outline-primary');
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Copy failed:', err);
+                alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
+            }
+        }
+
+        function openQrCodeInNewTab() {
+            const qrCodeUrl = document.getElementById('qrCodeUrl').value;
+            window.open(qrCodeUrl, '_blank');
         }
 
         function editQrCode(id) {

@@ -233,7 +233,7 @@
                         <div class="qr-code-description">@qrCode.Description</div>
                     }
                     
-                    <div class="qr-code-url">@qrCode.UniqueUrl</div>
+                    <div class="qr-code-url" id="qr-url-@qrCode.Id">@qrCode.UniqueUrl</div>
                 </div>
             }
         </div>
@@ -261,20 +261,41 @@
             const qrContainers = document.querySelectorAll('div[id^="qrcode-"]');
             
             qrContainers.forEach(container => {
-                const url = container.getAttribute('data-url');
+                const relativeUrl = container.getAttribute('data-url');
                 const size = parseInt(container.getAttribute('data-size')) || 200;
                 
-                if (url) {
+                if (relativeUrl) {
                     try {
-                        // QRCode.js verwendet new QRCode() mit Container-Element
+                        // URL für QR-Code bestimmen
+                        let qrCodeUrl;
+                        
+                        // Prüfen ob relativeUrl bereits eine vollständige URL ist
+                        if (relativeUrl.startsWith('http://') || relativeUrl.startsWith('https://')) {
+                            // Bereits vollständige URL - direkt verwenden
+                            qrCodeUrl = relativeUrl;
+                        } else {
+                            // Relative URL - mit aktueller Domain kombinieren
+                            const baseUrl = window.location.origin;
+                            qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(relativeUrl)}`;
+                        }
+                        
+                        // QR-Code mit korrekter URL generieren
                         const qrCode = new QRCode(container, {
-                            text: url,
+                            text: qrCodeUrl,
                             width: size,
                             height: size,
                             colorDark: '#000000',
                             colorLight: '#FFFFFF',
                             correctLevel: QRCode.CorrectLevel.M
                         });
+                        
+                        // URL-Text auch aktualisieren
+                        const qrCodeId = container.id.replace('qrcode-', '');
+                        const urlElement = document.getElementById(`qr-url-${qrCodeId}`);
+                        if (urlElement) {
+                            urlElement.textContent = qrCodeUrl;
+                        }
+                        
                     } catch (error) {
                         console.error('QR-Code-Generierung fehlgeschlagen:', error);
                         // Fallback: Text anzeigen

@@ -333,6 +333,34 @@ Mitarbeiter können QR-Codes scannen und ihren Fortschritt verfolgen
 **Gherkin:** `features/qr_code_scanning.feature`  
 **Aufwand:** 13 Story Points ✅
 
+#### Story 3.2.1: QR-Code URL-System Refactoring
+**Als** Entwickler  
+**Möchte ich** dass QR-Code URLs nur den Code ohne Domain speichern  
+**Damit** Server-URLs ohne Migrationen gewechselt werden können  
+
+**Akzeptanzkriterien:**
+- [ ] QR-Code `UniqueUrl` speichert nur den Code (z.B. `d90cffe8f07b`)
+- [ ] UniqueUrl zu Code umbenennen
+- [ ] Domain wird dynamisch zur Laufzeit hinzugefügt
+- [ ] Backend QR-Code Modal zeigt korrekte URLs mit aktueller Domain
+- [ ] Druckvorschau zeigt korrekte URLs mit aktueller Domain
+- [ ] QR-Code-Scanning funktioniert weiterhin korrekt
+- [ ] **Prüfung:** Datenbank-Migration erforderlich oder nicht (Entity Framework Migration)
+- [ ] **Prüfung:** Bestehende Daten kompatibel mit neuer Struktur
+- [ ] Alle bestehenden Tests bestehen weiterhin
+- [ ] Neue Tests für URL-Generierung
+
+**Technische Details:**
+- **Datenbank:** `QrCode.UniqueUrl` ändert von `Uri` zu `string` (nur Code)
+- **Migration:** Prüfung ob EF Core Migration erforderlich ist
+- **Daten-Kompatibilität:** Bestehende `Uri`-Werte müssen zu `string`-Codes konvertiert werden
+- **Backend:** URL-Generierung in JavaScript für Modal und Druckvorschau
+- **API:** QR-Code-Scanning verwendet weiterhin `UniqueUrl` für Lookup
+- **Tests:** Unit Tests für URL-Generierung, Integration Tests für QR-Code-Scanning
+
+**Gherkin:** `features/qr_code_url_refactoring.feature`  
+**Aufwand:** 5 Story Points
+
 #### Story 3.3: Fortschritts-Anzeige
 **Als** Mitarbeiter  
 **Möchte ich** meinen Fortschritt sehen können  
@@ -350,7 +378,7 @@ Mitarbeiter können QR-Codes scannen und ihren Fortschritt verfolgen
 **Gherkin:** `features/employee_progress.feature`  
 **Aufwand:** 8 Story Points
 
-**Sprint 3 Gesamt:** 29 Story Points
+**Sprint 3 Gesamt:** 34 Story Points
 
 ---
 
@@ -478,10 +506,10 @@ Produktionsreife und vollständige Dokumentation
 | Sprint 0 | 2 Wochen | 26 | Foundation & Architektur |
 | Sprint 1 | 2 Wochen | 26 | Admin-Grundfunktionen ✅ |
 | Sprint 2 | 2 Wochen | 29 | QR-Code Management ✅ |
-| Sprint 3 | 2 Wochen | 29 | Mitarbeiter-Frontend |
+| Sprint 3 | 2 Wochen | 34 | Mitarbeiter-Frontend |
 | Sprint 4 | 2 Wochen | 29 | Statistiken & Polish |
 | Sprint 5 | 1 Woche | 18 | Deployment & Docs |
-| **Gesamt** | **11 Wochen** | **160 SP** | **Vollständiges System** |
+| **Gesamt** | **11 Wochen** | **165 SP** | **Vollständiges System** |
 
 ## 🎯 Definition of Done
 
