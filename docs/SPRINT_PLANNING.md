@@ -316,22 +316,22 @@ Mitarbeiter können QR-Codes scannen und ihren Fortschritt verfolgen
 **Gherkin:** `features/employee_registration.feature`  
 **Aufwand:** 8 Story Points ✅
 
-#### Story 3.2: QR-Code Scannen
+#### Story 3.2: QR-Code Scannen ✅ ABGESCHLOSSEN
 **Als** Mitarbeiter  
 **Möchte ich** QR-Codes scannen können  
 **Damit** ich Verstecke finden kann  
 
 **Akzeptanzkriterien:**
-- [ ] QR-Code URL-Verarbeitung
-- [ ] Fund-Bestätigung anzeigen
-- [ ] Mehrfache Funde erlauben
-- [ ] Zeitstempel speichern
-- [ ] Ungültige QR-Codes behandeln
-- [ ] Mobile-optimiert
-- [ ] 100% Test Coverage
+- [x] QR-Code URL-Verarbeitung (`/qr/{uniqueUrl}`)
+- [x] Fund-Bestätigung anzeigen (Titel, Beschreibung, Zeitstempel, Fortschritt)
+- [x] Mehrfache Funde erlauben (mit Hinweis "bereits gefunden")
+- [x] Zeitstempel speichern
+- [x] Ungültige QR-Codes behandeln
+- [x] Mobile-optimiert
+- [x] 100% Test Coverage
 
 **Gherkin:** `features/qr_code_scanning.feature`  
-**Aufwand:** 13 Story Points
+**Aufwand:** 13 Story Points ✅
 
 #### Story 3.3: Fortschritts-Anzeige
 **Als** Mitarbeiter  

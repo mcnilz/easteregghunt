@@ -88,4 +88,38 @@ public class FindService : IFindService
         var finds = await _findRepository.GetByUserIdAsync(userId);
         return finds.Count();
     }
+
+    /// <inheritdoc />
+    public async Task<Find?> GetExistingFindAsync(int qrCodeId, int userId)
+    {
+        _logger.LogInformation("Abrufen des ersten Funds für QR-Code {QrCodeId} und Benutzer {UserId}", qrCodeId, userId);
+
+        // Alle Funde des Users abrufen und nach QR-Code filtern
+        var userFinds = await _findRepository.GetByUserIdAsync(userId);
+        var firstFind = userFinds.FirstOrDefault(f => f.QrCodeId == qrCodeId);
+
+        if (firstFind == null)
+        {
+            _logger.LogInformation("Kein Fund für QR-Code {QrCodeId} und Benutzer {UserId} gefunden", qrCodeId, userId);
+        }
+        else
+        {
+            _logger.LogInformation("Erster Fund für QR-Code {QrCodeId} und Benutzer {UserId} gefunden: {FindId}", qrCodeId, userId, firstFind.Id);
+        }
+
+        return firstFind;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> HasUserFoundQrCodeAsync(int qrCodeId, int userId)
+    {
+        _logger.LogInformation("Prüfen ob Benutzer {UserId} QR-Code {QrCodeId} bereits gefunden hat", userId, qrCodeId);
+
+        var existingFind = await GetExistingFindAsync(qrCodeId, userId);
+        var hasFound = existingFind != null;
+
+        _logger.LogInformation("Benutzer {UserId} hat QR-Code {QrCodeId} {Status}", userId, qrCodeId, hasFound ? "bereits gefunden" : "noch nicht gefunden");
+
+        return hasFound;
+    }
 }

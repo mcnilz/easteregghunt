@@ -164,4 +164,36 @@ public class QrCodeService : IQrCodeService
         _logger.LogInformation("QR-Code mit ID {QrCodeId} erfolgreich gelöscht", id);
         return true;
     }
+
+    /// <inheritdoc />
+    public async Task<QrCode?> GetQrCodeByUniqueUrlAsync(string uniqueUrl)
+    {
+        if (string.IsNullOrWhiteSpace(uniqueUrl))
+        {
+            _logger.LogWarning("UniqueUrl darf nicht leer sein");
+            return null;
+        }
+
+        _logger.LogInformation("Abrufen des QR-Codes mit UniqueUrl {UniqueUrl}", uniqueUrl);
+
+        // Konvertiere String zu Uri
+        if (!Uri.TryCreate(uniqueUrl, UriKind.Absolute, out var uri))
+        {
+            _logger.LogWarning("Ungültige UniqueUrl: {UniqueUrl}", uniqueUrl);
+            return null;
+        }
+
+        var qrCode = await _qrCodeRepository.GetByUniqueUrlAsync(uri);
+
+        if (qrCode == null)
+        {
+            _logger.LogWarning("QR-Code mit UniqueUrl {UniqueUrl} nicht gefunden", uniqueUrl);
+        }
+        else
+        {
+            _logger.LogInformation("QR-Code mit UniqueUrl {UniqueUrl} gefunden: {Title}", uniqueUrl, qrCode.Title);
+        }
+
+        return qrCode;
+    }
 }

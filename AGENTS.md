@@ -1,27 +1,20 @@
-# 🤖 KI-Agent Onboarding Guide - Easter Egg Hunt Projekt
+# 🤖 KI-Agent Rules - Easter Egg Hunt Projekt
 
-## 📋 Projekt-Übersicht
+## 📋 Projekt-Kontext
 
-**Easter Egg Hunt** ist ein internes Firmen-Spiel, bei dem Mitarbeiter QR-Codes im Büro finden müssen. Das Projekt besteht aus einem Backend (Admin-Interface) und Frontend (Mobile-Scanner für Mitarbeiter).
+**Easter Egg Hunt** ist ein internes Firmen-Spiel mit Clean Architecture (.NET Core 8.0, SQLite, Docker). Mitarbeiter scannen QR-Codes im Büro.
 
-### 🏗️ Architektur
-- **Clean Architecture** mit 4 Layers: Domain, Application, Infrastructure, Presentation
-- **.NET Core 8.0** für Backend und Frontend
-- **SQLite** mit Entity Framework Core
-- **Docker Compose** für Containerisierung
-- **GitHub Actions** für CI/CD
-
-## 🚨 Kritische Warnungen für KI-Agenten
+## 🚨 Kritische Regeln
 
 ### ⚠️ **NIEMALS ohne Tests committen!**
 ```bash
 # IMMER vor jedem Commit ausführen:
 dotnet test --verbosity minimal
 ```
-**Warum:** Das Projekt hat strikte Code Coverage Requirements (80% für Domain, 60% für Infrastructure). Commits ohne Tests führen zu Pipeline-Fehlern.
+**Warum:** Strikte Code Coverage Requirements (80% Domain, 60% Infrastructure). Commits ohne Tests führen zu Pipeline-Fehlern.
 
 ### ⚠️ **Git Hooks sind aktiv!**
-Das Projekt hat Pre-Commit und Pre-Push Hooks, die `dotnet format` ausführen:
+Pre-Commit und Pre-Push Hooks führen `dotnet format` aus:
 - **Pre-Commit:** Verhindert Commits mit Formatierungsfehlern
 - **Pre-Push:** Zusätzliche Sicherheit vor Push
 
@@ -33,48 +26,25 @@ git commit -m "deine nachricht"
 ```
 
 ### ⚠️ **Windows PowerShell Empfehlung**
-Auf Windows-Systemen sollten alle Befehle mit **PowerShell** (`pwsh`) ausgeführt werden:
-- **Bessere .NET-Integration** und NuGet-Package-Management
-- **Zuverlässigere Pfad-Behandlung** für Windows-spezifische Pfade
-- **Konsistentere Ausführung** von dotnet-Befehlen
-- **Vermeidung von cmd.exe Problemen** mit langen Pfaden und Sonderzeichen
+Verwende **PowerShell** (`pwsh`) statt cmd.exe für bessere .NET-Integration und Pfad-Behandlung.
 
-**Empfohlene Shell:**
-```
-# PowerShell verwenden statt cmd.exe
-pwsh
-```
+## 🛠️ Entwicklungsumgebung
 
-
-## 🛠️ Entwicklungsumgebung Setup
-
-### 1. Repository klonen
+### Setup
 ```bash
+# Repository klonen
 git clone https://github.com/mcnilz/easteregghunt.git
 cd easteregghunt
-```
 
-### 2. Docker-Umgebung starten
-```bash
-# Images bauen und starten
+# Docker-Umgebung starten
 docker buildx bake
 docker compose up -d
-```
 
-### 3. Lokale Entwicklung
-```bash
 # Tests ausführen
 dotnet test --verbosity minimal
-
-# Build prüfen
-dotnet build --configuration Release
-
-# Formatierung prüfen
-dotnet format --verify-no-changes --verbosity diagnostic
 ```
 
-## 📁 Projektstruktur
-
+### Projektstruktur
 ```
 easteregghunt/
 ├── src/
@@ -82,14 +52,9 @@ easteregghunt/
 │   ├── EasterEggHunt.Application/     # Service Layer & Business Logic
 │   ├── EasterEggHunt.Infrastructure/  # Data Access & External Services
 │   ├── EasterEggHunt.Api/            # Web API Controllers
-│   └── EasterEggHunt.Web/           # Frontend MVC (geplant)
-├── tests/
-│   ├── EasterEggHunt.Domain.Tests/    # Unit Tests für Domain
-│   ├── EasterEggHunt.Application.Tests/ # Unit Tests für Services
-│   ├── EasterEggHunt.Infrastructure.Tests/ # Integration Tests
-│   └── EasterEggHunt.Api.Tests/      # API Tests
+│   └── EasterEggHunt.Web/           # Frontend MVC
+├── tests/                            # Unit & Integration Tests
 ├── docs/                             # Dokumentation
-├── scripts/                          # Build & Start Scripts
 └── .github/workflows/               # CI/CD Pipeline
 ```
 
@@ -101,24 +66,12 @@ easteregghunt/
 3. **Infrastructure Tests** (116 Tests) - Integration Tests mit SQLite
 4. **API Tests** (59 Tests) - Controller Tests mit WebApplicationFactory
 5. **Web Tests** (27 Tests) - MVC Controller Tests mit Mocking
-6. **Integration Tests** (78 Tests) - End-to-End Tests mit Test-Datenbank
+6. **Integration Tests** (78 Tests) - End-to-End Tests
 
 ### Code Coverage Requirements
 - **Domain:** ≥ 80% (aktuell 87.7%) ✅
 - **Infrastructure:** ≥ 60% (aktuell 88%) ✅
 - **Application:** ≥ 80% (aktuell 94.66%) ✅
-
-### Test-Ausführung
-```bash
-# Alle Tests
-dotnet test --verbosity minimal
-
-# Nur Domain Tests
-dotnet test tests/EasterEggHunt.Domain.Tests/
-
-# Mit Coverage
-dotnet test --collect:"XPlat Code Coverage"
-```
 
 ## 🔧 Häufige Probleme & Lösungen
 
@@ -126,9 +79,7 @@ dotnet test --collect:"XPlat Code Coverage"
 **Symptom:** `dotnet test` schlägt fehl mit Coverage-Fehler
 **Lösung:** 
 ```bash
-# Coverage-Report generieren
 dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
-# Mehr Tests schreiben oder Coverage-Threshold anpassen
 ```
 
 ### Problem 2: Formatierungsfehler
@@ -147,21 +98,14 @@ git commit -m "deine nachricht"
 - Stelle sicher, dass `SaveChangesAsync()` aufgerufen wird
 - Verwende dynamische IDs statt hardcoded IDs
 
-### Problem 4: GitHub Actions Pipeline schlägt fehl
-**Symptom:** Pipeline zeigt Coverage-Fehler
-**Lösung:** 
-- Lokale Tests ausführen: `dotnet test`
-- Coverage-Threshold in `.github/workflows/ci.yml` prüfen
-- ReportGenerator-Konfiguration überprüfen
-
-### Problem 5: Web-Projekt kann API-Projekt nicht referenzieren
+### Problem 4: Web-Projekt kann API-Projekt nicht referenzieren
 **Symptom:** Build-Fehler "The type or namespace name 'Api' does not exist"
 **Lösung:** 
 - Kopiere DTOs in Web-Projekt statt direkter Referenz
 - Verwende separate `ApiModels.cs` Dateien im Web-Projekt
 - Vermeide zirkuläre Abhängigkeiten zwischen Projekten
 
-### Problem 6: CA2227/CA1002 Code Analysis Warnings
+### Problem 5: CA2227/CA1002 Code Analysis Warnings
 **Symptom:** Collection Properties sollten read-only sein
 **Lösung:**
 ```csharp
@@ -172,7 +116,7 @@ public List<T> Items { get; set; } = new();
 public IReadOnlyList<T> Items { get; set; } = new List<T>();
 ```
 
-### Problem 7: MVC Controller Tests mit Extension Methods
+### Problem 6: MVC Controller Tests mit Extension Methods
 **Symptom:** "Extension methods may not be used in setup/verification expressions"
 **Lösung:**
 - Mocke `IUrlHelperFactory` und `IUrlHelper` direkt
@@ -197,27 +141,6 @@ public IReadOnlyList<T> Items { get; set; } = new List<T>();
 - `tests/*/IntegrationTestBase.cs` - Basis für Integration Tests
 - `tests/EasterEggHunt.Domain.Tests/` - Domain Entity Tests
 - `tests/EasterEggHunt.Infrastructure.Tests/Integration/` - Repository Tests
-
-## 🎯 Aktuelle Sprint-Status
-
-**Sprint 2:** QR-Code Management ✅ VOLLSTÄNDIG ABGESCHLOSSEN
-- ✅ QR-Code CRUD-Operationen mit Bild-Generierung
-- ✅ QR-Code Drucklayout mit A4-Optimierung
-- ✅ QR-Code Statistiken mit Find-Counts und Finder-Listen
-- ✅ Top-Performer QR-Codes und ungerundene QR-Codes Übersicht
-- ✅ Vollständige Web-Authentifizierung mit Cookie-basiertem Login
-- ✅ Admin-Login-System mit Session-Management
-
-**Aktuelle Test-Statistiken:**
-- **494 Tests** erfolgreich (Domain: 52, Application: 162, Infrastructure: 116, API: 59, Web: 27, Integration: 78)
-- **Code Coverage:** Application 94.66%, Infrastructure 88%, Domain 87.7%
-- **Build:** Erfolgreich ohne Warnungen
-- **Formatierung:** 100% Compliance mit EditorConfig
-
-**Aktueller Sprint-Status:**
-- ✅ **Sprint 2:** QR-Code Management - VOLLSTÄNDIG ABGESCHLOSSEN
-- ✅ **Sprint 3:** Story 3.1: Mitarbeiter-Registrierung - ABGESCHLOSSEN
-- 📋 **Detaillierte Sprint-Planung:** Siehe `docs/SPRINT_PLANNING.md`
 
 ## 🚀 Workflow für KI-Agenten
 
@@ -306,12 +229,6 @@ dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
 # SQLite-Datenbank prüfen (falls lokal)
 sqlite3 easteregghunt.db ".tables"
 ```
-
-## 📞 Support & Kontakt
-
-- **GitHub Issues:** Für Bugs und Feature-Requests
-- **Sprint Planning:** `docs/SPRINT_PLANNING.md` für aktuelle Aufgaben
-- **Architektur:** `docs/ARCHITECTURE.md` für technische Details
 
 ## ⚡ Quick Commands
 

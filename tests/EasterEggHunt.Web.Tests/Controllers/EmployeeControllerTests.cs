@@ -3,69 +3,333 @@ using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Controllers;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Web.Tests.Controllers;
 
-/// <summary>
-/// Unit Tests für EmployeeController
-/// </summary>
 [TestFixture]
-public sealed class EmployeeControllerTests : IDisposable
+public class EmployeeControllerTests : IDisposable
 {
-    private Mock<ILogger<EmployeeController>> _mockLogger = null!;
     private Mock<IEasterEggHuntApiClient> _mockApiClient = null!;
+    private Mock<ILogger<EmployeeController>> _mockLogger = null!;
     private EmployeeController _controller = null!;
     private Mock<HttpContext> _mockHttpContext = null!;
-    private Mock<ISession> _mockSession = null!;
 
     [SetUp]
     public void Setup()
     {
-        _mockLogger = new Mock<ILogger<EmployeeController>>();
         _mockApiClient = new Mock<IEasterEggHuntApiClient>();
+        _mockLogger = new Mock<ILogger<EmployeeController>>();
         _controller = new EmployeeController(_mockLogger.Object, _mockApiClient.Object);
 
-        // Setup HttpContext und Session
+        // Setup HttpContext
         _mockHttpContext = new Mock<HttpContext>();
-        _mockSession = new Mock<ISession>();
-        _mockHttpContext.Setup(x => x.Session).Returns(_mockSession.Object);
+        var mockConnection = new Mock<ConnectionInfo>();
+        var mockRequest = new Mock<HttpRequest>();
+        var mockHeaders = new Mock<IHeaderDictionary>();
 
-        // Mock ServiceProvider für Authentication
-        var mockServiceProvider = new Mock<IServiceProvider>();
-        var mockAuthenticationService = new Mock<IAuthenticationService>();
-        mockServiceProvider.Setup(x => x.GetService(typeof(IAuthenticationService)))
-            .Returns(mockAuthenticationService.Object);
-        _mockHttpContext.Setup(x => x.RequestServices).Returns(mockServiceProvider.Object);
+        mockConnection.Setup(x => x.RemoteIpAddress).Returns(System.Net.IPAddress.Parse("127.0.0.1"));
+        mockHeaders.Setup(x => x["User-Agent"]).Returns("TestAgent");
+        mockRequest.Setup(x => x.Headers).Returns(mockHeaders.Object);
 
-        var tempData = new TempDataDictionary(_mockHttpContext.Object, Mock.Of<ITempDataProvider>());
-        _controller.TempData = tempData;
+        _mockHttpContext.Setup(x => x.Connection).Returns(mockConnection.Object);
+        _mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
+
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = _mockHttpContext.Object
         };
     }
 
-    #region Basic Tests
-
-    [Test]
-    public void Controller_CanBeInstantiated()
+    [TearDown]
+    public void TearDown()
     {
-        // Arrange & Act
-        using var controller = new EmployeeController(_mockLogger.Object, _mockApiClient.Object);
-
-        // Assert
-        Assert.That(controller, Is.Not.Null);
+        _controller?.Dispose();
     }
 
-    #endregion
+    [Test]
+    public async Task ScanQrCode_ReturnsRedirectToRegister_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        var code = "test-code";
+        var claimsPrincipal = new ClaimsPrincipal();
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        var redirectResult = result as RedirectToActionResult;
+        Assert.That(redirectResult!.ActionName, Is.EqualTo("Register"));
+        Assert.That(redirectResult.RouteValues!["qrCodeUrl"], Is.EqualTo($"/qr/{Uri.EscapeDataString(code)}"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsRedirectToRegister_WhenUserNotEmployeeScheme()
+    {
+        // Arrange
+        var code = "test-code";
+        var identity = new ClaimsIdentity("OtherScheme");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        var redirectResult = result as RedirectToActionResult;
+        Assert.That(redirectResult!.ActionName, Is.EqualTo("Register"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsInvalidQrCodeView_WhenCodeIsEmpty()
+    {
+        // Arrange
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        // Act
+        var result = await _controller.ScanQrCode("");
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("InvalidQrCode"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsInvalidQrCodeView_WhenQrCodeNotFound()
+    {
+        // Arrange
+        var code = "test-code";
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", "1"));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+            .ReturnsAsync((QrCode?)null);
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("InvalidQrCode"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsNoCampaignView_WhenNoActiveCampaign()
+    {
+        // Arrange
+        var code = "test-code";
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", "1"));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note");
+        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+            .ReturnsAsync(qrCode);
+
+        _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
+            .ReturnsAsync(new List<Campaign>());
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("NoCampaign"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsInvalidQrCodeView_WhenQrCodeNotInActiveCampaign()
+    {
+        // Arrange
+        var code = "test-code";
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", "1"));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note")
+        {
+            CampaignId = 2
+        };
+        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+            .ReturnsAsync(qrCode);
+
+        var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
+        {
+            Id = 1
+        };
+        _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
+            .ReturnsAsync(new List<Campaign> { activeCampaign });
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("InvalidQrCode"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsRedirectToRegister_WhenUserIdNotInClaims()
+    {
+        // Arrange
+        var code = "test-code";
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note");
+        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+            .ReturnsAsync(qrCode);
+
+        var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
+        {
+            Id = 1
+        };
+        _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
+            .ReturnsAsync(new List<Campaign> { activeCampaign });
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        var redirectResult = result as RedirectToActionResult;
+        Assert.That(redirectResult!.ActionName, Is.EqualTo("Register"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsScanResultView_WhenSuccessful()
+    {
+        // Arrange
+        var code = "test-code";
+        var userId = 1;
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", userId.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note")
+        {
+            Id = 1,
+            CampaignId = 1,
+            UniqueUrl = new Uri("https://example.com/qr/test-code")
+        };
+        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(It.IsAny<string>()))
+            .ReturnsAsync(qrCode);
+
+        var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
+        {
+            Id = 1
+        };
+        _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
+            .ReturnsAsync(new List<Campaign> { activeCampaign });
+
+        var currentFind = new Find(qrCode.Id, userId, "127.0.0.1", "TestAgent");
+        _mockApiClient.Setup(x => x.RegisterFindAsync(qrCode.Id, userId, It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(currentFind);
+
+        _mockApiClient.Setup(x => x.GetExistingFindAsync(qrCode.Id, userId))
+            .ReturnsAsync((Find?)null);
+
+        _mockApiClient.Setup(x => x.GetFindCountByUserIdAsync(userId))
+            .ReturnsAsync(1);
+
+        var campaignQrCodes = new List<QrCode> { qrCode };
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(activeCampaign.Id))
+            .ReturnsAsync(campaignQrCodes);
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("ScanResult"));
+        Assert.That(viewResult.Model, Is.InstanceOf<ScanResultViewModel>());
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsInvalidQrCodeView_WhenHttpRequestException()
+    {
+        // Arrange
+        var code = "test-code";
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", "1"));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+            .ThrowsAsync(new HttpRequestException("API Error"));
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("InvalidQrCode"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsInvalidQrCodeView_WhenInvalidOperationException()
+    {
+        // Arrange
+        var code = "test-code";
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", "1"));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+            .ThrowsAsync(new InvalidOperationException("Invalid Operation"));
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("InvalidQrCode"));
+    }
+
+    [Test]
+    public async Task ScanQrCode_ReturnsInvalidQrCodeView_WhenUnexpectedException()
+    {
+        // Arrange
+        var code = "test-code";
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", "1"));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+            .ThrowsAsync(new InvalidOperationException("Unexpected Error"));
+
+        // Act
+        var result = await _controller.ScanQrCode(code);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("InvalidQrCode"));
+    }
 
     public void Dispose()
     {
@@ -73,7 +337,7 @@ public sealed class EmployeeControllerTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void Dispose(bool disposing)
+    protected virtual void Dispose(bool disposing)
     {
         if (disposing)
         {
@@ -81,4 +345,3 @@ public sealed class EmployeeControllerTests : IDisposable
         }
     }
 }
-

@@ -1,0 +1,114 @@
+@model EasterEggHunt.Web.Models.ScanResultViewModel
+@{
+    ViewData["Title"] = "QR-Code gefunden!";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- Erfolgs-Card -->
+            <div class="card border-success shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h2 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        QR-Code gefunden!
+                    </h2>
+                </div>
+                <div class="card-body text-center p-4">
+                    <!-- QR-Code Titel -->
+                    <h3 class="text-success mb-3">@Model.QrCode.Title</h3>
+                    
+                    <!-- QR-Code Beschreibung -->
+                    @if (!string.IsNullOrEmpty(Model.QrCode.Description))
+                    {
+                        <p class="text-muted mb-4">@Model.QrCode.Description</p>
+                    }
+
+                    <!-- Glückwunsch-Nachricht -->
+                    @if (Model.IsFirstFind)
+                    {
+                        <div class="alert alert-success mb-4">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-trophy me-2"></i>
+                                Herzlichen Glückwunsch!
+                            </h5>
+                            <p class="mb-0">Du hast dieses Versteck zum ersten Mal gefunden!</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-4">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-redo me-2"></i>
+                                Bereits gefunden!
+                            </h5>
+                            <p class="mb-0">
+                                Du hast dieses Versteck bereits am 
+                                <strong>@Model.PreviousFind!.FoundAt.ToString("dd.MM.yyyy um HH:mm")</strong> 
+                                gefunden!
+                            </p>
+                        </div>
+                    }
+
+                    <!-- Zeitstempel -->
+                    <div class="mb-4">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Gefunden am @Model.CurrentFind.FoundAt.ToString("dd.MM.yyyy um HH:mm")
+                        </small>
+                    </div>
+
+                    <!-- Fortschrittsbalken -->
+                    <div class="mb-4">
+                        <h6 class="text-center mb-2">Dein Fortschritt</h6>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: @Model.ProgressPercentage%" 
+                                 aria-valuenow="@Model.ProgressPercentage" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                @Model.UserTotalFinds von @Model.CampaignTotalQrCodes Verstecken
+                            </div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">
+                            @Model.ProgressPercentage% abgeschlossen
+                        </small>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="@Url.Action("Index", "Employee")" class="btn btn-primary btn-lg me-md-2">
+                            <i class="fas fa-search me-2"></i>
+                            Weiter suchen
+                        </a>
+                        <a href="@Url.Action("Profile", "Employee")" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-user me-2"></i>
+                            Mein Fortschritt
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zusätzliche Informationen -->
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Du kannst QR-Codes mehrfach scannen. Jeder Scan wird registriert.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-Focus auf "Weiter suchen" Button für bessere UX
+        document.addEventListener('DOMContentLoaded', function() {
+            const continueButton = document.querySelector('.btn-primary');
+            if (continueButton) {
+                continueButton.focus();
+            }
+        });
+    </script>
+}

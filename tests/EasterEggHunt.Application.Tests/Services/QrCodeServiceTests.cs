@@ -521,4 +521,90 @@ public class QrCodeServiceTests
     }
 
     #endregion
+
+    #region GetQrCodeByUniqueUrlAsync Tests
+
+    [Test]
+    public async Task GetQrCodeByUniqueUrlAsync_WithValidUniqueUrl_ReturnsQrCode()
+    {
+        // Arrange
+        var uniqueUrl = "https://example.com/qr/test-code";
+        var expectedQrCode = new QrCode(1, "Test QR-Code", "Test Description", "Test Notes")
+        {
+            Id = 1,
+            UniqueUrl = new Uri(uniqueUrl)
+        };
+
+        _mockQrCodeRepository.Setup(r => r.GetByUniqueUrlAsync(It.IsAny<Uri>()))
+            .ReturnsAsync(expectedQrCode);
+
+        // Act
+        var result = await _qrCodeService.GetQrCodeByUniqueUrlAsync(uniqueUrl);
+
+        // Assert
+        Assert.That(result, Is.EqualTo(expectedQrCode));
+        _mockQrCodeRepository.Verify(r => r.GetByUniqueUrlAsync(It.IsAny<Uri>()), Times.Once);
+    }
+
+    [Test]
+    public async Task GetQrCodeByUniqueUrlAsync_WithInvalidUniqueUrl_ReturnsNull()
+    {
+        // Arrange
+        var uniqueUrl = "invalid-url";
+        _mockQrCodeRepository.Setup(r => r.GetByUniqueUrlAsync(It.IsAny<Uri>()))
+            .ReturnsAsync((QrCode?)null);
+
+        // Act
+        var result = await _qrCodeService.GetQrCodeByUniqueUrlAsync(uniqueUrl);
+
+        // Assert
+        Assert.That(result, Is.Null);
+        _mockQrCodeRepository.Verify(r => r.GetByUniqueUrlAsync(It.IsAny<Uri>()), Times.Never);
+    }
+
+    [Test]
+    public async Task GetQrCodeByUniqueUrlAsync_WithEmptyUniqueUrl_ReturnsNull()
+    {
+        // Arrange
+        var uniqueUrl = "";
+
+        // Act
+        var result = await _qrCodeService.GetQrCodeByUniqueUrlAsync(uniqueUrl);
+
+        // Assert
+        Assert.That(result, Is.Null);
+        _mockQrCodeRepository.Verify(r => r.GetByUniqueUrlAsync(It.IsAny<Uri>()), Times.Never);
+    }
+
+    [Test]
+    public async Task GetQrCodeByUniqueUrlAsync_WithWhitespaceUniqueUrl_ReturnsNull()
+    {
+        // Arrange
+        var uniqueUrl = "   ";
+
+        // Act
+        var result = await _qrCodeService.GetQrCodeByUniqueUrlAsync(uniqueUrl);
+
+        // Assert
+        Assert.That(result, Is.Null);
+        _mockQrCodeRepository.Verify(r => r.GetByUniqueUrlAsync(It.IsAny<Uri>()), Times.Never);
+    }
+
+    [Test]
+    public async Task GetQrCodeByUniqueUrlAsync_WithNonExistentUniqueUrl_ReturnsNull()
+    {
+        // Arrange
+        var uniqueUrl = "https://example.com/qr/non-existent";
+        _mockQrCodeRepository.Setup(r => r.GetByUniqueUrlAsync(It.IsAny<Uri>()))
+            .ReturnsAsync((QrCode?)null);
+
+        // Act
+        var result = await _qrCodeService.GetQrCodeByUniqueUrlAsync(uniqueUrl);
+
+        // Assert
+        Assert.That(result, Is.Null);
+        _mockQrCodeRepository.Verify(r => r.GetByUniqueUrlAsync(It.IsAny<Uri>()), Times.Once);
+    }
+
+    #endregion
 }

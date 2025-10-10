@@ -85,5 +85,92 @@ public class FindsController : ControllerBase
             return StatusCode(500, "Interner Serverfehler");
         }
     }
+
+    /// <summary>
+    /// Registriert einen neuen Fund
+    /// </summary>
+    /// <param name="request">Fund-Registrierungsdaten</param>
+    /// <returns>Registrierter Fund</returns>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<Find>> RegisterFind([FromBody] RegisterFindRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var find = await _findService.RegisterFindAsync(
+                request.QrCodeId,
+                request.UserId,
+                request.IpAddress,
+                request.UserAgent);
+
+            return CreatedAtAction(nameof(GetFindsByUserId), new { userId = request.UserId }, find);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Ungültige Argumente beim Registrieren des Funds");
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Registrieren des Funds");
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
+
+    /// <summary>
+    /// Prüft, ob ein Benutzer bereits einen QR-Code gefunden hat
+    /// </summary>
+    /// <param name="qrCodeId">QR-Code-ID</param>
+    /// <param name="userId">Benutzer-ID</param>
+    /// <returns>Erster Fund oder null wenn nicht gefunden</returns>
+    [HttpGet("check")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<Find?>> CheckExistingFind([FromQuery] int qrCodeId, [FromQuery] int userId)
+    {
+        try
+        {
+            var existingFind = await _findService.GetExistingFindAsync(qrCodeId, userId);
+            return Ok(existingFind);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Prüfen des bestehenden Funds für QR-Code {QrCodeId} und Benutzer {UserId}", qrCodeId, userId);
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
+}
+
+/// <summary>
+/// Request-Model für Fund-Registrierung
+/// </summary>
+public class RegisterFindRequest
+{
+    /// <summary>
+    /// QR-Code-ID
+    /// </summary>
+    public int QrCodeId { get; set; }
+
+    /// <summary>
+    /// Benutzer-ID
+    /// </summary>
+    public int UserId { get; set; }
+
+    /// <summary>
+    /// IP-Adresse
+    /// </summary>
+    public string IpAddress { get; set; } = string.Empty;
+
+    /// <summary>
+    /// User-Agent
+    /// </summary>
+    public string UserAgent { get; set; } = string.Empty;
 }
 

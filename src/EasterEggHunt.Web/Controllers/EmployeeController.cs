@@ -165,7 +165,7 @@ public class EmployeeController : Controller
     /// </summary>
     /// <param name="code">QR-Code Identifier</param>
     /// <returns>QR-Code scannen View oder Weiterleitung zur Registrierung</returns>
-    public IActionResult ScanQrCode(string? code)
+    public async Task<IActionResult> ScanQrCode(string? code)
     {
         // Prüfen ob als Employee registriert
         if (User.Identity?.IsAuthenticated != true || User.Identity.AuthenticationType != "EmployeeScheme")
@@ -174,16 +174,98 @@ public class EmployeeController : Controller
 
             // Weiterleitung zur Registrierung mit QR-Code URL
             var qrCodeUrl = !string.IsNullOrEmpty(code)
-                ? $"/Employee/ScanQrCode?code={Uri.EscapeDataString(code)}"
+                ? $"/qr/{Uri.EscapeDataString(code)}"
                 : null;
 
             return RedirectToAction(nameof(Register), new { qrCodeUrl });
         }
 
-        _logger.LogInformation("Registrierter Mitarbeiter scannt QR-Code: {Code}", code);
+        if (string.IsNullOrEmpty(code))
+        {
+            _logger.LogWarning("QR-Code Parameter ist leer");
+            return View("InvalidQrCode");
+        }
 
-        // TODO: QR-Code Scan-Logik implementieren (Story 3.2)
-        return View("ComingSoon");
+        try
+        {
+            _logger.LogInformation("Registrierter Mitarbeiter scannt QR-Code: {Code}", code);
+
+            // QR-Code per UniqueUrl abrufen
+            var qrCode = await _apiClient.GetQrCodeByUniqueUrlAsync(code);
+            if (qrCode == null)
+            {
+                _logger.LogWarning("QR-Code mit UniqueUrl '{Code}' nicht gefunden", code);
+                return View("InvalidQrCode");
+            }
+
+            // Prüfen ob QR-Code zu aktiver Kampagne gehört
+            var activeCampaigns = await _apiClient.GetActiveCampaignsAsync();
+            var activeCampaign = activeCampaigns.FirstOrDefault();
+            if (activeCampaign == null)
+            {
+                _logger.LogWarning("Keine aktive Kampagne gefunden");
+                return View("NoCampaign");
+            }
+
+            if (qrCode.CampaignId != activeCampaign.Id)
+            {
+                _logger.LogWarning("QR-Code gehört nicht zur aktiven Kampagne. QR-Code CampaignId: {QrCodeCampaignId}, Active CampaignId: {ActiveCampaignId}",
+                    qrCode.CampaignId, activeCampaign.Id);
+                return View("InvalidQrCode");
+            }
+
+            // User-ID aus Claims extrahieren
+            var userId = GetUserIdFromClaims();
+            if (userId == null)
+            {
+                _logger.LogError("User-ID konnte nicht aus Claims extrahiert werden");
+                return RedirectToAction(nameof(Register));
+            }
+
+            // Prüfen ob User bereits gefunden hat
+            var previousFind = await _apiClient.GetExistingFindAsync(qrCode.Id, userId.Value);
+
+            // Fund registrieren
+            var ipAddress = GetClientIpAddress();
+            var userAgent = GetUserAgent();
+            var currentFind = await _apiClient.RegisterFindAsync(qrCode.Id, userId.Value, ipAddress, userAgent);
+
+            // User-Fortschritt berechnen
+            var userTotalFinds = await _apiClient.GetFindCountByUserIdAsync(userId.Value);
+            var campaignQrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(activeCampaign.Id);
+            var campaignTotalQrCodes = campaignQrCodes.Count();
+            var progressPercentage = campaignTotalQrCodes > 0 ? (int)((double)userTotalFinds / campaignTotalQrCodes * 100) : 0;
+
+            // ScanResultViewModel erstellen
+            var viewModel = new ScanResultViewModel
+            {
+                QrCode = qrCode,
+                CurrentFind = currentFind,
+                PreviousFind = previousFind,
+                IsFirstFind = previousFind == null,
+                UserTotalFinds = userTotalFinds,
+                CampaignTotalQrCodes = campaignTotalQrCodes,
+                ProgressPercentage = progressPercentage
+            };
+
+            _logger.LogInformation("QR-Code erfolgreich gescannt: {QrCodeTitle} durch User {UserId}", qrCode.Title, userId);
+            return View("ScanResult", viewModel);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP-Fehler beim Scannen des QR-Codes: {Code}", code);
+            return View("InvalidQrCode");
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Ungültige Operation beim Scannen des QR-Codes: {Code}", code);
+            return View("InvalidQrCode");
+        }
+        catch (Exception ex) when (!(ex is HttpRequestException || ex is InvalidOperationException))
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Scannen des QR-Codes: {Code}", code);
+            return View("InvalidQrCode");
+        }
     }
 
     /// <summary>
@@ -237,4 +319,55 @@ public class EmployeeController : Controller
         // TODO: Implementierung über API-Client
         return View("ComingSoon");
     }
+
+    #region Hilfsmethoden
+
+    /// <summary>
+    /// Extrahiert die User-ID aus den Claims
+    /// </summary>
+    /// <returns>User-ID oder null wenn nicht gefunden</returns>
+    private int? GetUserIdFromClaims()
+    {
+        var userIdClaim = User.FindFirst("UserId");
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return userId;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Ermittelt die Client-IP-Adresse
+    /// </summary>
+    /// <returns>IP-Adresse</returns>
+    private string GetClientIpAddress()
+    {
+        // Prüfe X-Forwarded-For Header (für Load Balancer/Proxy)
+        var forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
+        {
+            var ip = forwardedFor.Split(',')[0].Trim();
+            if (!string.IsNullOrEmpty(ip))
+                return ip;
+        }
+
+        // Prüfe X-Real-IP Header
+        var realIp = HttpContext.Request.Headers["X-Real-IP"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(realIp))
+            return realIp;
+
+        // Fallback auf RemoteIpAddress
+        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+    }
+
+    /// <summary>
+    /// Ermittelt den User-Agent
+    /// </summary>
+    /// <returns>User-Agent String</returns>
+    private string GetUserAgent()
+    {
+        return HttpContext.Request.Headers["User-Agent"].FirstOrDefault() ?? "Unknown";
+    }
+
+    #endregion
 }

@@ -1,0 +1,107 @@
+@{
+    ViewData["Title"] = "Keine aktive Kampagne";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- Info-Card -->
+            <div class="card border-warning shadow-lg">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h2 class="mb-0">
+                        <i class="fas fa-pause-circle me-2"></i>
+                        Keine aktive Kampagne
+                    </h2>
+                </div>
+                <div class="card-body text-center p-4">
+                    <!-- Hauptnachricht -->
+                    <div class="alert alert-warning mb-4">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-calendar-times me-2"></i>
+                            Derzeit läuft keine Kampagne
+                        </h5>
+                        <p class="mb-0">
+                            Es ist derzeit keine Easter Egg Hunt Kampagne aktiv. 
+                            QR-Codes können nur während einer aktiven Kampagne gescannt werden.
+                        </p>
+                    </div>
+
+                    <!-- Informationen über kommende Events -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Was bedeutet das?</h6>
+                        <div class="row text-start">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <i class="fas fa-clock text-warning me-2"></i>
+                                    <strong>Kampagne beendet:</strong><br>
+                                    <small class="text-muted">Die aktuelle Kampagne ist bereits vorbei</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <i class="fas fa-calendar-plus text-warning me-2"></i>
+                                    <strong>Kampagne noch nicht gestartet:</strong><br>
+                                    <small class="text-muted">Die nächste Kampagne hat noch nicht begonnen</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kommende Events -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Kommende Events</h6>
+                        <div class="card border-light bg-light">
+                            <div class="card-body">
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Informationen über kommende Easter Egg Hunt Events werden hier angezeigt, 
+                                    sobald sie verfügbar sind.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="@Url.Action("Index", "Employee")" class="btn btn-primary btn-lg me-md-2">
+                            <i class="fas fa-home me-2"></i>
+                            Zur Hauptseite
+                        </a>
+                        <a href="@Url.Action("Profile", "Employee")" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-user me-2"></i>
+                            Mein Profil
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zusätzliche Informationen -->
+            <div class="text-center mt-4">
+                <div class="card border-light">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">
+                            <i class="fas fa-bell me-2"></i>
+                            Benachrichtigungen
+                        </h6>
+                        <p class="card-text text-muted mb-0">
+                            Du wirst automatisch benachrichtigt, sobald eine neue Kampagne startet.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-Focus auf "Zur Hauptseite" Button für bessere UX
+        document.addEventListener('DOMContentLoaded', function() {
+            const homeButton = document.querySelector('.btn-primary');
+            if (homeButton) {
+                homeButton.focus();
+            }
+        });
+    </script>
+}

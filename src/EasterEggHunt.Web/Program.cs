@@ -78,6 +78,11 @@ app.UseAuthorization();
 app.UseSession();
 
 app.MapControllerRoute(
+    name: "qrcode",
+    pattern: "qr/{code}",
+    defaults: new { controller = "Employee", action = "ScanQrCode" });
+
+app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 

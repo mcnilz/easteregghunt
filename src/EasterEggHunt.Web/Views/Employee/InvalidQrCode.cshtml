@@ -1,0 +1,94 @@
+@{
+    ViewData["Title"] = "Ungültiger QR-Code";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- Fehler-Card -->
+            <div class="card border-danger shadow-lg">
+                <div class="card-header bg-danger text-white text-center">
+                    <h2 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Ungültiger QR-Code
+                    </h2>
+                </div>
+                <div class="card-body text-center p-4">
+                    <!-- Fehlermeldung -->
+                    <div class="alert alert-danger mb-4">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-times-circle me-2"></i>
+                            QR-Code konnte nicht verarbeitet werden
+                        </h5>
+                        <p class="mb-0">
+                            Der gescannte QR-Code ist ungültig oder gehört nicht zur aktuellen Kampagne.
+                        </p>
+                    </div>
+
+                    <!-- Mögliche Ursachen -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Mögliche Ursachen:</h6>
+                        <ul class="list-unstyled text-start">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-muted me-2"></i>
+                                Der QR-Code gehört zu einer anderen Kampagne
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-muted me-2"></i>
+                                Der QR-Code wurde deaktiviert
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-muted me-2"></i>
+                                Der QR-Code ist beschädigt oder unvollständig
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-muted me-2"></i>
+                                Der QR-Code ist nicht für das Easter Egg Hunt bestimmt
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="@Url.Action("Index", "Employee")" class="btn btn-primary btn-lg me-md-2">
+                            <i class="fas fa-home me-2"></i>
+                            Zur Hauptseite
+                        </a>
+                        <a href="@Url.Action("Profile", "Employee")" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-user me-2"></i>
+                            Mein Fortschritt
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hilfe-Informationen -->
+            <div class="text-center mt-4">
+                <div class="card border-light">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Tipp
+                        </h6>
+                        <p class="card-text text-muted mb-0">
+                            Stelle sicher, dass du den richtigen QR-Code scannst und dass eine aktive Kampagne läuft.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-Focus auf "Zur Hauptseite" Button für bessere UX
+        document.addEventListener('DOMContentLoaded', function() {
+            const homeButton = document.querySelector('.btn-primary');
+            if (homeButton) {
+                homeButton.focus();
+            }
+        });
+    </script>
+}

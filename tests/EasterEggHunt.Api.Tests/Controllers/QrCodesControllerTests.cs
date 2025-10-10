@@ -310,4 +310,60 @@ public class QrCodesControllerTests
         var notFoundResult = result as NotFoundObjectResult;
         Assert.That(notFoundResult!.Value, Is.EqualTo("QR-Code mit ID 1 nicht gefunden"));
     }
+
+    [Test]
+    public async Task GetQrCodeByUniqueUrl_ReturnsOkResult_WhenQrCodeExists()
+    {
+        // Arrange
+        var uniqueUrl = "https://example.com/qr/test-code";
+        var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note")
+        {
+            UniqueUrl = new Uri(uniqueUrl)
+        };
+
+        _mockQrCodeService.Setup(x => x.GetQrCodeByUniqueUrlAsync(uniqueUrl))
+            .ReturnsAsync(qrCode);
+
+        // Act
+        var result = await _controller.GetQrCodeByUniqueUrl(uniqueUrl);
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult!.Value, Is.EqualTo(qrCode));
+    }
+
+    [Test]
+    public async Task GetQrCodeByUniqueUrl_ReturnsNotFound_WhenQrCodeDoesNotExist()
+    {
+        // Arrange
+        var uniqueUrl = "https://example.com/qr/non-existent";
+        _mockQrCodeService.Setup(x => x.GetQrCodeByUniqueUrlAsync(uniqueUrl))
+            .ReturnsAsync((QrCode?)null);
+
+        // Act
+        var result = await _controller.GetQrCodeByUniqueUrl(uniqueUrl);
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult!.Value, Is.EqualTo($"QR-Code mit UniqueUrl '{uniqueUrl}' nicht gefunden"));
+    }
+
+    [Test]
+    public async Task GetQrCodeByUniqueUrl_ReturnsInternalServerError_WhenExceptionOccurs()
+    {
+        // Arrange
+        var uniqueUrl = "https://example.com/qr/test-code";
+        _mockQrCodeService.Setup(x => x.GetQrCodeByUniqueUrlAsync(uniqueUrl))
+            .ThrowsAsync(new InvalidOperationException("Test exception"));
+
+        // Act
+        var result = await _controller.GetQrCodeByUniqueUrl(uniqueUrl);
+
+        // Assert
+        Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
+        var objectResult = result.Result as ObjectResult;
+        Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
+    }
 }

@@ -78,6 +78,47 @@ public class ScanQrCodeViewModel
 }
 
 /// <summary>
+/// ViewModel für QR-Code Scan-Ergebnis
+/// </summary>
+public class ScanResultViewModel
+{
+    /// <summary>
+    /// Der gescannte QR-Code
+    /// </summary>
+    public QrCode QrCode { get; set; } = null!;
+
+    /// <summary>
+    /// Der aktuelle Fund
+    /// </summary>
+    public Find CurrentFind { get; set; } = null!;
+
+    /// <summary>
+    /// Der erste Fund dieses QR-Codes durch diesen User (falls bereits gefunden)
+    /// </summary>
+    public Find? PreviousFind { get; set; }
+
+    /// <summary>
+    /// True wenn dies der erste Fund dieses QR-Codes durch diesen User ist
+    /// </summary>
+    public bool IsFirstFind { get; set; }
+
+    /// <summary>
+    /// Gesamtanzahl der Funde dieses Users
+    /// </summary>
+    public int UserTotalFinds { get; set; }
+
+    /// <summary>
+    /// Gesamtanzahl der QR-Codes in der Kampagne
+    /// </summary>
+    public int CampaignTotalQrCodes { get; set; }
+
+    /// <summary>
+    /// Fortschritt in Prozent (0-100)
+    /// </summary>
+    public int ProgressPercentage { get; set; }
+}
+
+/// <summary>
 /// ViewModel für Benutzer-Profil
 /// </summary>
 public class UserProfileViewModel

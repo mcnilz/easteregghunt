@@ -44,4 +44,20 @@ public interface IFindService
     /// <param name="userId">Benutzer-ID</param>
     /// <returns>Anzahl der Funde</returns>
     Task<int> GetFindCountByUserIdAsync(int userId);
+
+    /// <summary>
+    /// Ruft einen bestehenden Fund für einen QR-Code und Benutzer ab
+    /// </summary>
+    /// <param name="qrCodeId">QR-Code-ID</param>
+    /// <param name="userId">Benutzer-ID</param>
+    /// <returns>Erster Fund oder null wenn nicht gefunden</returns>
+    Task<Find?> GetExistingFindAsync(int qrCodeId, int userId);
+
+    /// <summary>
+    /// Prüft, ob ein Benutzer bereits einen QR-Code gefunden hat
+    /// </summary>
+    /// <param name="qrCodeId">QR-Code-ID</param>
+    /// <param name="userId">Benutzer-ID</param>
+    /// <returns>True wenn bereits gefunden</returns>
+    Task<bool> HasUserFoundQrCodeAsync(int qrCodeId, int userId);
 }

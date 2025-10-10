@@ -18,6 +18,8 @@ public interface IEasterEggHuntApiClient
     // QR-Code Operations
     Task<IEnumerable<QrCode>> GetQrCodesByCampaignIdAsync(int campaignId);
     Task<QrCode?> GetQrCodeByIdAsync(int id);
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:URI-like properties should not be strings", Justification = "String parameter needed for URL routing and API compatibility")]
+    Task<QrCode?> GetQrCodeByUniqueUrlAsync(string uniqueUrl);
     Task<QrCode> CreateQrCodeAsync(CreateQrCodeRequest request);
     Task UpdateQrCodeAsync(UpdateQrCodeRequest request);
     Task DeleteQrCodeAsync(int id);
@@ -30,6 +32,8 @@ public interface IEasterEggHuntApiClient
     // Find Operations
     Task<IEnumerable<Find>> GetFindsByQrCodeIdAsync(int qrCodeId);
     Task<int> GetFindCountByUserIdAsync(int userId);
+    Task<Find> RegisterFindAsync(int qrCodeId, int userId, string ipAddress, string userAgent);
+    Task<Find?> GetExistingFindAsync(int qrCodeId, int userId);
 
     // Authentication Operations
     Task<LoginResponse?> LoginAsync(string username, string password, bool rememberMe = false);
@@ -173,6 +177,29 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen des QR-Codes mit ID {QrCodeId}", id);
+            throw;
+        }
+    }
+
+    public async Task<QrCode?> GetQrCodeByUniqueUrlAsync(string uniqueUrl)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: GET /api/qrcodes/by-url/{UniqueUrl}", uniqueUrl);
+            var response = await _httpClient.GetAsync(new Uri($"/api/qrcodes/by-url/{Uri.EscapeDataString(uniqueUrl)}", UriKind.Relative));
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<QrCode>(content, _jsonOptions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen des QR-Codes mit UniqueUrl {UniqueUrl}", uniqueUrl);
             throw;
         }
     }
@@ -380,6 +407,53 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         }
     }
 
+    public async Task<Find> RegisterFindAsync(int qrCodeId, int userId, string ipAddress, string userAgent)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: POST /api/finds");
+            var request = new RegisterFindRequest
+            {
+                QrCodeId = qrCodeId,
+                UserId = userId,
+                IpAddress = ipAddress,
+                UserAgent = userAgent
+            };
+
+            var json = JsonSerializer.Serialize(request, _jsonOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(new Uri("/api/finds", UriKind.Relative), content);
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<Find>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keinen Fund zurück");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Registrieren des Funds für QR-Code {QrCodeId} und Benutzer {UserId}", qrCodeId, userId);
+            throw;
+        }
+    }
+
+    public async Task<Find?> GetExistingFindAsync(int qrCodeId, int userId)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: GET /api/finds/check?qrCodeId={QrCodeId}&userId={UserId}", qrCodeId, userId);
+            var response = await _httpClient.GetAsync(new Uri($"/api/finds/check?qrCodeId={qrCodeId}&userId={userId}", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<Find?>(content, _jsonOptions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen des bestehenden Funds für QR-Code {QrCodeId} und Benutzer {UserId}", qrCodeId, userId);
+            throw;
+        }
+    }
+
     #endregion
 
     #region Authentication Operations
@@ -531,4 +605,15 @@ public class CreateCampaignRequest
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string CreatedBy { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request-Model für Fund-Registrierung
+/// </summary>
+public class RegisterFindRequest
+{
+    public int QrCodeId { get; set; }
+    public int UserId { get; set; }
+    public string IpAddress { get; set; } = string.Empty;
+    public string UserAgent { get; set; } = string.Empty;
 }
