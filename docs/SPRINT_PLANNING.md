@@ -18,10 +18,11 @@
 
 ## 🎯 Aktueller Projekt-Status
 
-**Aktueller Sprint:** Sprint 2 - QR-Code Management  
-**Fortschritt:** 66% abgeschlossen (8/12 Story Points) ✅  
+**Aktueller Sprint:** Sprint 1 - Admin-Authentifizierung (Story 1.4 fehlt)  
+**Fortschritt:** 77% abgeschlossen (20/26 Story Points) ⚠️  
 **Tests:** 162 Tests erfolgreich mit exzellenter Code Coverage  
-**Letzte Commits:** Client-side QR-Code-Generierung mit QRCode.js, Lizenzkonforme lokale Bibliothek
+**Letzte Commits:** Client-side QR-Code-Generierung mit QRCode.js, Lizenzkonforme lokale Bibliothek  
+**⚠️ KRITISCH:** Web-Authentifizierung fehlt komplett - Admin-Bereich ist öffentlich zugänglich!
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
@@ -193,7 +194,27 @@ Admin kann sich anmelden und QR-Codes für Kampagnen verwalten
 **Gherkin:** `features/admin_statistics.feature`  
 **Aufwand:** 4 Story Points ✅
 
-**Sprint 1 Gesamt:** 20 Story Points (20/20 abgeschlossen = 100%) ✅
+#### Story 1.4: Web-Authentifizierung implementieren ⚠️ FEHLT
+**Als** Administrator  
+**Möchte ich** mich über das Web-Interface anmelden können  
+**Damit** ich sicher auf Admin-Funktionen zugreifen kann  
+
+**Akzeptanzkriterien:**
+- [ ] Login-Controller mit GET/POST Actions
+- [ ] Login-View mit Formular (Username/Password)
+- [ ] Authentication-Middleware konfigurieren
+- [ ] Session-Management im Web-Projekt
+- [ ] [Authorize] Attribute für Admin-Controller
+- [ ] Logout-Funktionalität
+- [ ] Redirect nach Login zu ursprünglich angeforderter Seite
+- [ ] Fehlerbehandlung bei falschen Login-Daten
+- [ ] "Remember Me" Checkbox
+- [ ] 100% Test Coverage
+
+**Gherkin:** `features/admin_authentication.feature`  
+**Aufwand:** 6 Story Points ⚠️
+
+**Sprint 1 Gesamt:** 26 Story Points (20/26 abgeschlossen = 77%) ⚠️
 
 ---
 
