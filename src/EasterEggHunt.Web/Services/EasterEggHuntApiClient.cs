@@ -18,8 +18,7 @@ public interface IEasterEggHuntApiClient
     // QR-Code Operations
     Task<IEnumerable<QrCode>> GetQrCodesByCampaignIdAsync(int campaignId);
     Task<QrCode?> GetQrCodeByIdAsync(int id);
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:URI-like properties should not be strings", Justification = "String parameter needed for URL routing and API compatibility")]
-    Task<QrCode?> GetQrCodeByUniqueUrlAsync(string uniqueUrl);
+    Task<QrCode?> GetQrCodeByCodeAsync(string code);
     Task<QrCode> CreateQrCodeAsync(CreateQrCodeRequest request);
     Task UpdateQrCodeAsync(UpdateQrCodeRequest request);
     Task DeleteQrCodeAsync(int id);
@@ -181,12 +180,12 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         }
     }
 
-    public async Task<QrCode?> GetQrCodeByUniqueUrlAsync(string uniqueUrl)
+    public async Task<QrCode?> GetQrCodeByCodeAsync(string code)
     {
         try
         {
-            _logger.LogDebug("API-Aufruf: GET /api/qrcodes/by-url/{UniqueUrl}", uniqueUrl);
-            var response = await _httpClient.GetAsync(new Uri($"/api/qrcodes/by-url/{Uri.EscapeDataString(uniqueUrl)}", UriKind.Relative));
+            _logger.LogDebug("API-Aufruf: GET /api/qrcodes/by-code/{Code}", code);
+            var response = await _httpClient.GetAsync(new Uri($"/api/qrcodes/by-code/{Uri.EscapeDataString(code)}", UriKind.Relative));
 
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -199,7 +198,7 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen des QR-Codes mit UniqueUrl {UniqueUrl}", uniqueUrl);
+            _logger.LogError(ex, "Fehler beim Abrufen des QR-Codes mit Code {Code}", code);
             throw;
         }
     }

@@ -333,22 +333,22 @@ Mitarbeiter können QR-Codes scannen und ihren Fortschritt verfolgen
 **Gherkin:** `features/qr_code_scanning.feature`  
 **Aufwand:** 13 Story Points ✅
 
-#### Story 3.2.1: QR-Code URL-System Refactoring
+#### Story 3.2.1: QR-Code URL-System Refactoring ✅ ABGESCHLOSSEN
 **Als** Entwickler  
 **Möchte ich** dass QR-Code URLs nur den Code ohne Domain speichern  
 **Damit** Server-URLs ohne Migrationen gewechselt werden können  
 
 **Akzeptanzkriterien:**
-- [ ] QR-Code `UniqueUrl` speichert nur den Code (z.B. `d90cffe8f07b`)
-- [ ] UniqueUrl zu Code umbenennen
-- [ ] Domain wird dynamisch zur Laufzeit hinzugefügt
-- [ ] Backend QR-Code Modal zeigt korrekte URLs mit aktueller Domain
-- [ ] Druckvorschau zeigt korrekte URLs mit aktueller Domain
-- [ ] QR-Code-Scanning funktioniert weiterhin korrekt
-- [ ] **Prüfung:** Datenbank-Migration erforderlich oder nicht (Entity Framework Migration)
-- [ ] **Prüfung:** Bestehende Daten kompatibel mit neuer Struktur
-- [ ] Alle bestehenden Tests bestehen weiterhin
-- [ ] Neue Tests für URL-Generierung
+- [x] QR-Code `UniqueUrl` speichert nur den Code (z.B. `d90cffe8f07b`)
+- [x] UniqueUrl zu Code umbenennen
+- [x] Domain wird dynamisch zur Laufzeit hinzugefügt
+- [x] Backend QR-Code Modal zeigt korrekte URLs mit aktueller Domain
+- [x] Druckvorschau zeigt korrekte URLs mit aktueller Domain
+- [x] QR-Code-Scanning funktioniert weiterhin korrekt
+- [x] **Prüfung:** Datenbank-Migration erforderlich oder nicht (Entity Framework Migration)
+- [x] **Prüfung:** Bestehende Daten kompatibel mit neuer Struktur
+- [x] Alle bestehenden Tests bestehen weiterhin
+- [x] Neue Tests für URL-Generierung
 
 **Technische Details:**
 - **Datenbank:** `QrCode.UniqueUrl` ändert von `Uri` zu `string` (nur Code)
@@ -506,7 +506,7 @@ Produktionsreife und vollständige Dokumentation
 | Sprint 0 | 2 Wochen | 26 | Foundation & Architektur |
 | Sprint 1 | 2 Wochen | 26 | Admin-Grundfunktionen ✅ |
 | Sprint 2 | 2 Wochen | 29 | QR-Code Management ✅ |
-| Sprint 3 | 2 Wochen | 34 | Mitarbeiter-Frontend |
+| Sprint 3 | 2 Wochen | 34 | Mitarbeiter-Frontend ✅ |
 | Sprint 4 | 2 Wochen | 29 | Statistiken & Polish |
 | Sprint 5 | 1 Woche | 18 | Deployment & Docs |
 | **Gesamt** | **11 Wochen** | **165 SP** | **Vollständiges System** |

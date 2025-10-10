@@ -318,14 +318,14 @@
     <script src="~/js/qrcode.min.js"></script>
     <script>
         // QR-Code Daten für JavaScript verfügbar machen
-        const qrCodesData = @Html.Raw(Json.Serialize(Model.QrCodes.Select(q => new {
-            Id = q.Id,
-            Title = q.Title,
-            InternalNotes = q.InternalNotes,
-            SortOrder = q.SortOrder,
-            IsActive = q.IsActive,
-            UniqueUrl = q.UniqueUrl?.ToString() ?? ""
-        })));
+              const qrCodesData = @Html.Raw(Json.Serialize(Model.QrCodes.Select(q => new {
+                  Id = q.Id,
+                  Title = q.Title,
+                  InternalNotes = q.InternalNotes,
+                  SortOrder = q.SortOrder,
+                  IsActive = q.IsActive,
+                  Code = q.Code ?? ""
+              })));
 
         function viewQrCode(id) {
             console.log('viewQrCode called with id:', id);
@@ -346,25 +346,12 @@
             document.getElementById('qrCodeSortOrder').textContent = qrCode.sortOrder;
             document.getElementById('qrCodeStatus').textContent = qrCode.isActive ? 'Aktiv' : 'Inaktiv';
             
-            // QR-Code URL generieren - IMMER mit aktueller Domain
-            const baseUrl = window.location.origin;
-            let qrCodeUrl;
-            
-            // Prüfen ob UniqueUrl bereits eine vollständige URL ist
-            if (qrCode.uniqueUrl.startsWith('http://') || qrCode.uniqueUrl.startsWith('https://')) {
-                // Vollständige URL - extrahiere nur den Pfad-Teil und verwende aktuelle Domain
-                try {
-                    const url = new URL(qrCode.uniqueUrl);
-                    const pathPart = url.pathname.split('/').pop(); // Letzter Teil nach dem letzten /
-                    qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(pathPart)}`;
-                } catch (e) {
-                    // Fallback: Verwende die URL direkt
-                    qrCodeUrl = qrCode.uniqueUrl;
-                }
-            } else {
-                // Relative URL - mit aktueller Domain kombinieren
-                qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(qrCode.uniqueUrl)}`;
-            }
+                  // QR-Code URL generieren - IMMER mit aktueller Domain
+                  const baseUrl = window.location.origin;
+                  let qrCodeUrl;
+                  
+                  // Verwende den Code direkt für die URL-Generierung
+                  qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(qrCode.code)}`;
             
             document.getElementById('qrCodeUrl').value = qrCodeUrl;
 

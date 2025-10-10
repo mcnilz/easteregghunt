@@ -237,7 +237,8 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         // Assert
         var retrievedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
         Assert.That(retrievedQrCode, Is.Not.Null);
-        Assert.That(retrievedQrCode!.UniqueUrl, Is.Not.Null);
-        Assert.That(retrievedQrCode.UniqueUrl.ToString(), Does.StartWith("https://easteregghunt.local/qr/"));
+        Assert.That(retrievedQrCode!.Code, Is.Not.Null);
+        Assert.That(retrievedQrCode.Code, Is.Not.Empty);
+        Assert.That(retrievedQrCode.Code.Length, Is.EqualTo(12));
     }
 }

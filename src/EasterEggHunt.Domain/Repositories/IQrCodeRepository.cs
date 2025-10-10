@@ -35,11 +35,11 @@ public interface IQrCodeRepository
     Task<QrCode?> GetByIdAsync(int id);
 
     /// <summary>
-    /// Ruft einen QR-Code anhand der Unique URL ab
+    /// Ruft einen QR-Code anhand des Codes ab
     /// </summary>
-    /// <param name="uniqueUrl">Unique URL des QR-Codes</param>
+    /// <param name="code">Code des QR-Codes</param>
     /// <returns>QR-Code oder null wenn nicht gefunden</returns>
-    Task<QrCode?> GetByUniqueUrlAsync(Uri uniqueUrl);
+    Task<QrCode?> GetByCodeAsync(string code);
 
     /// <summary>
     /// Fügt einen neuen QR-Code hinzu
@@ -70,11 +70,11 @@ public interface IQrCodeRepository
     Task<bool> ExistsAsync(int id);
 
     /// <summary>
-    /// Prüft, ob eine Unique URL bereits verwendet wird
+    /// Prüft, ob ein Code bereits verwendet wird
     /// </summary>
-    /// <param name="uniqueUrl">Unique URL zum Prüfen</param>
-    /// <returns>True wenn die URL bereits verwendet wird</returns>
-    Task<bool> UniqueUrlExistsAsync(Uri uniqueUrl);
+    /// <param name="code">Code zum Prüfen</param>
+    /// <returns>True wenn der Code bereits verwendet wird</returns>
+    Task<bool> CodeExistsAsync(string code);
 
     /// <summary>
     /// Speichert alle ausstehenden Änderungen

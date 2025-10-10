@@ -218,7 +218,7 @@
                 <div class="qr-code-item">
                     <div class="qr-code-image">
                         <div id="qrcode-@qrCode.Id" 
-                             data-url="@qrCode.UniqueUrl" 
+                             data-url="@qrCode.Code" 
                              data-size="@Model.Size"
                              title="@qrCode.Title"></div>
                     </div>
@@ -233,7 +233,7 @@
                         <div class="qr-code-description">@qrCode.Description</div>
                     }
                     
-                    <div class="qr-code-url" id="qr-url-@qrCode.Id">@qrCode.UniqueUrl</div>
+                    <div class="qr-code-url" id="qr-url-@qrCode.Id">@qrCode.Code</div>
                 </div>
             }
         </div>

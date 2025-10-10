@@ -162,7 +162,7 @@ public class EmployeeControllerTests : IDisposable
         var claimsPrincipal = new ClaimsPrincipal(identity);
         _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
 
-        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ReturnsAsync((QrCode?)null);
 
         // Act
@@ -185,7 +185,7 @@ public class EmployeeControllerTests : IDisposable
         _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
 
         var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note");
-        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ReturnsAsync(qrCode);
 
         _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
@@ -214,7 +214,7 @@ public class EmployeeControllerTests : IDisposable
         {
             CampaignId = 2
         };
-        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ReturnsAsync(qrCode);
 
         var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
@@ -243,7 +243,7 @@ public class EmployeeControllerTests : IDisposable
         _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
 
         var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note");
-        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ReturnsAsync(qrCode);
 
         var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
@@ -277,9 +277,9 @@ public class EmployeeControllerTests : IDisposable
         {
             Id = 1,
             CampaignId = 1,
-            UniqueUrl = new Uri("https://example.com/qr/test-code")
+            Code = "test-code"
         };
-        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(It.IsAny<string>()))
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(It.IsAny<string>()))
             .ReturnsAsync(qrCode);
 
         var activeCampaign = new Campaign("Test Campaign", "Test Description", "Test Creator")
@@ -323,7 +323,7 @@ public class EmployeeControllerTests : IDisposable
         var claimsPrincipal = new ClaimsPrincipal(identity);
         _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
 
-        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ThrowsAsync(new HttpRequestException("API Error"));
 
         // Act
@@ -345,7 +345,7 @@ public class EmployeeControllerTests : IDisposable
         var claimsPrincipal = new ClaimsPrincipal(identity);
         _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
 
-        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ThrowsAsync(new InvalidOperationException("Invalid Operation"));
 
         // Act
@@ -367,7 +367,7 @@ public class EmployeeControllerTests : IDisposable
         var claimsPrincipal = new ClaimsPrincipal(identity);
         _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
 
-        _mockApiClient.Setup(x => x.GetQrCodeByUniqueUrlAsync(code))
+        _mockApiClient.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ThrowsAsync(new InvalidOperationException("Unexpected Error"));
 
         // Act

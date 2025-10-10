@@ -66,14 +66,14 @@ public class QrCodeRepository : IQrCodeRepository
     }
 
     /// <inheritdoc />
-    public async Task<QrCode?> GetByUniqueUrlAsync(Uri uniqueUrl)
+    public async Task<QrCode?> GetByCodeAsync(string code)
     {
-        ArgumentNullException.ThrowIfNull(uniqueUrl);
+        ArgumentNullException.ThrowIfNull(code);
 
         return await _context.QrCodes
             .Include(q => q.Campaign)
             .Include(q => q.Finds)
-            .FirstOrDefaultAsync(q => q.UniqueUrl == uniqueUrl);
+            .FirstOrDefaultAsync(q => q.Code == code);
     }
 
     /// <inheritdoc />
@@ -117,11 +117,11 @@ public class QrCodeRepository : IQrCodeRepository
     }
 
     /// <inheritdoc />
-    public async Task<bool> UniqueUrlExistsAsync(Uri uniqueUrl)
+    public async Task<bool> CodeExistsAsync(string code)
     {
-        ArgumentNullException.ThrowIfNull(uniqueUrl);
+        ArgumentNullException.ThrowIfNull(code);
 
-        return await _context.QrCodes.AnyAsync(q => q.UniqueUrl == uniqueUrl);
+        return await _context.QrCodes.AnyAsync(q => q.Code == code);
     }
 
     /// <inheritdoc />

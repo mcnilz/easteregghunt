@@ -284,29 +284,28 @@ public class QrCodesController : ControllerBase
     }
 
     /// <summary>
-    /// Ruft einen QR-Code anhand der UniqueUrl ab
+    /// Ruft einen QR-Code anhand des Codes ab
     /// </summary>
-    /// <param name="uniqueUrl">UniqueUrl des QR-Codes</param>
+    /// <param name="code">Code des QR-Codes</param>
     /// <returns>QR-Code oder 404 wenn nicht gefunden</returns>
-    [HttpGet("by-url/{uniqueUrl}")]
+    [HttpGet("by-code/{code}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:URI-like properties should not be strings", Justification = "String parameter needed for URL routing and API compatibility")]
-    public async Task<ActionResult<QrCode>> GetQrCodeByUniqueUrl(string uniqueUrl)
+    public async Task<ActionResult<QrCode>> GetQrCodeByCode(string code)
     {
         try
         {
-            var qrCode = await _qrCodeService.GetQrCodeByUniqueUrlAsync(uniqueUrl);
+            var qrCode = await _qrCodeService.GetQrCodeByCodeAsync(code);
             if (qrCode == null)
             {
-                return NotFound($"QR-Code mit UniqueUrl '{uniqueUrl}' nicht gefunden");
+                return NotFound($"QR-Code mit Code '{code}' nicht gefunden");
             }
             return Ok(qrCode);
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen des QR-Codes mit UniqueUrl {UniqueUrl}", uniqueUrl);
+            _logger.LogError(ex, "Fehler beim Abrufen des QR-Codes mit Code {Code}", code);
             return StatusCode(500, "Interner Serverfehler");
         }
     }

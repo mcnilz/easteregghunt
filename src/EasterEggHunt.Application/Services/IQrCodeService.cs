@@ -66,10 +66,9 @@ public interface IQrCodeService
     Task<bool> DeactivateQrCodeAsync(int id);
 
     /// <summary>
-    /// Ruft einen QR-Code anhand der UniqueUrl ab
+    /// Ruft einen QR-Code anhand des Codes ab
     /// </summary>
-    /// <param name="uniqueUrl">UniqueUrl des QR-Codes</param>
+    /// <param name="code">Code des QR-Codes</param>
     /// <returns>QR-Code oder null wenn nicht gefunden</returns>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:URI-like properties should not be strings", Justification = "String parameter needed for URL routing and API compatibility")]
-    Task<QrCode?> GetQrCodeByUniqueUrlAsync(string uniqueUrl);
+    Task<QrCode?> GetQrCodeByCodeAsync(string code);
 }

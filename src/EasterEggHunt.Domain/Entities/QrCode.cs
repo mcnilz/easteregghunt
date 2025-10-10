@@ -31,9 +31,9 @@ public class QrCode
     public string InternalNotes { get; set; } = string.Empty;
 
     /// <summary>
-    /// Eindeutige URL für den QR-Code
+    /// Eindeutiger Code für den QR-Code (ohne Domain)
     /// </summary>
-    public Uri UniqueUrl { get; set; } = null!;
+    public string Code { get; set; } = string.Empty;
 
     /// <summary>
     /// Zeitpunkt der Erstellung
@@ -85,7 +85,7 @@ public class QrCode
         Title = title ?? throw new ArgumentNullException(nameof(title));
         Description = description ?? throw new ArgumentNullException(nameof(description));
         InternalNotes = internalNotes ?? throw new ArgumentNullException(nameof(internalNotes));
-        UniqueUrl = GenerateUniqueUrl();
+        Code = GenerateUniqueCode();
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
         IsActive = true;
@@ -135,13 +135,12 @@ public class QrCode
     }
 
     /// <summary>
-    /// Generiert eine eindeutige URL für den QR-Code
+    /// Generiert einen eindeutigen Code für den QR-Code
     /// </summary>
-    /// <returns>Eindeutige URL</returns>
-    private static Uri GenerateUniqueUrl()
+    /// <returns>Eindeutiger Code</returns>
+    private static string GenerateUniqueCode()
     {
-        var uniqueId = Guid.NewGuid().ToString("N")[..12]; // 12 Zeichen für bessere Lesbarkeit
-        return new Uri($"https://easteregghunt.local/qr/{uniqueId}", UriKind.Absolute);
+        return Guid.NewGuid().ToString("N")[..12]; // 12 Zeichen für bessere Lesbarkeit
     }
 }
 

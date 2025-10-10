@@ -312,20 +312,20 @@ public class QrCodesControllerTests
     }
 
     [Test]
-    public async Task GetQrCodeByUniqueUrl_ReturnsOkResult_WhenQrCodeExists()
+    public async Task GetQrCodeByCode_ReturnsOkResult_WhenQrCodeExists()
     {
         // Arrange
-        var uniqueUrl = "https://example.com/qr/test-code";
+        var code = "test-code-123";
         var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note")
         {
-            UniqueUrl = new Uri(uniqueUrl)
+            Code = code
         };
 
-        _mockQrCodeService.Setup(x => x.GetQrCodeByUniqueUrlAsync(uniqueUrl))
+        _mockQrCodeService.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ReturnsAsync(qrCode);
 
         // Act
-        var result = await _controller.GetQrCodeByUniqueUrl(uniqueUrl);
+        var result = await _controller.GetQrCodeByCode(code);
 
         // Assert
         Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
@@ -334,32 +334,32 @@ public class QrCodesControllerTests
     }
 
     [Test]
-    public async Task GetQrCodeByUniqueUrl_ReturnsNotFound_WhenQrCodeDoesNotExist()
+    public async Task GetQrCodeByCode_ReturnsNotFound_WhenQrCodeDoesNotExist()
     {
         // Arrange
-        var uniqueUrl = "https://example.com/qr/non-existent";
-        _mockQrCodeService.Setup(x => x.GetQrCodeByUniqueUrlAsync(uniqueUrl))
+        var code = "non-existent-code";
+        _mockQrCodeService.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ReturnsAsync((QrCode?)null);
 
         // Act
-        var result = await _controller.GetQrCodeByUniqueUrl(uniqueUrl);
+        var result = await _controller.GetQrCodeByCode(code);
 
         // Assert
         Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
         var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult!.Value, Is.EqualTo($"QR-Code mit UniqueUrl '{uniqueUrl}' nicht gefunden"));
+        Assert.That(notFoundResult!.Value, Is.EqualTo($"QR-Code mit UniqueUrl '{code}' nicht gefunden"));
     }
 
     [Test]
-    public async Task GetQrCodeByUniqueUrl_ReturnsInternalServerError_WhenExceptionOccurs()
+    public async Task GetQrCodeByCode_ReturnsInternalServerError_WhenExceptionOccurs()
     {
         // Arrange
-        var uniqueUrl = "https://example.com/qr/test-code";
-        _mockQrCodeService.Setup(x => x.GetQrCodeByUniqueUrlAsync(uniqueUrl))
+        var code = "test-code-123";
+        _mockQrCodeService.Setup(x => x.GetQrCodeByCodeAsync(code))
             .ThrowsAsync(new InvalidOperationException("Test exception"));
 
         // Act
-        var result = await _controller.GetQrCodeByUniqueUrl(uniqueUrl);
+        var result = await _controller.GetQrCodeByCode(code);
 
         // Assert
         Assert.That(result.Result, Is.InstanceOf<ObjectResult>());

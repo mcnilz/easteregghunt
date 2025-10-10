@@ -166,32 +166,25 @@ public class QrCodeService : IQrCodeService
     }
 
     /// <inheritdoc />
-    public async Task<QrCode?> GetQrCodeByUniqueUrlAsync(string uniqueUrl)
+    public async Task<QrCode?> GetQrCodeByCodeAsync(string code)
     {
-        if (string.IsNullOrWhiteSpace(uniqueUrl))
+        if (string.IsNullOrWhiteSpace(code))
         {
-            _logger.LogWarning("UniqueUrl darf nicht leer sein");
+            _logger.LogWarning("Code darf nicht leer sein");
             return null;
         }
 
-        _logger.LogInformation("Abrufen des QR-Codes mit UniqueUrl {UniqueUrl}", uniqueUrl);
+        _logger.LogInformation("Abrufen des QR-Codes mit Code {Code}", code);
 
-        // Konvertiere String zu Uri
-        if (!Uri.TryCreate(uniqueUrl, UriKind.Absolute, out var uri))
-        {
-            _logger.LogWarning("Ungültige UniqueUrl: {UniqueUrl}", uniqueUrl);
-            return null;
-        }
-
-        var qrCode = await _qrCodeRepository.GetByUniqueUrlAsync(uri);
+        var qrCode = await _qrCodeRepository.GetByCodeAsync(code);
 
         if (qrCode == null)
         {
-            _logger.LogWarning("QR-Code mit UniqueUrl {UniqueUrl} nicht gefunden", uniqueUrl);
+            _logger.LogWarning("QR-Code mit Code {Code} nicht gefunden", code);
         }
         else
         {
-            _logger.LogInformation("QR-Code mit UniqueUrl {UniqueUrl} gefunden: {Title}", uniqueUrl, qrCode.Title);
+            _logger.LogInformation("QR-Code mit Code {Code} gefunden: {Title}", code, qrCode.Title);
         }
 
         return qrCode;

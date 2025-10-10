@@ -199,11 +199,11 @@ public class EmployeeController : Controller
         {
             _logger.LogInformation("Registrierter Mitarbeiter scannt QR-Code: {Code}", code);
 
-            // QR-Code per UniqueUrl abrufen
-            var qrCode = await _apiClient.GetQrCodeByUniqueUrlAsync(code);
+            // QR-Code per Code abrufen
+            var qrCode = await _apiClient.GetQrCodeByCodeAsync(code);
             if (qrCode == null)
             {
-                _logger.LogWarning("QR-Code mit UniqueUrl '{Code}' nicht gefunden", code);
+                _logger.LogWarning("QR-Code mit Code '{Code}' nicht gefunden", code);
                 return View("InvalidQrCode");
             }
 

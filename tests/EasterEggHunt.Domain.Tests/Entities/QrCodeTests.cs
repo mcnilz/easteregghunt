@@ -29,8 +29,9 @@ public class QrCodeTests
         Assert.That(qrCode.SortOrder, Is.EqualTo(0));
         Assert.That(qrCode.CreatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
         Assert.That(qrCode.UpdatedAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
-        Assert.That(qrCode.UniqueUrl, Is.Not.Null);
-        Assert.That(qrCode.UniqueUrl, Is.InstanceOf<Uri>());
+        Assert.That(qrCode.Code, Is.Not.Null);
+        Assert.That(qrCode.Code, Is.Not.Empty);
+        Assert.That(qrCode.Code.Length, Is.EqualTo(12));
         Assert.That(qrCode.Finds, Is.Not.Null);
         Assert.That(qrCode.Finds, Is.Empty);
     }
@@ -52,16 +53,16 @@ public class QrCodeTests
     }
 
     [Test]
-    public void Constructor_ShouldGenerateUniqueUrl()
+    public void Constructor_ShouldGenerateUniqueCode()
     {
         // Act
         var qrCode1 = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
         var qrCode2 = new QrCode(ValidCampaignId, ValidTitle, ValidDescription, ValidInternalNotes);
 
         // Assert
-        Assert.That(qrCode1.UniqueUrl, Is.Not.EqualTo(qrCode2.UniqueUrl));
-        Assert.That(qrCode1.UniqueUrl.ToString(), Does.StartWith("https://easteregghunt.local/qr/"));
-        Assert.That(qrCode2.UniqueUrl.ToString(), Does.StartWith("https://easteregghunt.local/qr/"));
+        Assert.That(qrCode1.Code, Is.Not.EqualTo(qrCode2.Code));
+        Assert.That(qrCode1.Code.Length, Is.EqualTo(12));
+        Assert.That(qrCode2.Code.Length, Is.EqualTo(12));
     }
 
     [Test]

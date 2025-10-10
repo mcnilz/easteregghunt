@@ -122,11 +122,9 @@ public class EasterEggHuntDbContext : DbContext
                 .HasMaxLength(500);
             entity.Property(e => e.InternalNotes)
                 .HasMaxLength(1000);
-            entity.Property(e => e.UniqueUrl)
+            entity.Property(e => e.Code)
                 .IsRequired()
-                .HasConversion(
-                    v => v.ToString(),
-                    v => new Uri(v));
+                .HasMaxLength(50);
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
             entity.Property(e => e.UpdatedAt)
@@ -146,7 +144,7 @@ public class EasterEggHuntDbContext : DbContext
 
             // Index für bessere Performance
             entity.HasIndex(e => e.CampaignId);
-            entity.HasIndex(e => e.UniqueUrl)
+            entity.HasIndex(e => e.Code)
                 .IsUnique();
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.SortOrder);
