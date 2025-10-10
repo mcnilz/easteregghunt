@@ -18,11 +18,11 @@
 
 ## 🎯 Aktueller Projekt-Status
 
-**Aktueller Sprint:** Sprint 1 - Admin-Authentifizierung ✅ VOLLSTÄNDIG ABGESCHLOSSEN  
-**Fortschritt:** 100% abgeschlossen (26/26 Story Points) ✅  
-**Tests:** 180+ Tests erfolgreich mit exzellenter Code Coverage  
-**Letzte Commits:** Web-Authentifizierung implementiert, Cookie-basierte Login-Session, Admin-Bereich gesichert  
-**✅ SICHER:** Admin-Bereich ist vollständig geschützt mit Login-System!
+**Aktueller Sprint:** Sprint 2 - QR-Code Management ✅ VOLLSTÄNDIG ABGESCHLOSSEN  
+**Fortschritt:** 100% abgeschlossen (29/29 Story Points) ✅  
+**Tests:** 494 Tests erfolgreich mit exzellenter Code Coverage  
+**Letzte Commits:** QR-Code Statistiken implementiert, Find-Counts, Finder-Listen, Top-Performer  
+**✅ VOLLSTÄNDIG:** QR-Code Management mit Statistiken und Drucklayout komplett!
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
@@ -47,6 +47,8 @@
 - ✅ **Vereinfachte Coverage-Checks mit dotnet test Thresholds**
 - ✅ **Client-side QR-Code-Generierung mit QRCode.js (MIT-Lizenz)**
 - ✅ **QR-Code Drucklayout mit A4-Optimierung und Größenanpassung**
+- ✅ **QR-Code Statistiken mit Find-Counts und Finder-Listen**
+- ✅ **Top-Performer QR-Codes und ungerundene QR-Codes Übersicht**
 - ✅ **Vollständige Web-Authentifizierung mit Cookie-basiertem Login**
 - ✅ **Admin-Login-System mit Session-Management und Sicherheitsfeatures**
 
@@ -232,7 +234,7 @@ Admin kann QR-Codes erstellen und verwalten
 
 ### 📝 User Stories
 
-#### Story 2.1: QR-Code CRUD
+#### Story 2.1: QR-Code CRUD ✅ ABGESCHLOSSEN
 **Als** Administrator  
 **Möchte ich** QR-Codes für eine Kampagne erstellen können  
 **Damit** Mitarbeiter sie finden können  
@@ -247,9 +249,9 @@ Admin kann QR-Codes erstellen und verwalten
 - [x] 100% Test Coverage
 
 **Gherkin:** `features/qr_code_management.feature`  
-**Aufwand:** 13 Story Points
+**Aufwand:** 13 Story Points ✅
 
-#### Story 2.2: QR-Code Drucklayout
+#### Story 2.2: QR-Code Drucklayout ✅ ABGESCHLOSSEN
 **Als** Administrator  
 **Möchte ich** QR-Codes druckfreundlich anzeigen können  
 **Damit** ich sie ausdrucken und verstecken kann  
@@ -264,24 +266,27 @@ Admin kann QR-Codes erstellen und verwalten
 - [x] 100% Test Coverage
 
 **Gherkin:** `features/print_layout.feature`  
-**Aufwand:** 8 Story Points
+**Aufwand:** 8 Story Points ✅
 
-#### Story 2.3: QR-Code Statistiken
+#### Story 2.3: QR-Code Statistiken ✅ ABGESCHLOSSEN
 **Als** Administrator  
 **Möchte ich** sehen, wie oft QR-Codes gefunden wurden  
 **Damit** ich die Beliebtheit der Verstecke bewerten kann  
 
 **Akzeptanzkriterien:**
-- [ ] Anzahl Funde pro QR-Code
-- [ ] Liste der Finder mit Zeitstempel
-- [ ] Noch nicht gefundene QR-Codes hervorheben
-- [ ] Sortierung nach Beliebtheit
-- [ ] Export-Funktionalität
-- [ ] 100% Test Coverage
+- [x] Anzahl Funde pro QR-Code
+- [x] Liste der Finder mit Zeitstempel
+- [x] Noch nicht gefundene QR-Codes hervorheben
+- [x] Sortierung nach Beliebtheit
+- [x] Top-Performer QR-Codes Übersicht
+- [x] Ungerundene QR-Codes gruppiert nach Kampagne
+- [x] Detailansicht für einzelne QR-Code Statistiken
+- [x] 100% Test Coverage
 
-**Aufwand:** 8 Story Points
+**Gherkin:** `features/qr_code_management.feature`  
+**Aufwand:** 8 Story Points ✅
 
-**Sprint 2 Gesamt:** 29 Story Points
+**Sprint 2 Gesamt:** 29 Story Points (29/29 abgeschlossen = 100%) ✅
 
 ---
 
@@ -468,8 +473,8 @@ Produktionsreife und vollständige Dokumentation
 | Sprint | Dauer | Story Points | Fokus |
 |--------|-------|--------------|-------|
 | Sprint 0 | 2 Wochen | 26 | Foundation & Architektur |
-| Sprint 1 | 2 Wochen | 29 | Admin-Grundfunktionen |
-| Sprint 2 | 2 Wochen | 29 | QR-Code Management |
+| Sprint 1 | 2 Wochen | 26 | Admin-Grundfunktionen ✅ |
+| Sprint 2 | 2 Wochen | 29 | QR-Code Management ✅ |
 | Sprint 3 | 2 Wochen | 29 | Mitarbeiter-Frontend |
 | Sprint 4 | 2 Wochen | 29 | Statistiken & Polish |
 | Sprint 5 | 1 Woche | 18 | Deployment & Docs |

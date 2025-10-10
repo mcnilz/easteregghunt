@@ -1,0 +1,126 @@
+@model QrCodeStatisticsViewModel
+@{
+    ViewData["Title"] = "QR-Code Statistiken";
+}
+
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-action="CampaignDetails" asp-route-id="@Model.CampaignId">@Model.CampaignName</a></li>
+                <li class="breadcrumb-item active" aria-current="page">QR-Code Statistiken</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1>@Model.Title</h1>
+                <p class="lead text-muted">Kampagne: @Model.CampaignName</p>
+            </div>
+            <div>
+                <a href="@Url.Action("CampaignDetails", new { id = Model.CampaignId })" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Zurück zur Kampagne
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Gesamtfunde</h5>
+                <h2 class="card-text text-primary">@Model.FindCount</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Status</h5>
+                @if (Model.IsFound)
+                {
+                    <h2 class="card-text text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </h2>
+                    <small class="text-success">Gefunden</small>
+                }
+                else
+                {
+                    <h2 class="card-text text-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </h2>
+                    <small class="text-warning">Noch nicht gefunden</small>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Einzigartige Finder</h5>
+                <h2 class="card-text text-info">@Model.Finders.Count</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Letzte Aktualisierung</h5>
+                <h6 class="card-text text-muted">@Model.GeneratedAt.ToString("dd.MM.yyyy HH:mm")</h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h3>Finder-Liste</h3>
+        
+        @if (Model.Finders.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Benutzername</th>
+                            <th>Gefunden am</th>
+                            <th>IP-Adresse</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var finder in Model.Finders)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@finder.UserName</strong>
+                                </td>
+                                <td>
+                                    @finder.FoundAt.ToString("dd.MM.yyyy HH:mm")
+                                    <br>
+                                    <small class="text-muted">@finder.FoundAt.ToString("dddd", new System.Globalization.CultureInfo("de-DE"))</small>
+                                </td>
+                                <td>
+                                    <code>@finder.IpAddress</code>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <h4><i class="fas fa-info-circle"></i> Noch keine Funde</h4>
+                <p>Dieser QR-Code wurde noch nicht gefunden. Sobald Mitarbeiter ihn scannen, werden die Statistiken hier angezeigt.</p>
+            </div>
+        }
+    </div>
+</div>

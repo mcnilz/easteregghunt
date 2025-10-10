@@ -144,6 +144,18 @@ public class AdminController : Controller
                 UniqueFinders = uniqueFinders.Count
             };
 
+            // Load QR code statistics
+            try
+            {
+                var statistics = await _apiClient.GetCampaignQrCodeStatisticsAsync(id);
+                viewModel.Statistics = statistics;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Fehler beim Laden der QR-Code-Statistiken für Kampagne {CampaignId}", id);
+                // Continue without statistics - not critical for basic functionality
+            }
+
             return View(viewModel);
         }
         catch (HttpRequestException ex)
@@ -273,6 +285,7 @@ public class AdminController : Controller
             var users = await _apiClient.GetActiveUsersAsync();
             var totalFinds = 0;
             var totalQrCodes = 0;
+            var allQrCodeStatistics = new List<QrCodeStatisticsViewModel>();
 
             foreach (var campaign in campaigns)
             {
@@ -284,7 +297,31 @@ public class AdminController : Controller
                     var finds = await _apiClient.GetFindsByQrCodeIdAsync(qrCode.Id);
                     totalFinds += finds.Count();
                 }
+
+                // Load campaign QR code statistics
+                try
+                {
+                    var campaignStats = await _apiClient.GetCampaignQrCodeStatisticsAsync(campaign.Id);
+                    allQrCodeStatistics.AddRange(campaignStats.QrCodeStatistics);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Fehler beim Laden der QR-Code-Statistiken für Kampagne {CampaignId}", campaign.Id);
+                }
             }
+
+            // Calculate top found QR codes
+            var topFoundQrCodes = allQrCodeStatistics
+                .Where(q => q.FindCount > 0)
+                .OrderByDescending(q => q.FindCount)
+                .Take(10)
+                .ToList();
+
+            // Group unfound QR codes by campaign
+            var unfoundQrCodesByCampaign = allQrCodeStatistics
+                .Where(q => q.FindCount == 0)
+                .GroupBy(q => q.CampaignName)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<QrCodeStatisticsViewModel>)g.ToList().AsReadOnly());
 
             var viewModel = new StatisticsViewModel
             {
@@ -293,7 +330,9 @@ public class AdminController : Controller
                 TotalUsers = users.Count(),
                 ActiveUsers = users.Count(u => u.IsActive),
                 TotalQrCodes = totalQrCodes,
-                TotalFinds = totalFinds
+                TotalFinds = totalFinds,
+                TopFoundQrCodes = topFoundQrCodes.AsReadOnly(),
+                UnfoundQrCodesByCampaign = unfoundQrCodesByCampaign
             };
 
             return View(viewModel);
@@ -311,6 +350,37 @@ public class AdminController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Statistiken");
+            return View("Error");
+        }
+    }
+
+    /// <summary>
+    /// QR-Code Statistiken anzeigen
+    /// </summary>
+    /// <param name="id">QR-Code-ID</param>
+    /// <returns>QR-Code Statistiken View</returns>
+    public async Task<IActionResult> QrCodeStatistics(int id)
+    {
+        try
+        {
+            _logger.LogInformation("QR-Code Statistiken werden geladen für ID {QrCodeId}", id);
+
+            var statistics = await _apiClient.GetQrCodeStatisticsAsync(id);
+            return View(statistics);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code-Statistiken für ID {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code-Statistiken für ID {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code-Statistiken für ID {QrCodeId}", id);
             return View("Error");
         }
     }

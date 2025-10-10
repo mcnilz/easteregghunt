@@ -79,6 +79,11 @@ public class CampaignDetailsViewModel
     public int UniqueFinders { get; set; }
 
     /// <summary>
+    /// QR-Code Statistiken für die Kampagne
+    /// </summary>
+    public CampaignQrCodeStatisticsViewModel? Statistics { get; set; }
+
+    /// <summary>
     /// Konstruktor für CampaignDetailsViewModel
     /// </summary>
     /// <param name="qrCodes">Liste der QR-Codes</param>
@@ -160,6 +165,16 @@ public class StatisticsViewModel
     /// Gesamtanzahl der Funde
     /// </summary>
     public int TotalFinds { get; set; }
+
+    /// <summary>
+    /// Top 10 meist gefundene QR-Codes
+    /// </summary>
+    public IReadOnlyList<QrCodeStatisticsViewModel> TopFoundQrCodes { get; set; } = new List<QrCodeStatisticsViewModel>();
+
+    /// <summary>
+    /// Ungerundene QR-Codes (gruppiert nach Kampagne)
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>> UnfoundQrCodesByCampaign { get; set; } = new Dictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>>();
 }
 
 /// <summary>

@@ -32,6 +32,10 @@ public interface IEasterEggHuntApiClient
     // Authentication Operations
     Task<LoginResponse?> LoginAsync(string username, string password, bool rememberMe = false);
     Task LogoutAsync();
+
+    // Statistics Operations
+    Task<QrCodeStatisticsViewModel> GetQrCodeStatisticsAsync(int qrCodeId);
+    Task<CampaignQrCodeStatisticsViewModel> GetCampaignQrCodeStatisticsAsync(int campaignId);
 }
 
 /// <summary>
@@ -352,6 +356,89 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Logout");
+            throw;
+        }
+    }
+
+    #endregion
+
+    #region Statistics Operations
+
+    public async Task<QrCodeStatisticsViewModel> GetQrCodeStatisticsAsync(int qrCodeId)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: GET /api/statistics/qrcode/{QrCodeId}", qrCodeId);
+            var response = await _httpClient.GetAsync(new Uri($"/api/statistics/qrcode/{qrCodeId}", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var apiDto = JsonSerializer.Deserialize<QrCodeStatisticsDto>(content, _jsonOptions) ?? throw new InvalidOperationException("Deserialization failed");
+
+            return new QrCodeStatisticsViewModel
+            {
+                QrCodeId = apiDto.QrCodeId,
+                Title = apiDto.Title,
+                CampaignId = apiDto.CampaignId,
+                CampaignName = apiDto.CampaignName,
+                FindCount = apiDto.FindCount,
+                Finders = apiDto.Finders.Select(f => new FinderInfoViewModel
+                {
+                    UserId = f.UserId,
+                    UserName = f.UserName,
+                    FoundAt = f.FoundAt,
+                    IpAddress = f.IpAddress
+                }).ToList(),
+                GeneratedAt = apiDto.GeneratedAt
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der QR-Code-Statistiken für {QrCodeId}", qrCodeId);
+            throw;
+        }
+    }
+
+    public async Task<CampaignQrCodeStatisticsViewModel> GetCampaignQrCodeStatisticsAsync(int campaignId)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: GET /api/statistics/campaign/{CampaignId}/qrcodes", campaignId);
+            var response = await _httpClient.GetAsync(new Uri($"/api/statistics/campaign/{campaignId}/qrcodes", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var apiDto = JsonSerializer.Deserialize<CampaignQrCodeStatisticsDto>(content, _jsonOptions) ?? throw new InvalidOperationException("Deserialization failed");
+
+            return new CampaignQrCodeStatisticsViewModel
+            {
+                CampaignId = apiDto.CampaignId,
+                CampaignName = apiDto.CampaignName,
+                TotalQrCodes = apiDto.TotalQrCodes,
+                FoundQrCodes = apiDto.FoundQrCodes,
+                TotalFinds = apiDto.TotalFinds,
+                QrCodeStatistics = apiDto.QrCodeStatistics.Select(q => new QrCodeStatisticsViewModel
+                {
+                    QrCodeId = q.QrCodeId,
+                    Title = q.Title,
+                    CampaignId = q.CampaignId,
+                    CampaignName = q.CampaignName,
+                    FindCount = q.FindCount,
+                    Finders = q.Finders.Select(f => new FinderInfoViewModel
+                    {
+                        UserId = f.UserId,
+                        UserName = f.UserName,
+                        FoundAt = f.FoundAt,
+                        IpAddress = f.IpAddress
+                    }).ToList(),
+                    GeneratedAt = q.GeneratedAt
+                }).ToList(),
+                GeneratedAt = apiDto.GeneratedAt
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Kampagnen-QR-Code-Statistiken für {CampaignId}", campaignId);
             throw;
         }
     }

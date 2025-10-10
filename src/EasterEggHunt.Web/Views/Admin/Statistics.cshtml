@@ -184,6 +184,119 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
+                <h5 class="card-title mb-0">Top 10 Meist Gefundene QR-Codes</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.TopFoundQrCodes.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>QR-Code</th>
+                                    <th>Kampagne</th>
+                                    <th>Funde</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.TopFoundQrCodes.Count; i++)
+                                {
+                                    var qrCode = Model.TopFoundQrCodes[i];
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary">@(i + 1)</span>
+                                        </td>
+                                        <td>
+                                            <strong>@qrCode.Title</strong>
+                                        </td>
+                                        <td>@qrCode.CampaignName</td>
+                                        <td>
+                                            <span class="badge bg-success">@qrCode.FindCount</span>
+                                        </td>
+                                        <td>
+                                            <a href="@Url.Action("QrCodeStatistics", new { id = qrCode.QrCodeId })" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-chart-bar"></i> Statistiken
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Noch keine QR-Codes gefunden.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Ungerundene QR-Codes</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.UnfoundQrCodesByCampaign.Any())
+                {
+                    @foreach (var campaignGroup in Model.UnfoundQrCodesByCampaign)
+                    {
+                        <div class="mb-4">
+                            <h6 class="text-muted">@campaignGroup.Key (@campaignGroup.Value.Count QR-Codes)</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>QR-Code</th>
+                                            <th>Erstellt</th>
+                                            <th>Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var qrCode in campaignGroup.Value)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@qrCode.Title</strong>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">@qrCode.GeneratedAt.ToString("dd.MM.yyyy")</small>
+                                                </td>
+                                                <td>
+                                                    <a href="@Url.Action("QrCodeStatistics", new { id = qrCode.QrCodeId })" class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-chart-bar"></i> Statistiken
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Alle QR-Codes wurden bereits gefunden! 🎉
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
                 <h5 class="card-title mb-0">Aktionen</h5>
             </div>
             <div class="card-body">

@@ -120,7 +120,18 @@
                                 </td>
                                 <td>@qrCode.SortOrder</td>
                                 <td>
-                                    <span class="badge bg-info">0</span>
+                                    @{
+                                        var qrCodeStats = Model.Statistics?.QrCodeStatistics?.FirstOrDefault(s => s.QrCodeId == qrCode.Id);
+                                        var findCount = qrCodeStats?.FindCount ?? 0;
+                                    }
+                                    @if (findCount > 0)
+                                    {
+                                        <span class="badge bg-success">@findCount</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">0</span>
+                                    }
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" onclick="viewQrCode(@qrCode.Id)">
@@ -129,6 +140,9 @@
                                     <button class="btn btn-sm btn-outline-secondary" onclick="editQrCode(@qrCode.Id)">
                                         <i class="fas fa-edit"></i>
                                     </button>
+                                    <a href="@Url.Action("QrCodeStatistics", new { id = qrCode.Id })" class="btn btn-sm btn-outline-info" title="Statistiken anzeigen">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </a>
                                 </td>
                             </tr>
                         }

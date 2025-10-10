@@ -1,3 +1,4 @@
+using EasterEggHunt.Api.Models;
 using EasterEggHunt.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -179,6 +180,141 @@ public class StatisticsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der Benutzer-Statistiken für {UserId}", userId);
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
+
+    /// <summary>
+    /// Ruft Statistiken für einen spezifischen QR-Code ab
+    /// </summary>
+    /// <param name="qrCodeId">QR-Code-ID</param>
+    /// <returns>QR-Code Statistiken</returns>
+    [HttpGet("qrcode/{qrCodeId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<QrCodeStatisticsDto>> GetQrCodeStatistics(int qrCodeId)
+    {
+        try
+        {
+            _logger.LogInformation("Abrufen der Statistiken für QR-Code {QrCodeId}", qrCodeId);
+
+            var qrCode = await _qrCodeService.GetQrCodeByIdAsync(qrCodeId);
+            if (qrCode == null)
+            {
+                return NotFound($"QR-Code mit ID {qrCodeId} nicht gefunden");
+            }
+
+            var campaign = await _campaignService.GetCampaignByIdAsync(qrCode.CampaignId);
+            var finds = await _findService.GetFindsByQrCodeIdAsync(qrCodeId);
+
+            var finders = finds
+                .OrderByDescending(f => f.FoundAt)
+                .Select(f => new FinderInfoDto
+                {
+                    UserId = f.UserId,
+                    UserName = f.User?.Name ?? "Unbekannter Benutzer",
+                    FoundAt = f.FoundAt,
+                    IpAddress = f.IpAddress
+                })
+                .ToList();
+
+            var statistics = new QrCodeStatisticsDto
+            {
+                QrCodeId = qrCode.Id,
+                Title = qrCode.Title,
+                CampaignId = qrCode.CampaignId,
+                CampaignName = campaign?.Name ?? "Unbekannte Kampagne",
+                FindCount = finds.Count(),
+                Finders = finders,
+                GeneratedAt = DateTime.UtcNow
+            };
+
+            return Ok(statistics);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der QR-Code-Statistiken für {QrCodeId}", qrCodeId);
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
+
+    /// <summary>
+    /// Ruft Statistiken für alle QR-Codes einer Kampagne ab
+    /// </summary>
+    /// <param name="campaignId">Kampagnen-ID</param>
+    /// <returns>Kampagnen-QR-Code Statistiken</returns>
+    [HttpGet("campaign/{campaignId}/qrcodes")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<CampaignQrCodeStatisticsDto>> GetCampaignQrCodeStatistics(int campaignId)
+    {
+        try
+        {
+            _logger.LogInformation("Abrufen der QR-Code-Statistiken für Kampagne {CampaignId}", campaignId);
+
+            var campaign = await _campaignService.GetCampaignByIdAsync(campaignId);
+            if (campaign == null)
+            {
+                return NotFound($"Kampagne mit ID {campaignId} nicht gefunden");
+            }
+
+            var qrCodes = await _qrCodeService.GetQrCodesByCampaignIdAsync(campaignId);
+            var qrCodeStatistics = new List<QrCodeStatisticsDto>();
+            var totalFinds = 0;
+            var foundQrCodes = 0;
+
+            foreach (var qrCode in qrCodes)
+            {
+                var finds = await _findService.GetFindsByQrCodeIdAsync(qrCode.Id);
+                var findCount = finds.Count();
+                totalFinds += findCount;
+
+                if (findCount > 0)
+                {
+                    foundQrCodes++;
+                }
+
+                var finders = finds
+                    .OrderByDescending(f => f.FoundAt)
+                    .Select(f => new FinderInfoDto
+                    {
+                        UserId = f.UserId,
+                        UserName = f.User?.Name ?? "Unbekannter Benutzer",
+                        FoundAt = f.FoundAt,
+                        IpAddress = f.IpAddress
+                    })
+                    .ToList();
+
+                qrCodeStatistics.Add(new QrCodeStatisticsDto
+                {
+                    QrCodeId = qrCode.Id,
+                    Title = qrCode.Title,
+                    CampaignId = qrCode.CampaignId,
+                    CampaignName = campaign.Name,
+                    FindCount = findCount,
+                    Finders = finders,
+                    GeneratedAt = DateTime.UtcNow
+                });
+            }
+
+            var statistics = new CampaignQrCodeStatisticsDto
+            {
+                CampaignId = campaignId,
+                CampaignName = campaign.Name,
+                TotalQrCodes = qrCodes.Count(),
+                FoundQrCodes = foundQrCodes,
+                TotalFinds = totalFinds,
+                QrCodeStatistics = qrCodeStatistics.OrderByDescending(q => q.FindCount).ToList(),
+                GeneratedAt = DateTime.UtcNow
+            };
+
+            return Ok(statistics);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Kampagnen-QR-Code-Statistiken für {CampaignId}", campaignId);
             return StatusCode(500, "Interner Serverfehler");
         }
     }
