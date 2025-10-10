@@ -83,7 +83,7 @@ public class AuthController : Controller
                 new("LastLogin", loginResponse.LastLogin.ToString("O", CultureInfo.InvariantCulture))
             };
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsIdentity = new ClaimsIdentity(claims, "AdminScheme");
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
             // Authentication Properties konfigurieren
@@ -100,7 +100,7 @@ public class AuthController : Controller
             HttpContext.Session.SetString("Email", loginResponse.Email);
 
             // Authentication Cookie setzen
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties);
+            await HttpContext.SignInAsync("AdminScheme", claimsPrincipal, authProperties);
 
             _logger.LogInformation("Erfolgreicher Login für Benutzer: {Username} (ID: {AdminId})",
                 model.Username, loginResponse.AdminId);
@@ -163,7 +163,7 @@ public class AuthController : Controller
             }
 
             // Authentication Cookie löschen
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync("AdminScheme");
 
             return RedirectToAction(nameof(Login));
         }

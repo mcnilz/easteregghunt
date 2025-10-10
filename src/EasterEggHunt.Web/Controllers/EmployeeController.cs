@@ -32,7 +32,7 @@ public class EmployeeController : Controller
     public IActionResult Register(string? qrCodeUrl)
     {
         // Prüfen ob bereits als Employee eingeloggt
-        if (User.Identity?.IsAuthenticated == true && User.Identity.AuthenticationType == "EmployeeScheme")
+        if (User.Identity?.IsAuthenticated == true && User.FindFirst("UserId") != null)
         {
             _logger.LogInformation("Mitarbeiter bereits registriert, Weiterleitung");
             return RedirectToQrCodeOrDashboard(qrCodeUrl);
@@ -140,11 +140,19 @@ public class EmployeeController : Controller
     /// <returns>Redirect zur QR-Code URL oder Dashboard</returns>
     private IActionResult RedirectToQrCodeOrDashboard(string? qrCodeUrl)
     {
-        if (!string.IsNullOrEmpty(qrCodeUrl) && Url.IsLocalUrl(qrCodeUrl))
+        if (!string.IsNullOrEmpty(qrCodeUrl))
         {
-            return Redirect(qrCodeUrl);
+            // Prüfe ob URL mit / beginnt (relative URL) oder IsLocalUrl
+            if (qrCodeUrl.StartsWith("/", StringComparison.Ordinal) || Url.IsLocalUrl(qrCodeUrl))
+            {
+                _logger.LogInformation("Weiterleitung zu QR-Code URL: {QrCodeUrl}", qrCodeUrl);
+                return Redirect(qrCodeUrl);
+            }
+
+            _logger.LogWarning("Ungültige QR-Code URL ignoriert: {QrCodeUrl}", qrCodeUrl);
         }
 
+        _logger.LogInformation("Weiterleitung zum Dashboard");
         return RedirectToAction(nameof(Index));
     }
 
@@ -168,7 +176,8 @@ public class EmployeeController : Controller
     public async Task<IActionResult> ScanQrCode(string? code)
     {
         // Prüfen ob als Employee registriert
-        if (User.Identity?.IsAuthenticated != true || User.Identity.AuthenticationType != "EmployeeScheme")
+        // Das AuthenticationType ist "Cookies", aber wir prüfen auf die Claims
+        if (User.Identity?.IsAuthenticated != true || User.FindFirst("UserId") == null)
         {
             _logger.LogInformation("Nicht registrierter Benutzer versucht QR-Code zu scannen, Weiterleitung zur Registrierung");
 
@@ -278,7 +287,7 @@ public class EmployeeController : Controller
     public IActionResult ScanQrCode(ScanQrCodeViewModel model)
     {
         // Prüfen ob als Employee registriert
-        if (User.Identity?.IsAuthenticated != true || User.Identity.AuthenticationType != "EmployeeScheme")
+        if (User.Identity?.IsAuthenticated != true || User.FindFirst("UserId") == null)
         {
             _logger.LogWarning("Nicht registrierter Benutzer versucht QR-Code zu scannen");
             return RedirectToAction(nameof(Register));

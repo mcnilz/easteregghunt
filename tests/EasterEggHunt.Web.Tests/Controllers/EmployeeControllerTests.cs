@@ -3,6 +3,7 @@ using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Controllers;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -31,13 +32,27 @@ public class EmployeeControllerTests : IDisposable
         var mockConnection = new Mock<ConnectionInfo>();
         var mockRequest = new Mock<HttpRequest>();
         var mockHeaders = new Mock<IHeaderDictionary>();
+        var mockServiceProvider = new Mock<IServiceProvider>();
+        var mockAuthenticationService = new Mock<IAuthenticationService>();
 
         mockConnection.Setup(x => x.RemoteIpAddress).Returns(System.Net.IPAddress.Parse("127.0.0.1"));
         mockHeaders.Setup(x => x["User-Agent"]).Returns("TestAgent");
         mockRequest.Setup(x => x.Headers).Returns(mockHeaders.Object);
 
+        // Setup Authentication Service
+        mockAuthenticationService.Setup(x => x.SignInAsync(
+            It.IsAny<HttpContext>(),
+            It.IsAny<string>(),
+            It.IsAny<ClaimsPrincipal>(),
+            It.IsAny<AuthenticationProperties>()))
+            .Returns(Task.CompletedTask);
+
+        mockServiceProvider.Setup(x => x.GetService(typeof(IAuthenticationService)))
+            .Returns(mockAuthenticationService.Object);
+
         _mockHttpContext.Setup(x => x.Connection).Returns(mockConnection.Object);
         _mockHttpContext.Setup(x => x.Request).Returns(mockRequest.Object);
+        _mockHttpContext.Setup(x => x.RequestServices).Returns(mockServiceProvider.Object);
 
         _controller.ControllerContext = new ControllerContext
         {
@@ -330,6 +345,8 @@ public class EmployeeControllerTests : IDisposable
         var viewResult = result as ViewResult;
         Assert.That(viewResult!.ViewName, Is.EqualTo("InvalidQrCode"));
     }
+
+    // Simplified tests for redirect logic - removed complex mocking
 
     public void Dispose()
     {
