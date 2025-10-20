@@ -1,6 +1,6 @@
 using EasterEggHunt.Api.Controllers;
 using EasterEggHunt.Application.Services;
-using EasterEggHunt.Domain.Entities;
+using EasterEggHunt.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -14,26 +14,17 @@ namespace EasterEggHunt.Api.Tests.Controllers;
 [TestFixture]
 public class StatisticsControllerTests
 {
-    private Mock<ICampaignService> _mockCampaignService = null!;
-    private Mock<IQrCodeService> _mockQrCodeService = null!;
-    private Mock<IUserService> _mockUserService = null!;
-    private Mock<IFindService> _mockFindService = null!;
+    private Mock<IStatisticsService> _mockStatisticsService = null!;
     private Mock<ILogger<StatisticsController>> _mockLogger = null!;
     private StatisticsController _controller = null!;
 
     [SetUp]
     public void Setup()
     {
-        _mockCampaignService = new Mock<ICampaignService>();
-        _mockQrCodeService = new Mock<IQrCodeService>();
-        _mockUserService = new Mock<IUserService>();
-        _mockFindService = new Mock<IFindService>();
+        _mockStatisticsService = new Mock<IStatisticsService>();
         _mockLogger = new Mock<ILogger<StatisticsController>>();
         _controller = new StatisticsController(
-            _mockCampaignService.Object,
-            _mockQrCodeService.Object,
-            _mockUserService.Object,
-            _mockFindService.Object,
+            _mockStatisticsService.Object,
             _mockLogger.Object);
     }
 
@@ -41,216 +32,234 @@ public class StatisticsControllerTests
     public async Task GetSystemOverview_ReturnsOkResult_WithStatistics()
     {
         // Arrange
-        var campaigns = new List<Campaign>
+        var expectedStatistics = new SystemOverviewStatistics
         {
-            new Campaign("Campaign 1", "Description 1", "Admin"),
-            new Campaign("Campaign 2", "Description 2", "Admin")
-        };
-        var users = new List<User>
-        {
-            new User("User 1"),
-            new User("User 2")
+            TotalCampaigns = 2,
+            ActiveCampaigns = 1,
+            TotalQrCodes = 5,
+            TotalUsers = 10,
+            TotalFinds = 15,
+            CompletedFinds = 15,
+            GeneratedAt = DateTime.UtcNow
         };
 
-        _mockCampaignService.Setup(x => x.GetActiveCampaignsAsync()).ReturnsAsync(campaigns);
-        _mockUserService.Setup(x => x.GetActiveUsersAsync()).ReturnsAsync(users);
-        _mockQrCodeService.Setup(x => x.GetQrCodesByCampaignIdAsync(It.IsAny<int>())).ReturnsAsync(new List<QrCode>());
-        _mockFindService.Setup(x => x.GetFindCountByQrCodeIdAsync(It.IsAny<int>())).ReturnsAsync(0);
+        _mockStatisticsService.Setup(x => x.GetSystemOverviewAsync())
+            .ReturnsAsync(expectedStatistics);
 
         // Act
         var result = await _controller.GetSystemOverview();
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+        Assert.That(result, Is.InstanceOf<ActionResult<SystemOverviewStatistics>>());
         var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult!.Value, Is.InstanceOf<SystemOverviewStatistics>());
-        var statistics = okResult.Value as SystemOverviewStatistics;
-        Assert.That(statistics!.TotalCampaigns, Is.EqualTo(2));
-        Assert.That(statistics.TotalUsers, Is.EqualTo(2));
-    }
-
-    [Test]
-    public async Task GetSystemOverview_ReturnsInternalServerError_OnException()
-    {
-        // Arrange
-        _mockCampaignService.Setup(x => x.GetActiveCampaignsAsync()).ThrowsAsync(new InvalidOperationException("Test exception"));
-
-        // Act
-        var result = await _controller.GetSystemOverview();
-
-        // Assert
-        Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
-        Assert.That(objectResult.Value, Is.EqualTo("Interner Serverfehler"));
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult!.Value, Is.EqualTo(expectedStatistics));
     }
 
     [Test]
     public async Task GetCampaignStatistics_ReturnsOkResult_WhenCampaignExists()
     {
         // Arrange
-        var campaign = new Campaign("Test Campaign", "Description", "Admin");
-        var qrCodes = new List<QrCode>
+        var campaignId = 1;
+        var expectedStatistics = new CampaignStatistics
         {
-            new QrCode(1, "QR 1", "Description 1", "Note 1") { Id = 1 },
-            new QrCode(1, "QR 2", "Description 2", "Note 2") { Id = 2 }
-        };
-        var finds = new List<Find>
-        {
-            new Find(1, 1, "127.0.0.1", "Test Agent"),
-            new Find(2, 2, "127.0.0.1", "Test Agent")
+            CampaignId = campaignId,
+            CampaignName = "Test Campaign",
+            TotalQrCodes = 5,
+            TotalFinds = 10,
+            UniqueFinders = 3,
+            CompletionRate = 2.0,
+            GeneratedAt = DateTime.UtcNow
         };
 
-        _mockCampaignService.Setup(x => x.GetCampaignByIdAsync(1)).ReturnsAsync(campaign);
-        _mockQrCodeService.Setup(x => x.GetQrCodesByCampaignIdAsync(1)).ReturnsAsync(qrCodes);
-        _mockFindService.Setup(x => x.GetCampaignFindsAggregateAsync(1)).ReturnsAsync((2, 2));
+        _mockStatisticsService.Setup(x => x.GetCampaignStatisticsAsync(campaignId))
+            .ReturnsAsync(expectedStatistics);
 
         // Act
-        var result = await _controller.GetCampaignStatistics(1);
+        var result = await _controller.GetCampaignStatistics(campaignId);
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+        Assert.That(result, Is.InstanceOf<ActionResult<CampaignStatistics>>());
         var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult!.Value, Is.InstanceOf<CampaignStatistics>());
-        var statistics = okResult.Value as CampaignStatistics;
-        Assert.That(statistics!.CampaignId, Is.EqualTo(1));
-        Assert.That(statistics.CampaignName, Is.EqualTo("Test Campaign"));
-        Assert.That(statistics.TotalQrCodes, Is.EqualTo(2));
-        Assert.That(statistics.TotalFinds, Is.EqualTo(2));
-        Assert.That(statistics.UniqueFinders, Is.EqualTo(2));
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult!.Value, Is.EqualTo(expectedStatistics));
     }
 
     [Test]
     public async Task GetCampaignStatistics_ReturnsNotFound_WhenCampaignDoesNotExist()
     {
         // Arrange
-        _mockCampaignService.Setup(x => x.GetCampaignByIdAsync(1)).ReturnsAsync((Campaign?)null);
+        var campaignId = 999;
+        _mockStatisticsService.Setup(x => x.GetCampaignStatisticsAsync(campaignId))
+            .ThrowsAsync(new ArgumentException($"Kampagne mit ID {campaignId} nicht gefunden"));
 
         // Act
-        var result = await _controller.GetCampaignStatistics(1);
+        var result = await _controller.GetCampaignStatistics(campaignId);
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
+        Assert.That(result, Is.InstanceOf<ActionResult<CampaignStatistics>>());
         var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult!.Value, Is.EqualTo("Kampagne mit ID 1 nicht gefunden"));
-    }
-
-    [Test]
-    public async Task GetCampaignStatistics_ReturnsInternalServerError_OnException()
-    {
-        // Arrange
-        _mockCampaignService.Setup(x => x.GetCampaignByIdAsync(1)).ThrowsAsync(new InvalidOperationException("Test exception"));
-
-        // Act
-        var result = await _controller.GetCampaignStatistics(1);
-
-        // Assert
-        Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
-        Assert.That(objectResult.Value, Is.EqualTo("Interner Serverfehler"));
+        Assert.That(notFoundResult, Is.Not.Null);
     }
 
     [Test]
     public async Task GetUserStatistics_ReturnsOkResult_WhenUserExists()
     {
         // Arrange
-        var user = new User("Test User");
-        var finds = new List<Find>
+        var userId = 1;
+        var expectedStatistics = new UserStatistics
         {
-            new Find(1, 1, "127.0.0.1", "Test Agent"),
-            new Find(2, 2, "127.0.0.1", "Test Agent")
+            UserId = userId,
+            UserName = "Test User",
+            TotalFinds = 5,
+            UniqueQrCodesFound = 3,
+            FirstFindDate = DateTime.UtcNow.AddDays(-7),
+            LastFindDate = DateTime.UtcNow,
+            GeneratedAt = DateTime.UtcNow
         };
 
-        _mockUserService.Setup(x => x.GetUserByIdAsync(1)).ReturnsAsync(user);
-        _mockFindService.Setup(x => x.GetFindCountByUserIdAsync(1)).ReturnsAsync(2);
-        _mockFindService.Setup(x => x.GetUniqueQrCodesCountByUserIdAsync(1)).ReturnsAsync(2);
+        _mockStatisticsService.Setup(x => x.GetUserStatisticsAsync(userId))
+            .ReturnsAsync(expectedStatistics);
 
         // Act
-        var result = await _controller.GetUserStatistics(1);
+        var result = await _controller.GetUserStatistics(userId);
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+        Assert.That(result, Is.InstanceOf<ActionResult<UserStatistics>>());
         var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult!.Value, Is.InstanceOf<UserStatistics>());
-        var statistics = okResult.Value as UserStatistics;
-        Assert.That(statistics!.UserId, Is.EqualTo(1));
-        Assert.That(statistics.UserName, Is.EqualTo("Test User"));
-        Assert.That(statistics.TotalFinds, Is.EqualTo(2));
-        Assert.That(statistics.UniqueQrCodesFound, Is.EqualTo(2));
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult!.Value, Is.EqualTo(expectedStatistics));
     }
 
     [Test]
     public async Task GetUserStatistics_ReturnsNotFound_WhenUserDoesNotExist()
     {
         // Arrange
-        _mockUserService.Setup(x => x.GetUserByIdAsync(1)).ReturnsAsync((User?)null);
+        var userId = 999;
+        _mockStatisticsService.Setup(x => x.GetUserStatisticsAsync(userId))
+            .ThrowsAsync(new ArgumentException($"Benutzer mit ID {userId} nicht gefunden"));
 
         // Act
-        var result = await _controller.GetUserStatistics(1);
+        var result = await _controller.GetUserStatistics(userId);
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
+        Assert.That(result, Is.InstanceOf<ActionResult<UserStatistics>>());
         var notFoundResult = result.Result as NotFoundObjectResult;
-        Assert.That(notFoundResult!.Value, Is.EqualTo("Benutzer mit ID 1 nicht gefunden"));
+        Assert.That(notFoundResult, Is.Not.Null);
     }
 
     [Test]
-    public async Task GetUserStatistics_ReturnsInternalServerError_OnException()
+    public async Task GetQrCodeStatistics_ReturnsOkResult_WhenQrCodeExists()
     {
         // Arrange
-        _mockUserService.Setup(x => x.GetUserByIdAsync(1)).ThrowsAsync(new InvalidOperationException("Test exception"));
-
-        // Act
-        var result = await _controller.GetUserStatistics(1);
-
-        // Assert
-        Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
-        Assert.That(objectResult.Value, Is.EqualTo("Interner Serverfehler"));
-    }
-
-    [Test]
-    public async Task GetTopPerformers_ReturnsOkResult_WithTopPerformers()
-    {
-        // Arrange
-        var users = new List<User>
+        var qrCodeId = 1;
+        var expectedStatistics = new QrCodeStatisticsDto
         {
-            new User("User 1") { Id = 1 },
-            new User("User 2") { Id = 2 }
+            QrCodeId = qrCodeId,
+            QrCodeTitle = "Test QR Code",
+            TotalFinds = 3,
+            UniqueFinders = 2,
+            FirstFindDate = DateTime.UtcNow.AddDays(-5),
+            LastFindDate = DateTime.UtcNow,
+            RecentFinds = new List<QrCodeStatisticsRecentFind>(),
+            GeneratedAt = DateTime.UtcNow
         };
 
-        _mockUserService.Setup(x => x.GetActiveUsersAsync()).ReturnsAsync(users);
-        _mockFindService.Setup(x => x.GetFindCountByUserIdAsync(1)).ReturnsAsync(5);
-        _mockFindService.Setup(x => x.GetFindCountByUserIdAsync(2)).ReturnsAsync(3);
+        _mockStatisticsService.Setup(x => x.GetQrCodeStatisticsAsync(qrCodeId))
+            .ReturnsAsync(expectedStatistics);
 
         // Act
-        var result = await _controller.GetTopPerformers();
+        var result = await _controller.GetQrCodeStatistics(qrCodeId);
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+        Assert.That(result, Is.InstanceOf<ActionResult<QrCodeStatisticsDto>>());
         var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult!.Value, Is.InstanceOf<TopPerformersStatistics>());
-        var statistics = okResult.Value as TopPerformersStatistics;
-        Assert.That(statistics!.TopPerformers.Count, Is.EqualTo(2));
-        Assert.That(statistics.TopPerformers[0].FindCount, Is.EqualTo(5));
-        Assert.That(statistics.TopPerformers[1].FindCount, Is.EqualTo(3));
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult!.Value, Is.EqualTo(expectedStatistics));
     }
 
     [Test]
-    public async Task GetTopPerformers_ReturnsInternalServerError_OnException()
+    public async Task GetQrCodeStatistics_ReturnsNotFound_WhenQrCodeDoesNotExist()
     {
         // Arrange
-        _mockUserService.Setup(x => x.GetActiveUsersAsync()).ThrowsAsync(new InvalidOperationException("Test exception"));
+        var qrCodeId = 999;
+        _mockStatisticsService.Setup(x => x.GetQrCodeStatisticsAsync(qrCodeId))
+            .ThrowsAsync(new ArgumentException($"QR-Code mit ID {qrCodeId} nicht gefunden"));
+
+        // Act
+        var result = await _controller.GetQrCodeStatistics(qrCodeId);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<QrCodeStatisticsDto>>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task GetCampaignQrCodeStatistics_ReturnsOkResult_WhenCampaignExists()
+    {
+        // Arrange
+        var campaignId = 1;
+        var expectedStatistics = new CampaignQrCodeStatisticsDto
+        {
+            CampaignId = campaignId,
+            CampaignName = "Test Campaign",
+            QrCodeStatistics = new List<QrCodeStatisticsDto>(),
+            GeneratedAt = DateTime.UtcNow
+        };
+
+        _mockStatisticsService.Setup(x => x.GetCampaignQrCodeStatisticsAsync(campaignId))
+            .ReturnsAsync(expectedStatistics);
+
+        // Act
+        var result = await _controller.GetCampaignQrCodeStatistics(campaignId);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<CampaignQrCodeStatisticsDto>>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult!.Value, Is.EqualTo(expectedStatistics));
+    }
+
+    [Test]
+    public async Task GetCampaignQrCodeStatistics_ReturnsNotFound_WhenCampaignDoesNotExist()
+    {
+        // Arrange
+        var campaignId = 999;
+        _mockStatisticsService.Setup(x => x.GetCampaignQrCodeStatisticsAsync(campaignId))
+            .ThrowsAsync(new ArgumentException($"Kampagne mit ID {campaignId} nicht gefunden"));
+
+        // Act
+        var result = await _controller.GetCampaignQrCodeStatistics(campaignId);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<CampaignQrCodeStatisticsDto>>());
+        var notFoundResult = result.Result as NotFoundObjectResult;
+        Assert.That(notFoundResult, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task GetTopPerformers_ReturnsOkResult_WithStatistics()
+    {
+        // Arrange
+        var expectedStatistics = new TopPerformersStatistics
+        {
+            TopByTotalFinds = new List<UserStatistics>(),
+            TopByUniqueQrCodes = new List<UserStatistics>(),
+            MostRecentActivity = new List<UserStatistics>(),
+            GeneratedAt = DateTime.UtcNow
+        };
+
+        _mockStatisticsService.Setup(x => x.GetTopPerformersAsync())
+            .ReturnsAsync(expectedStatistics);
 
         // Act
         var result = await _controller.GetTopPerformers();
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
-        var objectResult = result.Result as ObjectResult;
-        Assert.That(objectResult!.StatusCode, Is.EqualTo(500));
-        Assert.That(objectResult.Value, Is.EqualTo("Interner Serverfehler"));
+        Assert.That(result, Is.InstanceOf<ActionResult<TopPerformersStatistics>>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult!.Value, Is.EqualTo(expectedStatistics));
     }
 }

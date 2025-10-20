@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IFindService, FindService>();
         services.AddScoped<ISessionService, SessionService>();
-        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IStatisticsService, StatisticsService>();
 
         return services;
     }

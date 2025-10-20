@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace EasterEggHunt.Api.Models;
+namespace EasterEggHunt.Domain.Models;
 
 /// <summary>
 /// DTO für System-Übersichtsstatistiken
@@ -247,30 +245,4 @@ public class TopPerformersStatistics
     /// Zeitpunkt der Generierung der Statistiken
     /// </summary>
     public DateTime GeneratedAt { get; set; }
-}
-
-/// <summary>
-/// DTO für Finder-Informationen
-/// </summary>
-public class FinderInfoDto
-{
-    /// <summary>
-    /// Benutzer-ID
-    /// </summary>
-    public int UserId { get; set; }
-
-    /// <summary>
-    /// Benutzername
-    /// </summary>
-    public string UserName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Zeitpunkt des Fundes
-    /// </summary>
-    public DateTime FoundAt { get; set; }
-
-    /// <summary>
-    /// IP-Adresse des Benutzers
-    /// </summary>
-    public string IpAddress { get; set; } = string.Empty;
 }
