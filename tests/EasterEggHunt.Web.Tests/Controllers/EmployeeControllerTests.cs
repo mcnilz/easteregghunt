@@ -477,8 +477,14 @@ public class EmployeeControllerTests : IDisposable
         finds[1].FoundAt = DateTime.UtcNow.AddHours(-2);
         finds[2].FoundAt = DateTime.UtcNow.AddHours(-1);
 
-        _mockApiClient.Setup(x => x.GetFindsByUserIdAsync(userId))
-            .ReturnsAsync(finds);
+        // Progress nutzt jetzt kampagnenspezifischen Endpoint; liefere 2 eindeutige Funde zurück
+        _mockApiClient.Setup(x => x.GetFindsByUserAndCampaignAsync(userId, campaign.Id, It.IsAny<int?>()))
+            .ReturnsAsync(new List<Find>
+            {
+                new Find(qr1.Id, userId, "127.0.0.1", "UA") { QrCode = qr1, FoundAt = finds[0].FoundAt },
+                new Find(qr2.Id, userId, "127.0.0.1", "UA") { QrCode = qr2, FoundAt = finds[1].FoundAt },
+                new Find(qr2.Id, userId, "127.0.0.1", "UA") { QrCode = qr2, FoundAt = finds[2].FoundAt }
+            });
 
         _mockApiClient.Setup(x => x.GetUserStatisticsAsync(userId))
             .ReturnsAsync(new EasterEggHunt.Web.Models.UserStatistics { UserId = userId, UserName = "Alice" });

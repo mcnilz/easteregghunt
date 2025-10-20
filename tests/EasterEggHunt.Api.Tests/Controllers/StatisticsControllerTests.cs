@@ -103,8 +103,7 @@ public class StatisticsControllerTests
 
         _mockCampaignService.Setup(x => x.GetCampaignByIdAsync(1)).ReturnsAsync(campaign);
         _mockQrCodeService.Setup(x => x.GetQrCodesByCampaignIdAsync(1)).ReturnsAsync(qrCodes);
-        _mockFindService.Setup(x => x.GetFindsByQrCodeIdAsync(1)).ReturnsAsync(finds.Take(1));
-        _mockFindService.Setup(x => x.GetFindsByQrCodeIdAsync(2)).ReturnsAsync(finds.Skip(1));
+        _mockFindService.Setup(x => x.GetCampaignFindsAggregateAsync(1)).ReturnsAsync((2, 2));
 
         // Act
         var result = await _controller.GetCampaignStatistics(1);
@@ -164,7 +163,8 @@ public class StatisticsControllerTests
         };
 
         _mockUserService.Setup(x => x.GetUserByIdAsync(1)).ReturnsAsync(user);
-        _mockFindService.Setup(x => x.GetFindsByUserIdAsync(1)).ReturnsAsync(finds);
+        _mockFindService.Setup(x => x.GetFindCountByUserIdAsync(1)).ReturnsAsync(2);
+        _mockFindService.Setup(x => x.GetUniqueQrCodesCountByUserIdAsync(1)).ReturnsAsync(2);
 
         // Act
         var result = await _controller.GetUserStatistics(1);

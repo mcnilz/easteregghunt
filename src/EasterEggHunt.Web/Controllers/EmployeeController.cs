@@ -197,7 +197,7 @@ public class EmployeeController : Controller
             return View("NoCampaign");
         }
 
-        // Alle User-Funde abrufen
+        // Letzte Funde des Users abrufen (global), minimal halten
         var userFinds = await _apiClient.GetFindsByUserIdAsync(userId.Value);
 
         // Kampagne anhand des letzten gefundenen QR-Codes bestimmen
@@ -224,23 +224,14 @@ public class EmployeeController : Controller
             campaign = activeCampaigns.First();
         }
 
-        // QR-Codes der ermittelten Kampagne laden
-        var campaignQrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign!.Id);
-
-        // Auf Kampagnen-QR-Codes filtern und eindeutige QR-Codes zählen
-        var campaignQrCodeIds = campaignQrCodes.Select(q => q.Id).ToHashSet();
-        var findsInCampaign = userFinds.Where(f => campaignQrCodeIds.Contains(f.QrCodeId)).ToList();
+        // Kampagnenspezifische Funde direkt vom API (vermeidet zusätzliche QrCode-Lookups)
+        var findsInCampaign = await _apiClient.GetFindsByUserAndCampaignAsync(userId.Value, campaign!.Id, 10);
         var uniqueFound = findsInCampaign.Select(f => f.QrCodeId).Distinct().Count();
-
-        // Zuletzt gefundene Einträge inkl. Titel
-        var qrCodeIdToTitle = campaignQrCodes.ToDictionary(q => q.Id, q => q.Title);
         var recent = findsInCampaign
-            .OrderByDescending(f => f.FoundAt)
-            .Take(10)
             .Select(f => new ProgressRecentFindItem
             {
                 QrCodeId = f.QrCodeId,
-                Title = qrCodeIdToTitle.TryGetValue(f.QrCodeId, out var t) ? t : $"QR-{f.QrCodeId}",
+                Title = f.QrCode?.Title ?? $"QR-{f.QrCodeId}",
                 FoundAt = f.FoundAt
             })
             .ToList();
@@ -252,7 +243,7 @@ public class EmployeeController : Controller
         {
             UserName = userStats.UserName,
             CampaignName = campaign.Name,
-            TotalQrCodes = campaignQrCodes.Count(),
+            TotalQrCodes = (await _apiClient.GetQrCodesByCampaignIdAsync(campaign.Id)).Count(),
             UniqueFound = uniqueFound,
             RecentFinds = recent
         };

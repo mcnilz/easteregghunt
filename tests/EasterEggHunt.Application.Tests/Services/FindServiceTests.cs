@@ -303,22 +303,15 @@ public class FindServiceTests
     {
         // Arrange
         var qrCodeId = 1;
-        var finds = new List<Find>
-        {
-            new Find(qrCodeId, 1, "192.168.1.1", "Mozilla/5.0"),
-            new Find(qrCodeId, 2, "192.168.1.2", "Chrome/91.0"),
-            new Find(qrCodeId, 3, "192.168.1.3", "Safari/14.0")
-        };
-
-        _mockFindRepository.Setup(r => r.GetByQrCodeIdAsync(qrCodeId))
-            .ReturnsAsync(finds);
+        _mockFindRepository.Setup(r => r.GetCountByQrCodeIdAsync(qrCodeId))
+            .ReturnsAsync(3);
 
         // Act
         var result = await _findService.GetFindCountByQrCodeIdAsync(qrCodeId);
 
         // Assert
         Assert.That(result, Is.EqualTo(3));
-        _mockFindRepository.Verify(r => r.GetByQrCodeIdAsync(qrCodeId), Times.Once);
+        _mockFindRepository.Verify(r => r.GetCountByQrCodeIdAsync(qrCodeId), Times.Once);
     }
 
     [Test]
@@ -326,15 +319,15 @@ public class FindServiceTests
     {
         // Arrange
         var qrCodeId = 1;
-        _mockFindRepository.Setup(r => r.GetByQrCodeIdAsync(qrCodeId))
-            .ReturnsAsync(new List<Find>());
+        _mockFindRepository.Setup(r => r.GetCountByQrCodeIdAsync(qrCodeId))
+            .ReturnsAsync(0);
 
         // Act
         var result = await _findService.GetFindCountByQrCodeIdAsync(qrCodeId);
 
         // Assert
         Assert.That(result, Is.EqualTo(0));
-        _mockFindRepository.Verify(r => r.GetByQrCodeIdAsync(qrCodeId), Times.Once);
+        _mockFindRepository.Verify(r => r.GetCountByQrCodeIdAsync(qrCodeId), Times.Once);
     }
 
     #endregion
@@ -346,21 +339,15 @@ public class FindServiceTests
     {
         // Arrange
         var userId = 1;
-        var finds = new List<Find>
-        {
-            new Find(1, userId, "192.168.1.1", "Mozilla/5.0"),
-            new Find(2, userId, "192.168.1.2", "Chrome/91.0")
-        };
-
-        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
-            .ReturnsAsync(finds);
+        _mockFindRepository.Setup(r => r.GetCountByUserIdAsync(userId))
+            .ReturnsAsync(2);
 
         // Act
         var result = await _findService.GetFindCountByUserIdAsync(userId);
 
         // Assert
         Assert.That(result, Is.EqualTo(2));
-        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+        _mockFindRepository.Verify(r => r.GetCountByUserIdAsync(userId), Times.Once);
     }
 
     [Test]
@@ -368,15 +355,15 @@ public class FindServiceTests
     {
         // Arrange
         var userId = 1;
-        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
-            .ReturnsAsync(new List<Find>());
+        _mockFindRepository.Setup(r => r.GetCountByUserIdAsync(userId))
+            .ReturnsAsync(0);
 
         // Act
         var result = await _findService.GetFindCountByUserIdAsync(userId);
 
         // Assert
         Assert.That(result, Is.EqualTo(0));
-        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+        _mockFindRepository.Verify(r => r.GetCountByUserIdAsync(userId), Times.Once);
     }
 
     #endregion
@@ -389,14 +376,9 @@ public class FindServiceTests
         // Arrange
         var qrCodeId = 1;
         var userId = 2;
-        var finds = new List<Find>
-        {
-            new Find(qrCodeId, userId, "192.168.1.1", "Mozilla/5.0") { Id = 1, FoundAt = DateTime.Now.AddDays(-2) },
-            new Find(qrCodeId, userId, "192.168.1.2", "Chrome/91.0") { Id = 2, FoundAt = DateTime.Now.AddDays(-1) }
-        };
-
-        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
-            .ReturnsAsync(finds);
+        var first = new Find(qrCodeId, userId, "192.168.1.1", "Mozilla/5.0") { Id = 1, FoundAt = DateTime.Now.AddDays(-2) };
+        _mockFindRepository.Setup(r => r.GetFirstByUserAndQrAsync(userId, qrCodeId))
+            .ReturnsAsync(first);
 
         // Act
         var result = await _findService.GetExistingFindAsync(qrCodeId, userId);
@@ -406,7 +388,7 @@ public class FindServiceTests
         Assert.That(result!.Id, Is.EqualTo(1)); // First find should be returned
         Assert.That(result.QrCodeId, Is.EqualTo(qrCodeId));
         Assert.That(result.UserId, Is.EqualTo(userId));
-        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+        _mockFindRepository.Verify(r => r.GetFirstByUserAndQrAsync(userId, qrCodeId), Times.Once);
     }
 
     [Test]
@@ -415,21 +397,15 @@ public class FindServiceTests
         // Arrange
         var qrCodeId = 1;
         var userId = 2;
-        var finds = new List<Find>
-        {
-            new Find(2, userId, "192.168.1.1", "Mozilla/5.0"), // Different QR-Code
-            new Find(3, userId, "192.168.1.2", "Chrome/91.0")  // Different QR-Code
-        };
-
-        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
-            .ReturnsAsync(finds);
+        _mockFindRepository.Setup(r => r.GetFirstByUserAndQrAsync(userId, qrCodeId))
+            .ReturnsAsync((Find?)null);
 
         // Act
         var result = await _findService.GetExistingFindAsync(qrCodeId, userId);
 
         // Assert
         Assert.That(result, Is.Null);
-        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+        _mockFindRepository.Verify(r => r.GetFirstByUserAndQrAsync(userId, qrCodeId), Times.Once);
     }
 
     [Test]
@@ -438,15 +414,15 @@ public class FindServiceTests
         // Arrange
         var qrCodeId = 1;
         var userId = 2;
-        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
-            .ReturnsAsync(new List<Find>());
+        _mockFindRepository.Setup(r => r.GetFirstByUserAndQrAsync(userId, qrCodeId))
+            .ReturnsAsync((Find?)null);
 
         // Act
         var result = await _findService.GetExistingFindAsync(qrCodeId, userId);
 
         // Assert
         Assert.That(result, Is.Null);
-        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+        _mockFindRepository.Verify(r => r.GetFirstByUserAndQrAsync(userId, qrCodeId), Times.Once);
     }
 
     #endregion
@@ -459,20 +435,15 @@ public class FindServiceTests
         // Arrange
         var qrCodeId = 1;
         var userId = 2;
-        var finds = new List<Find>
-        {
-            new Find(qrCodeId, userId, "192.168.1.1", "Mozilla/5.0")
-        };
-
-        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
-            .ReturnsAsync(finds);
+        _mockFindRepository.Setup(r => r.UserHasFoundQrCodeAsync(userId, qrCodeId))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _findService.HasUserFoundQrCodeAsync(qrCodeId, userId);
 
         // Assert
         Assert.That(result, Is.True);
-        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+        _mockFindRepository.Verify(r => r.UserHasFoundQrCodeAsync(userId, qrCodeId), Times.Once);
     }
 
     [Test]
@@ -481,20 +452,15 @@ public class FindServiceTests
         // Arrange
         var qrCodeId = 1;
         var userId = 2;
-        var finds = new List<Find>
-        {
-            new Find(2, userId, "192.168.1.1", "Mozilla/5.0") // Different QR-Code
-        };
-
-        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
-            .ReturnsAsync(finds);
+        _mockFindRepository.Setup(r => r.UserHasFoundQrCodeAsync(userId, qrCodeId))
+            .ReturnsAsync(false);
 
         // Act
         var result = await _findService.HasUserFoundQrCodeAsync(qrCodeId, userId);
 
         // Assert
         Assert.That(result, Is.False);
-        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+        _mockFindRepository.Verify(r => r.UserHasFoundQrCodeAsync(userId, qrCodeId), Times.Once);
     }
 
     [Test]
@@ -503,15 +469,15 @@ public class FindServiceTests
         // Arrange
         var qrCodeId = 1;
         var userId = 2;
-        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
-            .ReturnsAsync(new List<Find>());
+        _mockFindRepository.Setup(r => r.UserHasFoundQrCodeAsync(userId, qrCodeId))
+            .ReturnsAsync(false);
 
         // Act
         var result = await _findService.HasUserFoundQrCodeAsync(qrCodeId, userId);
 
         // Assert
         Assert.That(result, Is.False);
-        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+        _mockFindRepository.Verify(r => r.UserHasFoundQrCodeAsync(userId, qrCodeId), Times.Once);
     }
 
     #endregion

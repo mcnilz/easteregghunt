@@ -87,6 +87,31 @@ public class FindsController : ControllerBase
     }
 
     /// <summary>
+    /// Ruft Funde eines Benutzers für eine Kampagne ab, optional limitiert
+    /// </summary>
+    [HttpGet("user/{userId}/by-campaign")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<IEnumerable<Find>>> GetFindsByUserAndCampaign(int userId, [FromQuery] int campaignId, [FromQuery] int? take)
+    {
+        try
+        {
+            if (campaignId <= 0)
+            {
+                return BadRequest("campaignId ist erforderlich");
+            }
+
+            var finds = await _findService.GetFindsByUserAndCampaignAsync(userId, campaignId, take);
+            return Ok(finds);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Funde für Benutzer {UserId} und Kampagne {CampaignId}", userId, campaignId);
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
+
+    /// <summary>
     /// Registriert einen neuen Fund
     /// </summary>
     /// <param name="request">Fund-Registrierungsdaten</param>

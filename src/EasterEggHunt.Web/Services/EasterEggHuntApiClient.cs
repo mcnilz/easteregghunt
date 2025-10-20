@@ -36,6 +36,7 @@ public interface IEasterEggHuntApiClient
 
     // User progress
     Task<IEnumerable<Find>> GetFindsByUserIdAsync(int userId);
+    Task<IEnumerable<Find>> GetFindsByUserAndCampaignAsync(int userId, int campaignId, int? take = null);
     Task<UserStatistics> GetUserStatisticsAsync(int userId);
 
     // Authentication Operations
@@ -406,6 +407,25 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der Funde für Benutzer {UserId}", userId);
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<Find>> GetFindsByUserAndCampaignAsync(int userId, int campaignId, int? take = null)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: GET /api/finds/user/{UserId}/by-campaign?campaignId={CampaignId}&take={Take}", userId, campaignId, take);
+            var query = $"/api/finds/user/{userId}/by-campaign?campaignId={campaignId}" + (take.HasValue ? $"&take={take.Value}" : string.Empty);
+            var response = await _httpClient.GetAsync(new Uri(query, UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<IEnumerable<Find>>(content, _jsonOptions) ?? Enumerable.Empty<Find>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Funde für Benutzer {UserId} und Kampagne {CampaignId}", userId, campaignId);
             throw;
         }
     }

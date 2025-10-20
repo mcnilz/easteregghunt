@@ -77,26 +77,21 @@ public class FindService : IFindService
     public async Task<int> GetFindCountByQrCodeIdAsync(int qrCodeId)
     {
         _logger.LogInformation("Abrufen der Fundanzahl für QR-Code {QrCodeId}", qrCodeId);
-        var finds = await _findRepository.GetByQrCodeIdAsync(qrCodeId);
-        return finds.Count();
+        return await _findRepository.GetCountByQrCodeIdAsync(qrCodeId);
     }
 
     /// <inheritdoc />
     public async Task<int> GetFindCountByUserIdAsync(int userId)
     {
         _logger.LogInformation("Abrufen der Fundanzahl für Benutzer {UserId}", userId);
-        var finds = await _findRepository.GetByUserIdAsync(userId);
-        return finds.Count();
+        return await _findRepository.GetCountByUserIdAsync(userId);
     }
 
     /// <inheritdoc />
     public async Task<Find?> GetExistingFindAsync(int qrCodeId, int userId)
     {
         _logger.LogInformation("Abrufen des ersten Funds für QR-Code {QrCodeId} und Benutzer {UserId}", qrCodeId, userId);
-
-        // Alle Funde des Users abrufen und nach QR-Code filtern
-        var userFinds = await _findRepository.GetByUserIdAsync(userId);
-        var firstFind = userFinds.FirstOrDefault(f => f.QrCodeId == qrCodeId);
+        var firstFind = await _findRepository.GetFirstByUserAndQrAsync(userId, qrCodeId);
 
         if (firstFind == null)
         {
@@ -114,12 +109,31 @@ public class FindService : IFindService
     public async Task<bool> HasUserFoundQrCodeAsync(int qrCodeId, int userId)
     {
         _logger.LogInformation("Prüfen ob Benutzer {UserId} QR-Code {QrCodeId} bereits gefunden hat", userId, qrCodeId);
-
-        var existingFind = await GetExistingFindAsync(qrCodeId, userId);
-        var hasFound = existingFind != null;
+        var hasFound = await _findRepository.UserHasFoundQrCodeAsync(userId, qrCodeId);
 
         _logger.LogInformation("Benutzer {UserId} hat QR-Code {QrCodeId} {Status}", userId, qrCodeId, hasFound ? "bereits gefunden" : "noch nicht gefunden");
 
         return hasFound;
+    }
+
+    /// <inheritdoc />
+    public async Task<(int totalFinds, int uniqueFinders)> GetCampaignFindsAggregateAsync(int campaignId)
+    {
+        _logger.LogInformation("Aggregierte Kampagnen-Fundzahlen abrufen für Kampagne {CampaignId}", campaignId);
+        return await _findRepository.GetCampaignFindsAggregateAsync(campaignId);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> GetUniqueQrCodesCountByUserIdAsync(int userId)
+    {
+        _logger.LogInformation("Anzahl einzigartiger QR-Codes für Benutzer {UserId} abrufen", userId);
+        return await _findRepository.GetUniqueQrCodesCountByUserIdAsync(userId);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Find>> GetFindsByUserAndCampaignAsync(int userId, int campaignId, int? take = null)
+    {
+        _logger.LogInformation("Funde für Benutzer {UserId} und Kampagne {CampaignId} abrufen (take={Take})", userId, campaignId, take);
+        return await _findRepository.GetByUserAndCampaignAsync(userId, campaignId, take);
     }
 }

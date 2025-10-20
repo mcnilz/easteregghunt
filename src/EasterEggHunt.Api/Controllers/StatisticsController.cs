@@ -104,19 +104,7 @@ public class StatisticsController : ControllerBase
             }
 
             var qrCodes = await _qrCodeService.GetQrCodesByCampaignIdAsync(campaignId);
-            var totalFinds = 0;
-            var uniqueFinders = new HashSet<int>();
-
-            foreach (var qrCode in qrCodes)
-            {
-                var finds = await _findService.GetFindsByQrCodeIdAsync(qrCode.Id);
-                totalFinds += finds.Count();
-
-                foreach (var find in finds)
-                {
-                    uniqueFinders.Add(find.UserId);
-                }
-            }
+            var aggregate = await _findService.GetCampaignFindsAggregateAsync(campaignId);
 
             var statistics = new CampaignStatistics
             {
@@ -124,8 +112,8 @@ public class StatisticsController : ControllerBase
                 CampaignName = campaign.Name,
                 TotalQrCodes = qrCodes.Count(),
                 ActiveQrCodes = qrCodes.Count(q => q.IsActive),
-                TotalFinds = totalFinds,
-                UniqueFinders = uniqueFinders.Count,
+                TotalFinds = aggregate.totalFinds,
+                UniqueFinders = aggregate.uniqueFinders,
                 GeneratedAt = DateTime.UtcNow
             };
 
@@ -159,9 +147,8 @@ public class StatisticsController : ControllerBase
                 return NotFound($"Benutzer mit ID {userId} nicht gefunden");
             }
 
-            var finds = await _findService.GetFindsByUserIdAsync(userId);
-            var totalFinds = finds.Count();
-            var uniqueQrCodes = finds.Select(f => f.QrCodeId).Distinct().Count();
+            var totalFinds = await _findService.GetFindCountByUserIdAsync(userId);
+            var uniqueQrCodes = await _findService.GetUniqueQrCodesCountByUserIdAsync(userId);
 
             var statistics = new UserStatistics
             {

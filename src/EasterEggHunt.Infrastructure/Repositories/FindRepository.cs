@@ -44,6 +44,11 @@ public class FindRepository : IFindRepository
             .ToListAsync();
     }
 
+    public async Task<int> GetCountByUserIdAsync(int userId)
+    {
+        return await _context.Finds.CountAsync(f => f.UserId == userId);
+    }
+
     /// <inheritdoc />
     public async Task<IEnumerable<Find>> GetByQrCodeIdAsync(int qrCodeId)
     {
@@ -54,6 +59,11 @@ public class FindRepository : IFindRepository
             .Include(f => f.User)
             .OrderByDescending(f => f.FoundAt)
             .ToListAsync();
+    }
+
+    public async Task<int> GetCountByQrCodeIdAsync(int qrCodeId)
+    {
+        return await _context.Finds.CountAsync(f => f.QrCodeId == qrCodeId);
     }
 
     /// <inheritdoc />
@@ -83,6 +93,54 @@ public class FindRepository : IFindRepository
     {
         return await _context.Finds
             .AnyAsync(f => f.UserId == userId && f.QrCodeId == qrCodeId);
+    }
+
+    public async Task<Find?> GetFirstByUserAndQrAsync(int userId, int qrCodeId)
+    {
+        return await _context.Finds
+            .Where(f => f.UserId == userId && f.QrCodeId == qrCodeId)
+            .OrderBy(f => f.FoundAt)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<(int totalFinds, int uniqueFinders)> GetCampaignFindsAggregateAsync(int campaignId)
+    {
+        var query = _context.Finds.Where(f => f.QrCode!.CampaignId == campaignId);
+        var totalFinds = await query.CountAsync();
+        var uniqueFinders = await query.Select(f => f.UserId).Distinct().CountAsync();
+        return (totalFinds, uniqueFinders);
+    }
+
+    public async Task<int> GetUniqueQrCodesCountByUserIdAsync(int userId)
+    {
+        return await _context.Finds
+            .Where(f => f.UserId == userId)
+            .Select(f => f.QrCodeId)
+            .Distinct()
+            .CountAsync();
+    }
+
+    public async Task<IEnumerable<Find>> GetByUserAndCampaignAsync(int userId, int campaignId, int? take = null)
+    {
+        IOrderedQueryable<Find> query = _context.Finds
+            .Where(f => f.UserId == userId && f.QrCode!.CampaignId == campaignId)
+            .OrderByDescending(f => f.FoundAt);
+
+        if (take.HasValue && take.Value > 0)
+        {
+            return await query
+                .Take(take.Value)
+                .Include(f => f.QrCode)
+                .ThenInclude(q => q!.Campaign)
+                .Include(f => f.User)
+                .ToListAsync();
+        }
+
+        return await query
+            .Include(f => f.QrCode)
+            .ThenInclude(q => q!.Campaign)
+            .Include(f => f.User)
+            .ToListAsync();
     }
 
     /// <inheritdoc />

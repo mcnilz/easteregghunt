@@ -19,6 +19,7 @@ public interface IFindRepository
     /// <param name="userId">Benutzer-ID</param>
     /// <returns>Liste der Funde des Benutzers</returns>
     Task<IEnumerable<Find>> GetByUserIdAsync(int userId);
+    Task<int> GetCountByUserIdAsync(int userId);
 
     /// <summary>
     /// Ruft alle Funde eines QR-Codes ab
@@ -26,6 +27,7 @@ public interface IFindRepository
     /// <param name="qrCodeId">QR-Code-ID</param>
     /// <returns>Liste der Funde des QR-Codes</returns>
     Task<IEnumerable<Find>> GetByQrCodeIdAsync(int qrCodeId);
+    Task<int> GetCountByQrCodeIdAsync(int qrCodeId);
 
     /// <summary>
     /// Ruft alle Funde einer Kampagne ab
@@ -48,6 +50,22 @@ public interface IFindRepository
     /// <param name="qrCodeId">QR-Code-ID</param>
     /// <returns>True wenn der Benutzer den QR-Code bereits gefunden hat</returns>
     Task<bool> UserHasFoundQrCodeAsync(int userId, int qrCodeId);
+    Task<Find?> GetFirstByUserAndQrAsync(int userId, int qrCodeId);
+
+    /// <summary>
+    /// Aggregierte Kennzahlen für eine Kampagne (Funde gesamt, einzigartige Finder)
+    /// </summary>
+    Task<(int totalFinds, int uniqueFinders)> GetCampaignFindsAggregateAsync(int campaignId);
+
+    /// <summary>
+    /// Anzahl einzigartiger QR-Codes, die ein Benutzer gefunden hat
+    /// </summary>
+    Task<int> GetUniqueQrCodesCountByUserIdAsync(int userId);
+
+    /// <summary>
+    /// Ruft Funde eines Benutzers für eine Kampagne ab, optional begrenzt
+    /// </summary>
+    Task<IEnumerable<Find>> GetByUserAndCampaignAsync(int userId, int campaignId, int? take = null);
 
     /// <summary>
     /// Fügt einen neuen Fund hinzu

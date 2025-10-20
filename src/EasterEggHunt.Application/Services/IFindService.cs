@@ -60,4 +60,19 @@ public interface IFindService
     /// <param name="userId">Benutzer-ID</param>
     /// <returns>True wenn bereits gefunden</returns>
     Task<bool> HasUserFoundQrCodeAsync(int qrCodeId, int userId);
+
+    /// <summary>
+    /// Aggregierte Kampagnen-Fundzahlen (gesamt, einzigartige Finder)
+    /// </summary>
+    Task<(int totalFinds, int uniqueFinders)> GetCampaignFindsAggregateAsync(int campaignId);
+
+    /// <summary>
+    /// Anzahl einzigartiger QR-Codes, die ein Benutzer gefunden hat
+    /// </summary>
+    Task<int> GetUniqueQrCodesCountByUserIdAsync(int userId);
+
+    /// <summary>
+    /// Benutzer-Funde für Kampagne, optional limitiert, FoundAt DESC
+    /// </summary>
+    Task<IEnumerable<Find>> GetFindsByUserAndCampaignAsync(int userId, int campaignId, int? take = null);
 }
