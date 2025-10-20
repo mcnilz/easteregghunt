@@ -98,9 +98,9 @@ public class ScanResultViewModel
     public Find? PreviousFind { get; set; }
 
     /// <summary>
-    /// True wenn dies der erste Fund dieses QR-Codes durch diesen User ist
+    /// Gibt an, ob dies der erste Fund dieses QR-Codes durch diesen User ist
     /// </summary>
-    public bool IsFirstFind { get; set; }
+    public bool IsFirstFind => PreviousFind == null;
 
     /// <summary>
     /// Gesamtanzahl der Funde dieses Users

@@ -90,8 +90,8 @@ internal class FindApiHelper
     {
         try
         {
-            _logger.LogDebug("API-Aufruf: GET /api/finds/existing/{QrCodeId}/{UserId}", qrCodeId, userId);
-            var response = await _httpClient.GetAsync(new Uri($"/api/finds/existing/{qrCodeId}/{userId}", UriKind.Relative));
+            _logger.LogDebug("API-Aufruf: GET /api/finds/check?qrCodeId={QrCodeId}&userId={UserId}", qrCodeId, userId);
+            var response = await _httpClient.GetAsync(new Uri($"/api/finds/check?qrCodeId={qrCodeId}&userId={userId}", UriKind.Relative));
 
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {

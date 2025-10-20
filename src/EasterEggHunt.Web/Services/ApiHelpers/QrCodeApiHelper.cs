@@ -66,8 +66,8 @@ internal class QrCodeApiHelper
     {
         try
         {
-            _logger.LogDebug("API-Aufruf: GET /api/qrcodes/code/{Code}", code);
-            var response = await _httpClient.GetAsync(new Uri($"/api/qrcodes/code/{Uri.EscapeDataString(code)}", UriKind.Relative));
+            _logger.LogDebug("API-Aufruf: GET /api/qrcodes/by-code/{Code}", code);
+            var response = await _httpClient.GetAsync(new Uri($"/api/qrcodes/by-code/{Uri.EscapeDataString(code)}", UriKind.Relative));
 
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {

@@ -346,7 +346,6 @@ public class EmployeeController : Controller
                 QrCode = qrCode,
                 CurrentFind = currentFind,
                 PreviousFind = previousFind,
-                IsFirstFind = previousFind == null,
                 UserTotalFinds = userTotalFinds,
                 CampaignTotalQrCodes = campaignTotalQrCodes,
                 ProgressPercentage = progressPercentage

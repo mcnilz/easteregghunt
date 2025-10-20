@@ -13,6 +13,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - **Robuste JSON-Fehlerbehandlung**: Graceful Fallback bei API-Deserialisierungsfehlern
 - **QR-Code Mehrfach-Zählung verhindern**: Ein Nutzer kann QR-Code nur einmal finden
 - **Neue Tests**: Umfassende Test-Coverage für URL-System und Mehrfach-Scans
+- **Troubleshooting Guide**: Umfassende Anleitung für häufige Probleme und Lösungen
+- **Praktische Lektionen**: Dokumentation der gelernten Best Practices in DEVELOPER_GUIDE.md und CODING_GUIDELINES.md
+- **QR-Code-Scan-Tests**: Vollständige Unit Test-Coverage für alle Scan-Szenarien
 
 ### Geändert
 - **QrCode Entity**: `UniqueUrl` (Uri) → `Code` (string) - nur Code ohne Domain
@@ -27,6 +30,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - **JSON-Deserialisierungsfehler**: Robuste Behandlung leerer API-Antworten
 - **Mehrfach-Zählung**: Verhindert doppelte Fund-Registrierung für denselben QR-Code
 - **Domain-Flexibilität**: Server-URL-Wechsel ohne Datenbank-Migration möglich
+- **API-Endpoint-Inkonsistenz**: QR-Code-Scan-Problem durch korrekte Endpoint-URLs behoben
+- **Admin-Link-404-Fehler**: Fehlende Controller-Actions implementiert
+- **Test-Coverage-Lücken**: Umfassende Unit Tests für kritische User-Flows hinzugefügt
 
 ### Entfernt
 - **QrCodeUrl Value Object**: Nicht mehr benötigt durch Code-basiertes System

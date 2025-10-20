@@ -272,6 +272,53 @@ public class AdminController : Controller
     }
 
     /// <summary>
+    /// Kampagnen-Details anzeigen
+    /// </summary>
+    /// <param name="id">Kampagnen-ID</param>
+    /// <returns>Kampagnen-Details View</returns>
+    public async Task<IActionResult> CampaignDetails(int id)
+    {
+        try
+        {
+            _logger.LogInformation("Lade Kampagnen-Details für Kampagne {CampaignId}", id);
+
+            // Kampagne laden
+            var campaign = await _campaignService.GetCampaignByIdAsync(id);
+            if (campaign == null)
+            {
+                return NotFound();
+            }
+
+            // QR-Codes für die Kampagne laden
+            var qrCodes = await _qrCodeService.GetQrCodesByCampaignAsync(id);
+
+            // Statistiken laden
+            var statistics = await _statisticsService.GetCampaignStatisticsAsync(id);
+
+            // ViewModel erstellen
+            var viewModel = new Models.CampaignDetailsViewModel(qrCodes)
+            {
+                Campaign = campaign,
+                TotalFinds = statistics?.TotalFinds ?? 0,
+                UniqueFinders = 0, // TODO: Implementiere UniqueFinders in CampaignQrCodeStatisticsViewModel
+                Statistics = statistics
+            };
+
+            return View(viewModel);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Kampagnen-Details für Kampagne {CampaignId}", id);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Kampagnen-Details für Kampagne {CampaignId}", id);
+            return View("Error");
+        }
+    }
+
+    /// <summary>
     /// QR-Codes für eine Kampagne anzeigen
     /// </summary>
     /// <param name="id">Kampagnen-ID</param>

@@ -298,6 +298,130 @@ dotnet test --verbosity quiet
 dotnet test tests/EasterEggHunt.Integration.Tests --verbosity minimal
 ```
 
+## 🎓 Lektionen aus der Praxis
+
+### API-Endpoint-Konsistenz
+
+**Problem:** Client und Server verwenden unterschiedliche Endpoint-URLs
+**Lösung:** Strikte Konsistenz zwischen API-Controller und Client-Aufrufen
+
+```csharp
+// ❌ Falsch - Inkonsistente Endpoints
+// Controller: [HttpGet("by-code/{code}")]
+// Client:     "/api/qrcodes/code/{code}"
+
+// ✅ Korrekt - Konsistente Endpoints
+// Controller: [HttpGet("by-code/{code}")]
+// Client:     "/api/qrcodes/by-code/{code}"
+```
+
+**Best Practice:**
+- Endpoint-URLs in Konstanten definieren
+- Automatische Tests für API-Client-Endpoints
+- Swagger-Dokumentation als Referenz verwenden
+
+### Test-Coverage für kritische User-Flows
+
+**Problem:** QR-Code-Scan-Funktionalität hatte keine Unit Tests
+**Lösung:** Umfassende Test-Coverage für alle User-Interaktionen
+
+```csharp
+// ✅ Vollständige Test-Coverage für QR-Code-Scan
+[TestFixture]
+public class QrCodeScanTests
+{
+    [Test] public async Task ScanQrCode_WithValidCode_ReturnsScanResultView()
+    [Test] public async Task ScanQrCode_WithInvalidCode_ReturnsInvalidQrCodeView()
+    [Test] public async Task ScanQrCode_WithEmptyCode_ReturnsInvalidQrCodeView()
+    [Test] public async Task ScanQrCode_WithNullCode_ReturnsInvalidQrCodeView()
+    [Test] public async Task ScanQrCode_WithInactiveCampaign_ReturnsNoCampaignView()
+    [Test] public async Task ScanQrCode_WithAlreadyFoundQrCode_ReturnsScanResultView()
+    [Test] public async Task ScanQrCode_WithUnauthenticatedUser_RedirectsToRegister()
+}
+```
+
+**Best Practice:**
+- Unit Tests für alle Controller-Actions
+- Edge Cases explizit testen
+- Mock-basierte Tests für isolierte Tests
+- Integration Tests für End-to-End-Szenarien
+
+### Service-Layer-Refactoring
+
+**Problem:** Große Controller mit zu vielen Verantwortlichkeiten
+**Lösung:** Service-Layer für komplexe Business-Logik
+
+```csharp
+// ❌ Falsch - Controller mit zu vielen Verantwortlichkeiten
+public class AdminController : Controller
+{
+    // 500+ Zeilen Code
+    // Direkte API-Aufrufe
+    // Komplexe Business-Logik
+}
+
+// ✅ Korrekt - Service-Layer-Architektur
+public class AdminController : Controller
+{
+    private readonly ICampaignManagementService _campaignService;
+    private readonly IQrCodeManagementService _qrCodeService;
+    private readonly IStatisticsDisplayService _statisticsService;
+    private readonly IPrintLayoutService _printService;
+    
+    // Controller delegiert an Services
+    public async Task<IActionResult> CampaignDetails(int id)
+    {
+        var campaign = await _campaignService.GetCampaignByIdAsync(id);
+        var qrCodes = await _qrCodeService.GetQrCodesByCampaignAsync(id);
+        var statistics = await _statisticsService.GetCampaignStatisticsAsync(id);
+        
+        return View(new CampaignDetailsViewModel(qrCodes) { ... });
+    }
+}
+```
+
+**Best Practice:**
+- Controller sollten nur HTTP-Concerns handhaben
+- Business-Logik in Service-Layer
+- Dependency Injection für lose Kopplung
+- Interface-basierte Services für Testbarkeit
+
+### Fehlerbehandlung und Logging
+
+**Problem:** Unklare Fehlermeldungen und fehlende Logging-Kontexte
+**Lösung:** Strukturierte Fehlerbehandlung mit aussagekräftigen Logs
+
+```csharp
+// ✅ Korrekte Fehlerbehandlung
+public async Task<IActionResult> ScanQrCode(string? code)
+{
+    try
+    {
+        _logger.LogInformation("Registrierter Mitarbeiter scannt QR-Code: {Code}", code);
+        
+        var qrCode = await _apiClient.GetQrCodeByCodeAsync(code);
+        if (qrCode == null)
+        {
+            _logger.LogWarning("QR-Code mit Code '{Code}' nicht gefunden", code);
+            return View("InvalidQrCode");
+        }
+        
+        // ... weitere Logik
+    }
+    catch (HttpRequestException ex)
+    {
+        _logger.LogError(ex, "Fehler beim Abrufen des QR-Codes: {Code}", code);
+        return View("Error");
+    }
+}
+```
+
+**Best Practice:**
+- Strukturierte Logs mit Parametern
+- Spezifische Exception-Typen abfangen
+- Kontextuelle Informationen in Logs
+- Log-Levels korrekt verwenden (Information, Warning, Error)
+
 ## 🗄️ Datenbank
 
 ### Migrationen
