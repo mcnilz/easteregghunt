@@ -1,6 +1,7 @@
 using EasterEggHunt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EasterEggHunt.Integration.Tests;
 
@@ -20,10 +21,20 @@ public abstract class IntegrationTestBase : IDisposable
 
         // Service Provider für Tests erstellen
         var services = new ServiceCollection();
+        // Globales Test-Logging drosseln (EF-Core ruhigstellen)
+        services.AddLogging(b =>
+        {
+            b.ClearProviders();
+            b.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
+            b.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
+        });
+
         services.AddDbContext<EasterEggHuntDbContext>(options =>
         {
             options.UseSqlite($"Data Source={_databasePath}");
-            options.EnableSensitiveDataLogging();
+            // Test-Logs ruhig halten
+            options.EnableSensitiveDataLogging(false);
+            options.EnableDetailedErrors(false);
         });
 
         ServiceProvider = services.BuildServiceProvider();
