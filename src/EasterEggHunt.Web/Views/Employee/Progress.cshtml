@@ -1,0 +1,62 @@
+@model EasterEggHunt.Web.Models.ProgressViewModel
+
+<div class="container mt-4">
+    <h2>Dein Fortschritt</h2>
+    <p class="text-muted">Kampagne: @Model.CampaignName</p>
+
+    <div class="row mb-3">
+        <div class="col-md-4 mb-2">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Gefundene Verstecke</h5>
+                    <p class="card-text display-6">@Model.UniqueFound / @Model.TotalQrCodes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-2">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Verbleibend</h5>
+                    <p class="card-text display-6">@Model.Remaining</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-2">
+            <div class="card @((Model.IsCompleted ? "border-success" : ""))">
+                <div class="card-body">
+                    <h5 class="card-title">Fortschritt</h5>
+                    <div class="progress" role="progressbar" aria-valuenow="@Model.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: @Model.ProgressPercent%">@Model.ProgressPercent%</div>
+                    </div>
+                    @if (Model.IsCompleted)
+                    {
+                        <span class="badge bg-success mt-2">Glückwunsch! Alle Verstecke gefunden.</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4>Letzte Funde</h4>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>QR-Code</th>
+                    <th>Gefunden am</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var f in Model.RecentFinds)
+            {
+                <tr>
+                    <td>@f.Title</td>
+                    <td>@f.FoundAt.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+

@@ -170,6 +170,97 @@ public class EmployeeController : Controller
     }
 
     /// <summary>
+    /// Fortschritts-Seite des eingeloggten Mitarbeiters
+    /// </summary>
+    /// <returns>Progress View</returns>
+    public async Task<IActionResult> Progress()
+    {
+        // Auth prüfen
+        if (User.Identity?.IsAuthenticated != true || User.FindFirst("UserId") == null)
+        {
+            _logger.LogWarning("Nicht registrierter Benutzer ruft Progress auf");
+            return RedirectToAction(nameof(Register));
+        }
+
+        var userId = GetUserIdFromClaims();
+        if (!userId.HasValue)
+        {
+            _logger.LogError("User-ID konnte nicht aus Claims extrahiert werden (Progress)");
+            return RedirectToAction(nameof(Register));
+        }
+
+        // Aktive Kampagnen laden
+        var activeCampaigns = await _apiClient.GetActiveCampaignsAsync();
+        if (!activeCampaigns.Any())
+        {
+            _logger.LogWarning("Keine aktiven Kampagnen gefunden (Progress)");
+            return View("NoCampaign");
+        }
+
+        // Alle User-Funde abrufen
+        var userFinds = await _apiClient.GetFindsByUserIdAsync(userId.Value);
+
+        // Kampagne anhand des letzten gefundenen QR-Codes bestimmen
+        Campaign? campaign;
+        if (userFinds.Any())
+        {
+            var lastFind = userFinds.OrderByDescending(f => f.FoundAt).First();
+            var lastQrCode = await _apiClient.GetQrCodeByIdAsync(lastFind.QrCodeId);
+            if (lastQrCode != null)
+            {
+                // Versuche aktive Kampagne zu nutzen, ansonsten lade spezifische Kampagne
+                campaign = activeCampaigns.FirstOrDefault(c => c.Id == lastQrCode.CampaignId)
+                           ?? await _apiClient.GetCampaignByIdAsync(lastQrCode.CampaignId);
+            }
+            else
+            {
+                _logger.LogWarning("Letzter Fund verweist auf unbekannten QR-Code {QrCodeId}. Fallback auf erste aktive Kampagne.", lastFind.QrCodeId);
+                campaign = activeCampaigns.First();
+            }
+        }
+        else
+        {
+            // Kein Fund vorhanden: Fallback auf erste aktive Kampagne
+            campaign = activeCampaigns.First();
+        }
+
+        // QR-Codes der ermittelten Kampagne laden
+        var campaignQrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign!.Id);
+
+        // Auf Kampagnen-QR-Codes filtern und eindeutige QR-Codes zählen
+        var campaignQrCodeIds = campaignQrCodes.Select(q => q.Id).ToHashSet();
+        var findsInCampaign = userFinds.Where(f => campaignQrCodeIds.Contains(f.QrCodeId)).ToList();
+        var uniqueFound = findsInCampaign.Select(f => f.QrCodeId).Distinct().Count();
+
+        // Zuletzt gefundene Einträge inkl. Titel
+        var qrCodeIdToTitle = campaignQrCodes.ToDictionary(q => q.Id, q => q.Title);
+        var recent = findsInCampaign
+            .OrderByDescending(f => f.FoundAt)
+            .Take(10)
+            .Select(f => new ProgressRecentFindItem
+            {
+                QrCodeId = f.QrCodeId,
+                Title = qrCodeIdToTitle.TryGetValue(f.QrCodeId, out var t) ? t : $"QR-{f.QrCodeId}",
+                FoundAt = f.FoundAt
+            })
+            .ToList();
+
+        // Optional: Benutzername laden
+        var userStats = await _apiClient.GetUserStatisticsAsync(userId.Value);
+
+        var vm = new ProgressViewModel
+        {
+            UserName = userStats.UserName,
+            CampaignName = campaign.Name,
+            TotalQrCodes = campaignQrCodes.Count(),
+            UniqueFound = uniqueFound,
+            RecentFinds = recent
+        };
+
+        return View("Progress", vm);
+    }
+
+    /// <summary>
     /// QR-Code scannen - GET
     /// </summary>
     /// <param name="code">QR-Code Identifier</param>

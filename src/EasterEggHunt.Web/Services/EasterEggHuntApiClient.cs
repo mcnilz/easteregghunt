@@ -34,6 +34,10 @@ public interface IEasterEggHuntApiClient
     Task<Find> RegisterFindAsync(int qrCodeId, int userId, string ipAddress, string userAgent);
     Task<Find?> GetExistingFindAsync(int qrCodeId, int userId);
 
+    // User progress
+    Task<IEnumerable<Find>> GetFindsByUserIdAsync(int userId);
+    Task<UserStatistics> GetUserStatisticsAsync(int userId);
+
     // Authentication Operations
     Task<LoginResponse?> LoginAsync(string username, string password, bool rememberMe = false);
     Task LogoutAsync();
@@ -388,6 +392,24 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         }
     }
 
+    public async Task<IEnumerable<Find>> GetFindsByUserIdAsync(int userId)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: GET /api/finds/user/{UserId}", userId);
+            var response = await _httpClient.GetAsync(new Uri($"/api/finds/user/{userId}", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<IEnumerable<Find>>(content, _jsonOptions) ?? Enumerable.Empty<Find>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Funde für Benutzer {UserId}", userId);
+            throw;
+        }
+    }
+
     public async Task<int> GetFindCountByUserIdAsync(int userId)
     {
         try
@@ -610,6 +632,25 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Abrufen der Kampagnen-QR-Code-Statistiken für {CampaignId}", campaignId);
+            throw;
+        }
+    }
+
+    public async Task<UserStatistics> GetUserStatisticsAsync(int userId)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: GET /api/statistics/user/{UserId}", userId);
+            var response = await _httpClient.GetAsync(new Uri($"/api/statistics/user/{userId}", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var stats = JsonSerializer.Deserialize<UserStatistics>(content, _jsonOptions) ?? throw new InvalidOperationException("Deserialization failed");
+            return stats;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Benutzer-Statistiken für {UserId}", userId);
             throw;
         }
     }

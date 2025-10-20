@@ -448,6 +448,55 @@ public class EmployeeControllerTests : IDisposable
         Assert.That(viewResult!.ViewName, Is.EqualTo("InvalidQrCode"));
     }
 
+    [Test]
+    public async Task Progress_ReturnsView_WithCalculatedProgress()
+    {
+        var userId = 7;
+        var identity = new ClaimsIdentity("EmployeeScheme");
+        identity.AddClaim(new Claim("UserId", userId.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        _mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+
+        var campaign = new Campaign("Frühling", "Desc", "Admin") { Id = 1 };
+        _mockApiClient.Setup(x => x.GetActiveCampaignsAsync())
+            .ReturnsAsync(new List<Campaign> { campaign });
+
+        var qr1 = new QrCode(1, "Eingang", "", "") { Id = 10 };
+        var qr2 = new QrCode(1, "IT", "", "") { Id = 11 };
+        var qr3 = new QrCode(1, "HR", "", "") { Id = 12 };
+        _mockApiClient.Setup(x => x.GetQrCodesByCampaignIdAsync(campaign.Id))
+            .ReturnsAsync(new List<QrCode> { qr1, qr2, qr3 });
+
+        var finds = new List<Find>
+        {
+            new Find(qr1.Id, userId, "127.0.0.1", "UA"),
+            new Find(qr2.Id, userId, "127.0.0.1", "UA"),
+            new Find(qr2.Id, userId, "127.0.0.1", "UA")
+        };
+        finds[0].FoundAt = DateTime.UtcNow.AddHours(-3);
+        finds[1].FoundAt = DateTime.UtcNow.AddHours(-2);
+        finds[2].FoundAt = DateTime.UtcNow.AddHours(-1);
+
+        _mockApiClient.Setup(x => x.GetFindsByUserIdAsync(userId))
+            .ReturnsAsync(finds);
+
+        _mockApiClient.Setup(x => x.GetUserStatisticsAsync(userId))
+            .ReturnsAsync(new EasterEggHunt.Web.Models.UserStatistics { UserId = userId, UserName = "Alice" });
+
+        var result = await _controller.Progress();
+
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("Progress"));
+        Assert.That(viewResult.Model, Is.InstanceOf<ProgressViewModel>());
+        var vm = (ProgressViewModel)viewResult.Model!;
+        Assert.That(vm.TotalQrCodes, Is.EqualTo(3));
+        Assert.That(vm.UniqueFound, Is.EqualTo(2));
+        Assert.That(vm.Remaining, Is.EqualTo(1));
+        Assert.That(vm.ProgressPercent, Is.EqualTo((int)((double)2 / 3 * 100)));
+        Assert.That(vm.RecentFinds.Count, Is.GreaterThan(0));
+    }
+
     // Simplified tests for redirect logic - removed complex mocking
 
     public void Dispose()
