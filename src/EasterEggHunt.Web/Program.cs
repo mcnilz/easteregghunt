@@ -86,6 +86,12 @@ builder.Services.AddHttpClient<IEasterEggHuntApiClient, EasterEggHuntApiClient>(
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
+// Add Web-specific Services
+builder.Services.AddScoped<ICampaignManagementService, CampaignManagementService>();
+builder.Services.AddScoped<IQrCodeManagementService, QrCodeManagementService>();
+builder.Services.AddScoped<IStatisticsDisplayService, StatisticsDisplayService>();
+builder.Services.AddScoped<IPrintLayoutService, PrintLayoutService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

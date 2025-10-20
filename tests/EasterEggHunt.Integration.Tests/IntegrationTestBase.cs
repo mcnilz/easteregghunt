@@ -21,12 +21,21 @@ public abstract class IntegrationTestBase : IDisposable
 
         // Service Provider für Tests erstellen
         var services = new ServiceCollection();
-        // Globales Test-Logging drosseln (EF-Core ruhigstellen)
+        // Globales Test-Logging komplett stumm schalten
         services.AddLogging(b =>
         {
             b.ClearProviders();
-            b.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
+            b.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
             b.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.Migrations", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.Model", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.Model.Validation", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.ChangeTracking", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.InMemory", LogLevel.None);
+            b.AddFilter("Microsoft.EntityFrameworkCore.Sqlite", LogLevel.None);
         });
 
         services.AddDbContext<EasterEggHuntDbContext>(options =>
@@ -35,6 +44,24 @@ public abstract class IntegrationTestBase : IDisposable
             // Test-Logs ruhig halten
             options.EnableSensitiveDataLogging(false);
             options.EnableDetailedErrors(false);
+
+            // Explizit LoggerFactory für EF Core konfigurieren - komplett stumm
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.ClearProviders();
+                builder.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Migrations", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Model", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Model.Validation", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.ChangeTracking", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.InMemory", LogLevel.None);
+                builder.AddFilter("Microsoft.EntityFrameworkCore.Sqlite", LogLevel.None);
+            });
+            options.UseLoggerFactory(loggerFactory);
         });
 
         ServiceProvider = services.BuildServiceProvider();

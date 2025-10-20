@@ -14,6 +14,8 @@ public interface IEasterEggHuntApiClient
     Task<IEnumerable<Campaign>> GetActiveCampaignsAsync();
     Task<Campaign?> GetCampaignByIdAsync(int id);
     Task<Campaign> CreateCampaignAsync(string name, string description, string createdBy);
+    Task UpdateCampaignAsync(UpdateCampaignRequest request);
+    Task DeleteCampaignAsync(int id);
 
     // QR-Code Operations
     Task<IEnumerable<QrCode>> GetQrCodesByCampaignIdAsync(int campaignId);
@@ -136,6 +138,39 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
         catch (Exception ex)
         {
             _logger.LogError(ex, "Fehler beim Erstellen der Kampagne {CampaignName}", name);
+            throw;
+        }
+    }
+
+    public async Task UpdateCampaignAsync(UpdateCampaignRequest request)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: PUT /api/campaigns/{CampaignId}", request.Id);
+            var json = JsonSerializer.Serialize(request, _jsonOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PutAsync(new Uri($"/api/campaigns/{request.Id}", UriKind.Relative), content);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", request.Id);
+            throw;
+        }
+    }
+
+    public async Task DeleteCampaignAsync(int id)
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: DELETE /api/campaigns/{CampaignId}", id);
+            var response = await _httpClient.DeleteAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Löschen der Kampagne {CampaignId}", id);
             throw;
         }
     }
@@ -676,16 +711,6 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
     }
 
     #endregion
-}
-
-/// <summary>
-/// Request-Model für Kampagnen-Erstellung
-/// </summary>
-public class CreateCampaignRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string CreatedBy { get; set; } = string.Empty;
 }
 
 /// <summary>

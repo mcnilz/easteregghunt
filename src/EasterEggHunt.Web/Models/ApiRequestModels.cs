@@ -46,6 +46,12 @@ public class UpdateQrCodeRequest
     public int Id { get; set; }
 
     /// <summary>
+    /// ID der zugehörigen Kampagne
+    /// </summary>
+    [Required]
+    public int CampaignId { get; set; }
+
+    /// <summary>
     /// Neuer Titel des QR-Codes
     /// </summary>
     [Required]
@@ -64,6 +70,16 @@ public class UpdateQrCodeRequest
     [Required]
     [StringLength(500)]
     public string InternalNotes { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Sortierreihenfolge
+    /// </summary>
+    public int SortOrder { get; set; }
+
+    /// <summary>
+    /// Aktiv-Status
+    /// </summary>
+    public bool IsActive { get; set; }
 }
 
 /// <summary>
@@ -80,4 +96,62 @@ public class CheckUserNameResponse
     /// Der geprüfte Name
     /// </summary>
     public string Name { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request-Model für Kampagnen-Erstellung
+/// </summary>
+public class CreateCampaignRequest
+{
+    /// <summary>
+    /// Name der Kampagne
+    /// </summary>
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Beschreibung der Kampagne
+    /// </summary>
+    [Required]
+    [StringLength(500)]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Ersteller der Kampagne
+    /// </summary>
+    [Required]
+    [StringLength(100)]
+    public string CreatedBy { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request-Model für Kampagnen-Aktualisierung
+/// </summary>
+public class UpdateCampaignRequest
+{
+    /// <summary>
+    /// ID der Kampagne
+    /// </summary>
+    [Required]
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Neuer Name der Kampagne
+    /// </summary>
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Neue Beschreibung der Kampagne
+    /// </summary>
+    [Required]
+    [StringLength(500)]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Aktiv-Status der Kampagne
+    /// </summary>
+    public bool IsActive { get; set; }
 }

@@ -46,6 +46,12 @@ public class QrCodesControllerIntegrationTests : IDisposable
                 // Aktiviere Migration, aber deaktiviere SeedData für Tests
                 builder.UseSetting("EasterEggHunt:Database:SeedData", "false");
                 builder.UseSetting("EasterEggHunt:Database:AutoMigrate", "true");
+
+                // Logging-Level für EF Core auf Error setzen (unterdrückt SQL Query Logs)
+                builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Error");
+                builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore.Database.Command", "None");
+                builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore.Infrastructure", "Error");
+                builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore.Query", "None");
             });
 
         _client = _factory.CreateClient();

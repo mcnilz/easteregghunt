@@ -13,14 +13,23 @@ namespace EasterEggHunt.Web.Controllers;
 [Authorize]
 public class AdminController : Controller
 {
-    private readonly IEasterEggHuntApiClient _apiClient;
+    private readonly ICampaignManagementService _campaignService;
+    private readonly IQrCodeManagementService _qrCodeService;
+    private readonly IStatisticsDisplayService _statisticsService;
+    private readonly IPrintLayoutService _printService;
     private readonly ILogger<AdminController> _logger;
 
     public AdminController(
-        IEasterEggHuntApiClient apiClient,
+        ICampaignManagementService campaignService,
+        IQrCodeManagementService qrCodeService,
+        IStatisticsDisplayService statisticsService,
+        IPrintLayoutService printService,
         ILogger<AdminController> logger)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _campaignService = campaignService ?? throw new ArgumentNullException(nameof(campaignService));
+        _qrCodeService = qrCodeService ?? throw new ArgumentNullException(nameof(qrCodeService));
+        _statisticsService = statisticsService ?? throw new ArgumentNullException(nameof(statisticsService));
+        _printService = printService ?? throw new ArgumentNullException(nameof(printService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -33,59 +42,7 @@ public class AdminController : Controller
         try
         {
             _logger.LogInformation("Admin Dashboard wird geladen");
-
-            var campaigns = await _apiClient.GetActiveCampaignsAsync();
-            var users = await _apiClient.GetActiveUsersAsync();
-
-            // QR-Code Statistiken berechnen
-            var allQrCodes = new List<QrCode>();
-            var allFinds = new List<Find>();
-            var recentActivities = new List<RecentActivityViewModel>();
-
-            foreach (var campaign in campaigns)
-            {
-                var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign.Id);
-                allQrCodes.AddRange(qrCodes);
-
-                // Letzte Funde für diese Kampagne sammeln
-                foreach (var qrCode in qrCodes)
-                {
-                    var finds = await _apiClient.GetFindsByQrCodeIdAsync(qrCode.Id);
-                    allFinds.AddRange(finds);
-
-                    // Recent Activities für die letzten 10 Funde
-                    var recentFinds = finds
-                        .OrderByDescending(f => f.FoundAt)
-                        .Take(10)
-                        .Select(f => new RecentActivityViewModel
-                        {
-                            UserName = f.User?.Name ?? "Unbekannter Benutzer",
-                            QrCodeTitle = qrCode.Title,
-                            CampaignName = campaign.Name,
-                            FoundAt = f.FoundAt,
-                            IpAddress = f.IpAddress
-                        });
-
-                    recentActivities.AddRange(recentFinds);
-                }
-            }
-
-            // Recent Activities sortieren und auf 10 begrenzen
-            recentActivities = recentActivities
-                .OrderByDescending(a => a.FoundAt)
-                .Take(10)
-                .ToList();
-
-            var viewModel = new AdminDashboardViewModel(campaigns)
-            {
-                TotalUsers = users.Count(),
-                ActiveCampaigns = campaigns.Count(c => c.IsActive),
-                TotalQrCodes = allQrCodes.Count,
-                ActiveQrCodes = allQrCodes.Count(q => q.IsActive),
-                TotalFinds = allFinds.Count,
-                RecentActivities = recentActivities
-            };
-
+            var viewModel = await _statisticsService.BuildDashboardStatisticsAsync();
             return View(viewModel);
         }
         catch (HttpRequestException ex)
@@ -106,325 +63,281 @@ public class AdminController : Controller
     }
 
     /// <summary>
-    /// Kampagnen-Details anzeigen
+    /// Kampagnen-Übersicht
     /// </summary>
-    /// <param name="id">Kampagnen-ID</param>
-    /// <returns>Kampagnen-Details View</returns>
-    public async Task<IActionResult> CampaignDetails(int id)
+    /// <returns>Kampagnen-Liste</returns>
+    public async Task<IActionResult> Campaigns()
     {
         try
         {
-            _logger.LogInformation("Kampagnen-Details werden geladen für ID {CampaignId}", id);
+            _logger.LogInformation("Lade Kampagnen-Übersicht");
+            var campaigns = await _campaignService.GetActiveCampaignsAsync();
+            return View(campaigns);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Kampagnen");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Kampagnen");
+            return View("Error");
+        }
+    }
 
-            var campaign = await _apiClient.GetCampaignByIdAsync(id);
+    /// <summary>
+    /// Kampagne erstellen - GET
+    /// </summary>
+    /// <returns>Erstellungsformular</returns>
+    public IActionResult CreateCampaign()
+    {
+        return View(new Models.CreateCampaignRequest());
+    }
+
+    /// <summary>
+    /// Kampagne erstellen - POST
+    /// </summary>
+    /// <param name="request">Kampagnen-Daten</param>
+    /// <returns>Redirect oder View mit Fehlern</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateCampaign(Models.CreateCampaignRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(request);
+            }
+
+            _logger.LogInformation("Erstelle neue Kampagne: {CampaignName}", request.Name);
+            await _campaignService.CreateCampaignAsync(request);
+
+            TempData["SuccessMessage"] = $"Kampagne '{request.Name}' wurde erfolgreich erstellt.";
+            return RedirectToAction(nameof(Campaigns));
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Erstellen der Kampagne: {CampaignName}", request.Name);
+            ModelState.AddModelError("", "Fehler beim Erstellen der Kampagne. Bitte versuchen Sie es erneut.");
+            return View(request);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Ungültige Daten für Kampagne: {CampaignName}", request.Name);
+            ModelState.AddModelError("", ex.Message);
+            return View(request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Erstellen der Kampagne: {CampaignName}", request.Name);
+            ModelState.AddModelError("", "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
+            return View(request);
+        }
+    }
+
+    /// <summary>
+    /// Kampagne bearbeiten - GET
+    /// </summary>
+    /// <param name="id">Kampagnen-ID</param>
+    /// <returns>Bearbeitungsformular</returns>
+    public async Task<IActionResult> EditCampaign(int id)
+    {
+        try
+        {
+            var campaign = await _campaignService.GetCampaignByIdAsync(id);
             if (campaign == null)
             {
                 return NotFound();
             }
 
-            var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(id);
-            var totalFinds = 0;
-            var uniqueFinders = new HashSet<int>();
-
-            foreach (var qrCode in qrCodes)
+            var request = new Models.UpdateCampaignRequest
             {
-                var finds = await _apiClient.GetFindsByQrCodeIdAsync(qrCode.Id);
-                totalFinds += finds.Count();
-
-                foreach (var find in finds)
-                {
-                    uniqueFinders.Add(find.UserId);
-                }
-            }
-
-            var viewModel = new CampaignDetailsViewModel(qrCodes)
-            {
-                Campaign = campaign,
-                TotalFinds = totalFinds,
-                UniqueFinders = uniqueFinders.Count
+                Id = campaign.Id,
+                Name = campaign.Name,
+                Description = campaign.Description,
+                IsActive = campaign.IsActive
             };
 
-            // Load QR code statistics
-            try
-            {
-                var statistics = await _apiClient.GetCampaignQrCodeStatisticsAsync(id);
-                viewModel.Statistics = statistics;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Fehler beim Laden der QR-Code-Statistiken für Kampagne {CampaignId}", id);
-                // Continue without statistics - not critical for basic functionality
-            }
-
-            return View(viewModel);
+            return View(request);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der Kampagnen-Details für ID {CampaignId}", id);
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Laden der Kampagnen-Details für ID {CampaignId}", id);
+            _logger.LogError(ex, "Fehler beim Laden der Kampagne {CampaignId}", id);
             return View("Error");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Kampagnen-Details für ID {CampaignId}", id);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Kampagne {CampaignId}", id);
             return View("Error");
         }
     }
 
     /// <summary>
-    /// Neue Kampagne erstellen - GET
+    /// Kampagne bearbeiten - POST
     /// </summary>
-    /// <returns>Kampagne erstellen View</returns>
-    public IActionResult CreateCampaign()
-    {
-        return View(new CreateCampaignViewModel());
-    }
-
-    /// <summary>
-    /// Neue Kampagne erstellen - POST
-    /// </summary>
-    /// <param name="model">Kampagnen-Daten</param>
+    /// <param name="request">Kampagnen-Daten</param>
     /// <returns>Redirect oder View mit Fehlern</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateCampaign(CreateCampaignViewModel model)
+    public async Task<IActionResult> EditCampaign(Models.UpdateCampaignRequest request)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
         try
         {
-            _logger.LogInformation("Neue Kampagne wird erstellt: {CampaignName}", model.Name);
+            if (!ModelState.IsValid)
+            {
+                return View(request);
+            }
 
-            var campaign = await _apiClient.CreateCampaignAsync(
-                model.Name,
-                model.Description,
-                "Admin"); // In future sprints, get from authenticated user context
+            _logger.LogInformation("Aktualisiere Kampagne {CampaignId}: {CampaignName}", request.Id, request.Name);
+            await _campaignService.UpdateCampaignAsync(request);
 
-            return RedirectToAction(nameof(CampaignDetails), new { id = campaign.Id });
+            TempData["SuccessMessage"] = $"Kampagne '{request.Name}' wurde erfolgreich aktualisiert.";
+            return RedirectToAction(nameof(Campaigns));
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Erstellen der Kampagne {CampaignName}", model.Name);
-            ModelState.AddModelError("", "Verbindungsfehler zur API. Bitte versuchen Sie es erneut.");
-            return View(model);
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Erstellen der Kampagne {CampaignName}", model.Name);
-            ModelState.AddModelError("", "Die Anfrage dauerte zu lange. Bitte versuchen Sie es erneut.");
-            return View(model);
+            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", request.Id);
+            ModelState.AddModelError("", "Fehler beim Aktualisieren der Kampagne. Bitte versuchen Sie es erneut.");
+            return View(request);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Erstellen der Kampagne {CampaignName}", model.Name);
-            ModelState.AddModelError("", "Fehler beim Erstellen der Kampagne. Bitte versuchen Sie es erneut.");
-            return View(model);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Aktualisieren der Kampagne {CampaignId}", request.Id);
+            ModelState.AddModelError("", "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
+            return View(request);
         }
     }
 
     /// <summary>
-    /// Benutzer-Übersicht anzeigen
+    /// Kampagne löschen - GET
     /// </summary>
-    /// <returns>Benutzer-Übersicht View</returns>
-    public async Task<IActionResult> Users()
+    /// <param name="id">Kampagnen-ID</param>
+    /// <returns>Bestätigungsansicht</returns>
+    public async Task<IActionResult> DeleteCampaign(int id)
     {
         try
         {
-            _logger.LogInformation("Benutzer-Übersicht wird geladen");
-
-            var users = await _apiClient.GetActiveUsersAsync();
-            var userViewModels = new List<UserViewModel>();
-
-            foreach (var user in users)
+            var campaign = await _campaignService.GetCampaignByIdAsync(id);
+            if (campaign == null)
             {
-                var findCount = await _apiClient.GetFindCountByUserIdAsync(user.Id);
-                userViewModels.Add(new UserViewModel
-                {
-                    User = user,
-                    FindCount = findCount
-                });
+                return NotFound();
             }
 
-            return View(userViewModels);
+            return View(campaign);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der Benutzer-Übersicht");
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Laden der Benutzer-Übersicht");
+            _logger.LogError(ex, "Fehler beim Laden der Kampagne {CampaignId}", id);
             return View("Error");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Benutzer-Übersicht");
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Kampagne {CampaignId}", id);
             return View("Error");
         }
     }
 
     /// <summary>
-    /// Statistiken anzeigen
+    /// Kampagne löschen - POST
     /// </summary>
-    /// <returns>Statistiken View</returns>
-    public async Task<IActionResult> Statistics()
+    /// <param name="id">Kampagnen-ID</param>
+    /// <returns>Redirect</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [ActionName("DeleteCampaign")]
+    public async Task<IActionResult> DeleteCampaignConfirmed(int id)
     {
         try
         {
-            _logger.LogInformation("Statistiken werden geladen");
+            _logger.LogInformation("Lösche Kampagne {CampaignId}", id);
+            await _campaignService.DeleteCampaignAsync(id);
 
-            var campaigns = await _apiClient.GetActiveCampaignsAsync();
-            var users = await _apiClient.GetActiveUsersAsync();
-            var totalFinds = 0;
-            var totalQrCodes = 0;
-            var allQrCodeStatistics = new List<QrCodeStatisticsViewModel>();
+            TempData["SuccessMessage"] = "Kampagne wurde erfolgreich gelöscht.";
+            return RedirectToAction(nameof(Campaigns));
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Löschen der Kampagne {CampaignId}", id);
+            TempData["ErrorMessage"] = "Fehler beim Löschen der Kampagne. Bitte versuchen Sie es erneut.";
+            return RedirectToAction(nameof(Campaigns));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Löschen der Kampagne {CampaignId}", id);
+            TempData["ErrorMessage"] = "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.";
+            return RedirectToAction(nameof(Campaigns));
+        }
+    }
 
-            foreach (var campaign in campaigns)
+    /// <summary>
+    /// QR-Codes für eine Kampagne anzeigen
+    /// </summary>
+    /// <param name="id">Kampagnen-ID</param>
+    /// <returns>QR-Code-Liste</returns>
+    public async Task<IActionResult> QrCodes(int id)
+    {
+        try
+        {
+            var campaign = await _campaignService.GetCampaignByIdAsync(id);
+            if (campaign == null)
             {
-                var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign.Id);
-                totalQrCodes += qrCodes.Count();
-
-                foreach (var qrCode in qrCodes)
-                {
-                    var finds = await _apiClient.GetFindsByQrCodeIdAsync(qrCode.Id);
-                    totalFinds += finds.Count();
-                }
-
-                // Load campaign QR code statistics
-                try
-                {
-                    var campaignStats = await _apiClient.GetCampaignQrCodeStatisticsAsync(campaign.Id);
-                    allQrCodeStatistics.AddRange(campaignStats.QrCodeStatistics);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Fehler beim Laden der QR-Code-Statistiken für Kampagne {CampaignId}", campaign.Id);
-                }
+                return NotFound();
             }
 
-            // Calculate top found QR codes
-            var topFoundQrCodes = allQrCodeStatistics
-                .Where(q => q.FindCount > 0)
-                .OrderByDescending(q => q.FindCount)
-                .Take(10)
-                .ToList();
+            var qrCodes = await _qrCodeService.GetQrCodesByCampaignAsync(id);
 
-            // Group unfound QR codes by campaign
-            var unfoundQrCodesByCampaign = allQrCodeStatistics
-                .Where(q => q.FindCount == 0)
-                .GroupBy(q => q.CampaignName)
-                .ToDictionary(g => g.Key, g => (IReadOnlyList<QrCodeStatisticsViewModel>)g.ToList().AsReadOnly());
-
-            var viewModel = new StatisticsViewModel
+            var viewModel = new CampaignQrCodesViewModel
             {
-                TotalCampaigns = campaigns.Count(),
-                ActiveCampaigns = campaigns.Count(c => c.IsActive),
-                TotalUsers = users.Count(),
-                ActiveUsers = users.Count(u => u.IsActive),
-                TotalQrCodes = totalQrCodes,
-                TotalFinds = totalFinds,
-                TopFoundQrCodes = topFoundQrCodes.AsReadOnly(),
-                UnfoundQrCodesByCampaign = unfoundQrCodesByCampaign
+                Campaign = campaign,
+                QrCodes = qrCodes.ToList()
             };
 
             return View(viewModel);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der Statistiken");
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Laden der Statistiken");
+            _logger.LogError(ex, "Fehler beim Laden der QR-Codes für Kampagne {CampaignId}", id);
             return View("Error");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Statistiken");
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Codes für Kampagne {CampaignId}", id);
             return View("Error");
         }
     }
-
-    /// <summary>
-    /// QR-Code Statistiken anzeigen
-    /// </summary>
-    /// <param name="id">QR-Code-ID</param>
-    /// <returns>QR-Code Statistiken View</returns>
-    public async Task<IActionResult> QrCodeStatistics(int id)
-    {
-        try
-        {
-            _logger.LogInformation("QR-Code Statistiken werden geladen für ID {QrCodeId}", id);
-
-            var statistics = await _apiClient.GetQrCodeStatisticsAsync(id);
-            return View(statistics);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code-Statistiken für ID {QrCodeId}", id);
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code-Statistiken für ID {QrCodeId}", id);
-            return View("Error");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code-Statistiken für ID {QrCodeId}", id);
-            return View("Error");
-        }
-    }
-
-    #region QR-Code Management
 
     /// <summary>
     /// QR-Code erstellen - GET
     /// </summary>
     /// <param name="campaignId">Kampagnen-ID</param>
-    /// <returns>QR-Code erstellen View</returns>
+    /// <returns>Erstellungsformular</returns>
     public async Task<IActionResult> CreateQrCode(int campaignId)
     {
         try
         {
-            _logger.LogInformation("QR-Code erstellen für Kampagne {CampaignId}", campaignId);
-
-            var campaign = await _apiClient.GetCampaignByIdAsync(campaignId);
+            var campaign = await _campaignService.GetCampaignByIdAsync(campaignId);
             if (campaign == null)
             {
                 return NotFound();
             }
 
-            var viewModel = new CreateQrCodeViewModel
+            var request = new Models.CreateQrCodeRequest
             {
-                CampaignId = campaignId,
-                CampaignName = campaign.Name
+                CampaignId = campaignId
             };
 
-            return View(viewModel);
+            return View(request);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code erstellen Seite für Kampagne {CampaignId}", campaignId);
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code erstellen Seite für Kampagne {CampaignId}", campaignId);
+            _logger.LogError(ex, "Fehler beim Laden der Kampagne {CampaignId}", campaignId);
             return View("Error");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code erstellen Seite für Kampagne {CampaignId}", campaignId);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Kampagne {CampaignId}", campaignId);
             return View("Error");
         }
     }
@@ -432,51 +345,36 @@ public class AdminController : Controller
     /// <summary>
     /// QR-Code erstellen - POST
     /// </summary>
-    /// <param name="viewModel">QR-Code Daten</param>
-    /// <returns>Redirect zur Kampagnen-Details</returns>
+    /// <param name="request">QR-Code-Daten</param>
+    /// <returns>Redirect oder View mit Fehlern</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateQrCode(CreateQrCodeViewModel viewModel)
+    public async Task<IActionResult> CreateQrCode(Models.CreateQrCodeRequest request)
     {
         try
         {
-            _logger.LogInformation("QR-Code wird erstellt für Kampagne {CampaignId}", viewModel.CampaignId);
-
             if (!ModelState.IsValid)
             {
-                return View(viewModel);
+                return View(request);
             }
 
-            var request = new CreateQrCodeRequest
-            {
-                CampaignId = viewModel.CampaignId,
-                Title = viewModel.Title,
-                Description = viewModel.Description,
-                InternalNotes = viewModel.InternalNotes
-            };
+            _logger.LogInformation("Erstelle neuen QR-Code: {QrCodeTitle}", request.Title);
+            await _qrCodeService.CreateQrCodeAsync(request);
 
-            await _apiClient.CreateQrCodeAsync(request);
-
-            _logger.LogInformation("QR-Code erfolgreich erstellt für Kampagne {CampaignId}", viewModel.CampaignId);
-            return RedirectToAction(nameof(CampaignDetails), new { id = viewModel.CampaignId });
+            TempData["SuccessMessage"] = $"QR-Code '{request.Title}' wurde erfolgreich erstellt.";
+            return RedirectToAction(nameof(QrCodes), new { id = request.CampaignId });
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Erstellen des QR-Codes für Kampagne {CampaignId}", viewModel.CampaignId);
-            ModelState.AddModelError("", "Verbindungsfehler zur API. Bitte versuchen Sie es erneut.");
-            return View(viewModel);
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Erstellen des QR-Codes für Kampagne {CampaignId}", viewModel.CampaignId);
-            ModelState.AddModelError("", "Die Anfrage dauerte zu lange. Bitte versuchen Sie es erneut.");
-            return View(viewModel);
+            _logger.LogError(ex, "Fehler beim Erstellen des QR-Codes: {QrCodeTitle}", request.Title);
+            ModelState.AddModelError("", "Fehler beim Erstellen des QR-Codes. Bitte versuchen Sie es erneut.");
+            return View(request);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Erstellen des QR-Codes für Kampagne {CampaignId}", viewModel.CampaignId);
-            ModelState.AddModelError("", "Fehler beim Erstellen des QR-Codes. Bitte versuchen Sie es erneut.");
-            return View(viewModel);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Erstellen des QR-Codes: {QrCodeTitle}", request.Title);
+            ModelState.AddModelError("", "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
+            return View(request);
         }
     }
 
@@ -484,43 +382,38 @@ public class AdminController : Controller
     /// QR-Code bearbeiten - GET
     /// </summary>
     /// <param name="id">QR-Code-ID</param>
-    /// <returns>QR-Code bearbeiten View</returns>
+    /// <returns>Bearbeitungsformular</returns>
     public async Task<IActionResult> EditQrCode(int id)
     {
         try
         {
-            _logger.LogInformation("QR-Code bearbeiten für ID {QrCodeId}", id);
-
-            var qrCode = await _apiClient.GetQrCodeByIdAsync(id);
+            var qrCode = await _qrCodeService.GetQrCodeByIdAsync(id);
             if (qrCode == null)
             {
                 return NotFound();
             }
 
-            var viewModel = new EditQrCodeViewModel
+            var request = new Models.UpdateQrCodeRequest
             {
                 Id = qrCode.Id,
                 CampaignId = qrCode.CampaignId,
                 Title = qrCode.Title,
                 Description = qrCode.Description,
-                InternalNotes = qrCode.InternalNotes
+                InternalNotes = qrCode.InternalNotes,
+                SortOrder = qrCode.SortOrder,
+                IsActive = qrCode.IsActive
             };
 
-            return View(viewModel);
+            return View(request);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code bearbeiten Seite für ID {QrCodeId}", id);
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code bearbeiten Seite für ID {QrCodeId}", id);
+            _logger.LogError(ex, "Fehler beim Laden des QR-Codes {QrCodeId}", id);
             return View("Error");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code bearbeiten Seite für ID {QrCodeId}", id);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden des QR-Codes {QrCodeId}", id);
             return View("Error");
         }
     }
@@ -528,51 +421,36 @@ public class AdminController : Controller
     /// <summary>
     /// QR-Code bearbeiten - POST
     /// </summary>
-    /// <param name="viewModel">QR-Code Daten</param>
-    /// <returns>Redirect zur Kampagnen-Details</returns>
+    /// <param name="request">QR-Code-Daten</param>
+    /// <returns>Redirect oder View mit Fehlern</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditQrCode(EditQrCodeViewModel viewModel)
+    public async Task<IActionResult> EditQrCode(Models.UpdateQrCodeRequest request)
     {
         try
         {
-            _logger.LogInformation("QR-Code wird bearbeitet für ID {QrCodeId}", viewModel.Id);
-
             if (!ModelState.IsValid)
             {
-                return View(viewModel);
+                return View(request);
             }
 
-            var request = new UpdateQrCodeRequest
-            {
-                Id = viewModel.Id,
-                Title = viewModel.Title,
-                Description = viewModel.Description,
-                InternalNotes = viewModel.InternalNotes
-            };
+            _logger.LogInformation("Aktualisiere QR-Code {QrCodeId}: {QrCodeTitle}", request.Id, request.Title);
+            await _qrCodeService.UpdateQrCodeAsync(request);
 
-            await _apiClient.UpdateQrCodeAsync(request);
-
-            _logger.LogInformation("QR-Code erfolgreich bearbeitet für ID {QrCodeId}", viewModel.Id);
-            return RedirectToAction(nameof(CampaignDetails), new { id = viewModel.CampaignId });
+            TempData["SuccessMessage"] = $"QR-Code '{request.Title}' wurde erfolgreich aktualisiert.";
+            return RedirectToAction(nameof(QrCodes), new { id = request.CampaignId });
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Bearbeiten des QR-Codes für ID {QrCodeId}", viewModel.Id);
-            ModelState.AddModelError("", "Verbindungsfehler zur API. Bitte versuchen Sie es erneut.");
-            return View(viewModel);
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Bearbeiten des QR-Codes für ID {QrCodeId}", viewModel.Id);
-            ModelState.AddModelError("", "Die Anfrage dauerte zu lange. Bitte versuchen Sie es erneut.");
-            return View(viewModel);
+            _logger.LogError(ex, "Fehler beim Aktualisieren des QR-Codes {QrCodeId}", request.Id);
+            ModelState.AddModelError("", "Fehler beim Aktualisieren des QR-Codes. Bitte versuchen Sie es erneut.");
+            return View(request);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Bearbeiten des QR-Codes für ID {QrCodeId}", viewModel.Id);
-            ModelState.AddModelError("", "Fehler beim Bearbeiten des QR-Codes. Bitte versuchen Sie es erneut.");
-            return View(viewModel);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Aktualisieren des QR-Codes {QrCodeId}", request.Id);
+            ModelState.AddModelError("", "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
+            return View(request);
         }
     }
 
@@ -580,44 +458,27 @@ public class AdminController : Controller
     /// QR-Code löschen - GET
     /// </summary>
     /// <param name="id">QR-Code-ID</param>
-    /// <returns>QR-Code löschen Bestätigung</returns>
+    /// <returns>Bestätigungsansicht</returns>
     public async Task<IActionResult> DeleteQrCode(int id)
     {
         try
         {
-            _logger.LogInformation("QR-Code löschen für ID {QrCodeId}", id);
-
-            var qrCode = await _apiClient.GetQrCodeByIdAsync(id);
+            var qrCode = await _qrCodeService.GetQrCodeByIdAsync(id);
             if (qrCode == null)
             {
                 return NotFound();
             }
 
-            var campaign = await _apiClient.GetCampaignByIdAsync(qrCode.CampaignId);
-            var viewModel = new DeleteQrCodeViewModel
-            {
-                Id = qrCode.Id,
-                CampaignId = qrCode.CampaignId,
-                CampaignName = campaign?.Name ?? "Unbekannte Kampagne",
-                Title = qrCode.Title,
-                Description = qrCode.Description
-            };
-
-            return View(viewModel);
+            return View(qrCode);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code löschen Seite für ID {QrCodeId}", id);
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code löschen Seite für ID {QrCodeId}", id);
+            _logger.LogError(ex, "Fehler beim Laden des QR-Codes {QrCodeId}", id);
             return View("Error");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code löschen Seite für ID {QrCodeId}", id);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden des QR-Codes {QrCodeId}", id);
             return View("Error");
         }
     }
@@ -626,7 +487,7 @@ public class AdminController : Controller
     /// QR-Code löschen - POST
     /// </summary>
     /// <param name="id">QR-Code-ID</param>
-    /// <returns>Redirect zur Kampagnen-Details</returns>
+    /// <returns>Redirect</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     [ActionName("DeleteQrCode")]
@@ -634,108 +495,139 @@ public class AdminController : Controller
     {
         try
         {
-            _logger.LogInformation("QR-Code wird gelöscht für ID {QrCodeId}", id);
-
-            var qrCode = await _apiClient.GetQrCodeByIdAsync(id);
+            var qrCode = await _qrCodeService.GetQrCodeByIdAsync(id);
             if (qrCode == null)
             {
                 return NotFound();
             }
 
-            var campaignId = qrCode.CampaignId;
-            await _apiClient.DeleteQrCodeAsync(id);
+            _logger.LogInformation("Lösche QR-Code {QrCodeId}", id);
+            await _qrCodeService.DeleteQrCodeAsync(id);
 
-            _logger.LogInformation("QR-Code erfolgreich gelöscht für ID {QrCodeId}", id);
-            return RedirectToAction(nameof(CampaignDetails), new { id = campaignId });
+            TempData["SuccessMessage"] = "QR-Code wurde erfolgreich gelöscht.";
+            return RedirectToAction(nameof(QrCodes), new { id = qrCode.CampaignId });
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Löschen des QR-Codes für ID {QrCodeId}", id);
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Löschen des QR-Codes für ID {QrCodeId}", id);
-            return View("Error");
+            _logger.LogError(ex, "Fehler beim Löschen des QR-Codes {QrCodeId}", id);
+            TempData["ErrorMessage"] = "Fehler beim Löschen des QR-Codes. Bitte versuchen Sie es erneut.";
+            return RedirectToAction(nameof(QrCodes));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Löschen des QR-Codes für ID {QrCodeId}", id);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Löschen des QR-Codes {QrCodeId}", id);
+            TempData["ErrorMessage"] = "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.";
+            return RedirectToAction(nameof(QrCodes));
+        }
+    }
+
+    /// <summary>
+    /// QR-Codes neu sortieren
+    /// </summary>
+    /// <param name="campaignId">Kampagnen-ID</param>
+    /// <param name="qrCodeIds">Sortierte QR-Code-IDs</param>
+    /// <returns>JSON-Ergebnis</returns>
+    [HttpPost]
+    public async Task<IActionResult> ReorderQrCodes(int campaignId, [FromBody] int[] qrCodeIds)
+    {
+        try
+        {
+            if (qrCodeIds == null || qrCodeIds.Length == 0)
+            {
+                return BadRequest("Keine QR-Code-IDs angegeben");
+            }
+
+            _logger.LogInformation("Sortiere QR-Codes für Kampagne {CampaignId} neu", campaignId);
+            await _qrCodeService.ReorderQrCodesAsync(campaignId, qrCodeIds);
+
+            return Json(new { success = true });
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Neusortieren der QR-Codes für Kampagne {CampaignId}", campaignId);
+            return Json(new { success = false, error = "Fehler beim Neusortieren der QR-Codes" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Neusortieren der QR-Codes für Kampagne {CampaignId}", campaignId);
+            return Json(new { success = false, error = "Ein unerwarteter Fehler ist aufgetreten" });
+        }
+    }
+
+    /// <summary>
+    /// Print-Layout für QR-Codes
+    /// </summary>
+    /// <param name="id">Kampagnen-ID</param>
+    /// <returns>Print-Layout-Ansicht</returns>
+    public async Task<IActionResult> PrintQrCodes(int id)
+    {
+        try
+        {
+            var printData = await _printService.PreparePrintDataAsync(id);
+            return View(printData);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Print-Daten für Kampagne {CampaignId}", id);
+            return View("Error");
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Kampagne {CampaignId} nicht gefunden", id);
+            return NotFound();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Print-Daten für Kampagne {CampaignId}", id);
             return View("Error");
         }
     }
 
     /// <summary>
-    /// QR-Code Druckansicht für eine Kampagne
+    /// Kampagnen-Statistiken
     /// </summary>
-    /// <param name="campaignId">Kampagnen-ID</param>
-    /// <param name="qrCodeIds">Komma-getrennte Liste der QR-Code-IDs (optional)</param>
-    /// <param name="size">QR-Code-Größe in Pixeln (Standard: 200)</param>
-    /// <param name="showTitles">Titel anzeigen (Standard: true)</param>
-    /// <returns>Druckansicht</returns>
-    public async Task<IActionResult> PrintQrCodes(int campaignId, string? qrCodeIds = null, int size = 200, bool showTitles = true)
+    /// <param name="id">Kampagnen-ID</param>
+    /// <returns>Statistik-Ansicht</returns>
+    public async Task<IActionResult> CampaignStatistics(int id)
     {
         try
         {
-            _logger.LogInformation("QR-Code Druckansicht für Kampagne {CampaignId}", campaignId);
-
-            var campaign = await _apiClient.GetCampaignByIdAsync(campaignId);
-            if (campaign == null)
-            {
-                return NotFound();
-            }
-
-            var allQrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaignId);
-            var qrCodesToPrint = allQrCodes.ToList();
-
-            // Filter nach spezifischen QR-Code-IDs falls angegeben
-            if (!string.IsNullOrWhiteSpace(qrCodeIds))
-            {
-                var selectedIds = qrCodeIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(id => int.TryParse(id.Trim(), out var parsedId) ? parsedId : -1)
-                    .Where(id => id > 0)
-                    .ToList();
-
-                if (selectedIds.Any())
-                {
-                    var filteredQrCodes = qrCodesToPrint.Where(q => selectedIds.Contains(q.Id)).ToList();
-                    // Nur filtern wenn tatsächlich QR-Codes gefunden wurden
-                    if (filteredQrCodes.Any())
-                    {
-                        qrCodesToPrint = filteredQrCodes;
-                    }
-                }
-            }
-
-            // Sortierung nach SortOrder
-            qrCodesToPrint = qrCodesToPrint.OrderBy(q => q.SortOrder).ToList();
-
-            var viewModel = new PrintQrCodesViewModel
-            {
-                Campaign = campaign,
-                QrCodes = qrCodesToPrint,
-                Size = Math.Max(50, Math.Min(500, size)), // Zwischen 50 und 500 Pixeln begrenzen
-                ShowTitles = showTitles
-            };
-
-            return View(viewModel);
+            var statistics = await _statisticsService.GetCampaignStatisticsAsync(id);
+            return View(statistics);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "API-Verbindungsfehler beim Laden der QR-Code Druckansicht für Kampagne {CampaignId}", campaignId);
-            return View("Error");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "API-Timeout beim Laden der QR-Code Druckansicht für Kampagne {CampaignId}", campaignId);
+            _logger.LogError(ex, "Fehler beim Laden der Statistiken für Kampagne {CampaignId}", id);
             return View("Error");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der QR-Code Druckansicht für Kampagne {CampaignId}", campaignId);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Statistiken für Kampagne {CampaignId}", id);
             return View("Error");
         }
     }
 
-    #endregion
+    /// <summary>
+    /// QR-Code-Statistiken
+    /// </summary>
+    /// <param name="id">QR-Code-ID</param>
+    /// <returns>Statistik-Ansicht</returns>
+    public async Task<IActionResult> QrCodeStatistics(int id)
+    {
+        try
+        {
+            var statistics = await _statisticsService.GetQrCodeStatisticsAsync(id);
+            return View(statistics);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Statistiken für QR-Code {QrCodeId}", id);
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Statistiken für QR-Code {QrCodeId}", id);
+            return View("Error");
+        }
+    }
 }
