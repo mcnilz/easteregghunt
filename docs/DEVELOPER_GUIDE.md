@@ -248,6 +248,56 @@ dotnet test tests/EasterEggHunt.Api.Tests/
 - **Aktuell**: 80% Line Coverage, 100% Branch Coverage
 - **Coverage-Report**: `./coverage/report/index.html`
 
+### 🔇 Ruhige Test-Logs
+
+Das Projekt ist so konfiguriert, dass Test-Ausgaben sauber und fokussiert bleiben:
+
+#### Automatische Log-Unterdrückung
+
+- **EF Core SQL-Logs**: Werden in Tests automatisch unterdrückt
+- **Migration-Spam**: Nur bei Fehlern sichtbar
+- **Sensitive Data**: In Tests deaktiviert
+- **Detailed Errors**: Nur in Development aktiv
+
+#### Konfiguration
+
+```json
+// appsettings.Test.json (API & Web)
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning",
+      "Microsoft.EntityFrameworkCore.Database.Command": "Error"
+    }
+  }
+}
+```
+
+#### Integration Tests
+
+Die `IntegrationTestBase` Klasse konfiguriert automatisch:
+- Logging-Filter für EF Core
+- SensitiveDataLogging deaktiviert
+- DetailedErrors deaktiviert
+- Nur Warnungen und Fehler werden angezeigt
+
+#### Troubleshooting
+
+Falls doch zu viele Logs angezeigt werden:
+
+```bash
+# Verbose-Modus für Debugging
+dotnet test --verbosity detailed
+
+# Nur Fehler anzeigen
+dotnet test --verbosity quiet
+
+# Spezifische Tests mit minimaler Ausgabe
+dotnet test tests/EasterEggHunt.Integration.Tests --verbosity minimal
+```
+
 ## 🗄️ Datenbank
 
 ### Migrationen
