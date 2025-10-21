@@ -11,23 +11,24 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - **Integration Tests Implementation**: 163 Integration Tests für komplette User-Journeys
 - **Documentation Audit**: Umfassende Überprüfung aller Dokumentation auf Aktualität
 - **Test-Pyramide Optimierung**: Repository + Controller + Workflow Tests strukturiert
+- **WebApplicationFactory Architektur**: Hierarchische Factory-Klassen für saubere Integration Tests
+- **TestWebApplicationFactoryBase**: Basis-Klasse mit zentralisierter Logging-Konfiguration
+- **ControllerTestWebApplicationFactory**: Spezialisierte Factory für Controller Tests
 
 ### Geändert
 - **Test-Count Updates**: Dokumentation aktualisiert von 149 auf 652+ Tests
 - **Coverage Requirements**: Realistische 80% Coverage-Schwelle statt 90%
 - **Script References**: Korrekte Verweise auf easter-egg-hunt.* Skripte
+- **TestWebApplicationFactory**: Refactored zu erben von TestWebApplicationFactoryBase
+- **QrCodesControllerIntegrationTests**: Verwendet jetzt ControllerTestWebApplicationFactory
+- **Integration Test Architektur**: Dokumentation erweitert um WebApplicationFactory Guidelines
 
 ### Behoben
 - **Dokumentations-Inkonsistenzen**: Test-Zahlen und Coverage-Requirements korrigiert
 - **Script-Referenzen**: Verweise auf nicht-existierende Skripte behoben
-- **QR-Code URL-System Refactoring**: Dynamische URL-Generierung ohne Domain-Speicherung
-- **Mehrere aktive Kampagnen**: Unterstützung für gleichzeitige aktive Kampagnen
-- **Robuste JSON-Fehlerbehandlung**: Graceful Fallback bei API-Deserialisierungsfehlern
-- **QR-Code Mehrfach-Zählung verhindern**: Ein Nutzer kann QR-Code nur einmal finden
-- **Neue Tests**: Umfassende Test-Coverage für URL-System und Mehrfach-Scans
-- **Troubleshooting Guide**: Umfassende Anleitung für häufige Probleme und Lösungen
-- **Praktische Lektionen**: Dokumentation der gelernten Best Practices in DEVELOPER_GUIDE.md und CODING_GUIDELINES.md
-- **QR-Code-Scan-Tests**: Vollständige Unit Test-Coverage für alle Scan-Szenarien
+- **Integration Test Logging**: Application-Logs komplett unterdrückt für saubere Test-Ausgabe
+- **WebApplicationFactory Code-Duplikation**: DRY-Prinzip durch hierarchische Architektur
+- **Test-Wartbarkeit**: Logging-Konfiguration zentral verwaltet
 
 ### Geändert
 - **QrCode Entity**: `UniqueUrl` (Uri) → `Code` (string) - nur Code ohne Domain

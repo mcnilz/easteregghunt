@@ -16,9 +16,9 @@ using Microsoft.Extensions.Logging;
 namespace EasterEggHunt.Integration.Tests.Helpers;
 
 /// <summary>
-/// WebApplicationFactory für Integration Tests mit echter SQLite-Datenbank
+/// WebApplicationFactory für Integration Tests mit echter SQLite-Datenbank und Seed-Daten
 /// </summary>
-public class TestWebApplicationFactory : WebApplicationFactory<IApiMarker>, IDisposable
+public class TestWebApplicationFactory : TestWebApplicationFactoryBase
 {
     private readonly string _databasePath;
     private bool _disposed;
@@ -37,6 +37,9 @@ public class TestWebApplicationFactory : WebApplicationFactory<IApiMarker>, IDis
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Basis-Konfiguration aufrufen (Logging ist bereits konfiguriert)
+        base.ConfigureWebHost(builder);
+
         builder.ConfigureServices(services =>
         {
             // Entferne die ursprüngliche DbContext-Konfiguration
@@ -53,31 +56,23 @@ public class TestWebApplicationFactory : WebApplicationFactory<IApiMarker>, IDis
                 options.EnableSensitiveDataLogging(false);
                 options.EnableDetailedErrors(false);
             });
-
-            // Test-Logging komplett stumm schalten
-            services.AddLogging(b =>
-            {
-                b.ClearProviders();
-                b.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.Migrations", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.Model", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.Model.Validation", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.ChangeTracking", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.InMemory", LogLevel.None);
-                b.AddFilter("Microsoft.EntityFrameworkCore.Sqlite", LogLevel.None);
-            });
         });
 
-        // Configure the application to use test settings
-        builder.UseEnvironment("Test");
+        // Überschreibe die appsettings.Test.json Logging-Konfiguration
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["Logging:LogLevel:Default"] = "Critical",
+                ["Logging:LogLevel:Microsoft"] = "Critical",
+                ["Logging:LogLevel:Microsoft.AspNetCore"] = "Critical",
+                ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Critical",
+                ["Logging:LogLevel:System"] = "Critical",
+                ["Logging:LogLevel:EasterEggHunt"] = "Critical",
+                ["Logging:LogLevel:EasterEggHunt.Application"] = "Critical",
+                ["Logging:LogLevel:EasterEggHunt.Application.Services"] = "Critical",
+                ["Logging:LogLevel:EasterEggHunt.Infrastructure"] = "Critical",
+                ["Logging:LogLevel:EasterEggHunt.Api"] = "Critical",
                 ["ConnectionStrings:DefaultConnection"] = $"Data Source={_databasePath}",
                 ["EasterEggHunt:Database:SeedData"] = "false",
                 ["EasterEggHunt:Database:AutoMigrate"] = "true",
@@ -86,6 +81,9 @@ public class TestWebApplicationFactory : WebApplicationFactory<IApiMarker>, IDis
                 ["Cors:AllowedHeaders"] = "*"
             });
         });
+
+        // Configure the application to use test settings
+        builder.UseEnvironment("Test");
     }
 
     /// <summary>
@@ -237,12 +235,10 @@ public class TestWebApplicationFactory : WebApplicationFactory<IApiMarker>, IDis
     /// <summary>
     /// Bereinigt die Test-Datenbank
     /// </summary>
-    public new void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (disposing && !_disposed)
         {
-            base.Dispose();
-
             // Test-Datenbank löschen
             if (File.Exists(_databasePath))
             {
@@ -258,6 +254,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<IApiMarker>, IDis
 
             _disposed = true;
         }
-        GC.SuppressFinalize(this);
+        base.Dispose(disposing);
     }
 }

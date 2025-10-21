@@ -305,6 +305,32 @@ Das System verfügt über umfassende Integration Tests, die komplette User-Journ
   🔺🔺🔺 Repository Integration Tests (12 Tests)
 ```
 
+#### WebApplicationFactory Architektur
+
+Das System verwendet eine hierarchische WebApplicationFactory Architektur für saubere und wartbare Integration Tests:
+
+**`TestWebApplicationFactoryBase`** - Basis-Klasse:
+- **Zentralisierte Logging-Konfiguration** (`LogLevel.Critical`)
+- **Basis-Test-Einstellungen** (SeedData=false, AutoMigrate=true, CORS)
+- **Wiederverwendbare** Konfiguration für alle Test-Typen
+
+**`ControllerTestWebApplicationFactory`** - Für Controller Tests:
+- **Erbt** von `TestWebApplicationFactoryBase`
+- **Eigene SQLite-Datenbank** pro Test
+- **Automatische Datenbank-Bereinigung`
+- **Verwendet** von `QrCodesControllerIntegrationTests`
+
+**`TestWebApplicationFactory`** - Für Workflow Tests:
+- **Erbt** von `TestWebApplicationFactoryBase`
+- **Seed-Daten** für komplexe Workflow Tests
+- **Verwendet** von allen Workflow Tests (CampaignLifecycle, EmployeeJourney, etc.)
+
+**Vorteile:**
+- **DRY-Prinzip** - keine Code-Duplikation mehr
+- **Wartbarkeit** - Logging-Konfiguration zentral verwaltet
+- **Saubere Tests** - Tests fokussieren sich auf Test-Logik, nicht auf Setup
+- **Spezialisierung** - Spezifische Factories für verschiedene Test-Anforderungen
+
 ## 🔒 Security Architecture
 
 ### Authentication & Authorization

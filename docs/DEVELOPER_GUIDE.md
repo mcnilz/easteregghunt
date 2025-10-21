@@ -248,6 +248,65 @@ dotnet test tests/EasterEggHunt.Api.Tests/
 - **Aktuell**: Domain 66.4%, Application 68.42%, Infrastructure 34.04%
 - **Coverage-Report**: `./coverage/report/index.html`
 
+### Integration Tests
+
+Das System verwendet eine hierarchische WebApplicationFactory Architektur für saubere Integration Tests:
+
+#### WebApplicationFactory Klassen
+
+**`TestWebApplicationFactoryBase`** - Basis-Klasse:
+```csharp
+// Zentralisierte Logging-Konfiguration
+builder.ConfigureLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.SetMinimumLevel(LogLevel.Critical);
+    logging.AddFilter("Microsoft", LogLevel.None);
+    logging.AddFilter("System", LogLevel.None);
+    logging.AddFilter("EasterEggHunt", LogLevel.None);
+});
+```
+
+**`ControllerTestWebApplicationFactory`** - Für Controller Tests:
+```csharp
+public class QrCodesControllerIntegrationTests : IDisposable
+{
+    private ControllerTestWebApplicationFactory? _factory;
+    
+    [SetUp]
+    public void Setup()
+    {
+        _factory = new ControllerTestWebApplicationFactory();
+        _client = _factory.CreateClient();
+        // Test-Daten laden
+        SeedTestData();
+    }
+}
+```
+
+**`TestWebApplicationFactory`** - Für Workflow Tests:
+```csharp
+public class CampaignLifecycleIntegrationTests : IDisposable
+{
+    private TestWebApplicationFactory _factory = null!;
+    
+    [SetUp]
+    public async Task Setup()
+    {
+        _factory = new TestWebApplicationFactory();
+        await _factory.SeedTestDataAsync();
+        _client = _factory.CreateClient();
+    }
+}
+```
+
+#### Vorteile der neuen Architektur
+
+- **DRY-Prinzip** - keine Code-Duplikation mehr
+- **Wartbarkeit** - Logging-Konfiguration zentral verwaltet
+- **Saubere Tests** - Tests fokussieren sich auf Test-Logik, nicht auf Setup
+- **Spezialisierung** - Spezifische Factories für verschiedene Test-Anforderungen
+
 ### 🔇 Ruhige Test-Logs
 
 Das Projekt ist so konfiguriert, dass Test-Ausgaben sauber und fokussiert bleiben:

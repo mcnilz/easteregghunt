@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using EasterEggHunt.Api;
 using EasterEggHunt.Infrastructure.Data;
+using EasterEggHunt.Integration.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,42 +19,14 @@ namespace EasterEggHunt.Integration.Tests.Controllers;
 [Parallelizable(ParallelScope.None)]
 public class QrCodesControllerIntegrationTests : IDisposable
 {
-    private WebApplicationFactory<IApiMarker>? _factory;
+    private ControllerTestWebApplicationFactory? _factory;
     private HttpClient _client = null!;
-    private string? _databasePath;
     private JsonSerializerOptions _jsonOptions = null!;
 
     [SetUp]
     public void Setup()
     {
-        // Eindeutige Test-Datenbank für jeden Test
-        _databasePath = Path.Combine(Path.GetTempPath(), $"easteregghunt_controller_test_{Guid.NewGuid()}.db");
-
-        // Lösche die Datenbank, falls sie bereits existiert
-        if (File.Exists(_databasePath))
-        {
-            File.Delete(_databasePath);
-        }
-
-#pragma warning disable CA2000
-        _factory = new WebApplicationFactory<IApiMarker>()
-#pragma warning restore CA2000
-            .WithWebHostBuilder(builder =>
-            {
-                // Setze den ConnectionString über die Konfiguration
-                builder.UseSetting("ConnectionStrings:DefaultConnection", $"Data Source={_databasePath}");
-
-                // Aktiviere Migration, aber deaktiviere SeedData für Tests
-                builder.UseSetting("EasterEggHunt:Database:SeedData", "false");
-                builder.UseSetting("EasterEggHunt:Database:AutoMigrate", "true");
-
-                // Logging-Level für EF Core auf Error setzen (unterdrückt SQL Query Logs)
-                builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore", "Error");
-                builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore.Database.Command", "None");
-                builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore.Infrastructure", "Error");
-                builder.UseSetting("Logging:LogLevel:Microsoft.EntityFrameworkCore.Query", "None");
-            });
-
+        _factory = new ControllerTestWebApplicationFactory();
         _client = _factory.CreateClient();
 
         // Konfiguriere JSON-Serialisierung für Tests (muss mit API übereinstimmen)
@@ -73,19 +46,6 @@ public class QrCodesControllerIntegrationTests : IDisposable
     {
         _client?.Dispose();
         _factory?.Dispose();
-
-        // Test-Datenbank löschen
-        if (_databasePath != null && File.Exists(_databasePath))
-        {
-            try
-            {
-                File.Delete(_databasePath);
-            }
-            catch (IOException)
-            {
-                // Ignoriere Löschfehler
-            }
-        }
     }
 
     private void SeedTestData()

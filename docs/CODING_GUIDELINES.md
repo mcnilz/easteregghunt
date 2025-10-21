@@ -228,6 +228,112 @@ tests/
 3. **End-to-End Tests**: Komplette User Journeys
 4. **API Tests**: Controller und Endpoints
 
+### Integration Test Guidelines
+
+#### WebApplicationFactory Architektur
+
+**Verwende die richtige Factory für den Test-Typ:**
+
+```csharp
+// ✅ Für Controller Tests
+public class QrCodesControllerIntegrationTests : IDisposable
+{
+    private ControllerTestWebApplicationFactory? _factory;
+    
+    [SetUp]
+    public void Setup()
+    {
+        _factory = new ControllerTestWebApplicationFactory();
+        _client = _factory.CreateClient();
+        SeedTestData();
+    }
+}
+
+// ✅ Für Workflow Tests
+public class CampaignLifecycleIntegrationTests : IDisposable
+{
+    private TestWebApplicationFactory _factory = null!;
+    
+    [SetUp]
+    public async Task Setup()
+    {
+        _factory = new TestWebApplicationFactory();
+        await _factory.SeedTestDataAsync();
+        _client = _factory.CreateClient();
+    }
+}
+```
+
+**Erstelle neue Test-Factories nur wenn nötig:**
+
+```csharp
+// ✅ Neue Factory für spezielle Anforderungen
+public class CustomTestWebApplicationFactory : TestWebApplicationFactoryBase
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
+        
+        // Spezifische Konfiguration hier
+        builder.ConfigureServices(services =>
+        {
+            // Custom Services oder Konfiguration
+        });
+    }
+}
+
+// ❌ Keine eigene Factory für Standard-Tests
+public class MyTest : IDisposable
+{
+    private WebApplicationFactory<IApiMarker> _factory = null!;
+    
+    [SetUp]
+    public void Setup()
+    {
+        _factory = new WebApplicationFactory<IApiMarker>()
+            .WithWebHostBuilder(builder => {
+                // 20+ Zeilen Logging-Konfiguration
+                // Datenbank-Konfiguration
+                // CORS-Konfiguration
+            });
+    }
+}
+```
+
+#### Test-Datenbank Management
+
+```csharp
+// ✅ Automatische Bereinigung durch Factory
+public class ControllerTestWebApplicationFactory : TestWebApplicationFactoryBase
+{
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // Test-Datenbank löschen
+            if (File.Exists(_databasePath))
+            {
+                try { File.Delete(_databasePath); }
+                catch (IOException) { /* Ignoriere Löschfehler */ }
+            }
+        }
+        base.Dispose(disposing);
+    }
+}
+
+// ❌ Manuelle Datenbank-Bereinigung
+[TestFixture]
+public class MyTests
+{
+    [TearDown]
+    public void TearDown()
+    {
+        // Manuelle Bereinigung - fehleranfällig
+        File.Delete("test.db");
+    }
+}
+```
+
 ### Test Naming Convention
 ```csharp
 // Pattern: MethodName_Scenario_ExpectedResult
