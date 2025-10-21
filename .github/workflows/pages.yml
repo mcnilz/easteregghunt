@@ -1,0 +1,93 @@
+name: Deploy CI Reports to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types: [completed]
+    branches: [ main ]
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy Reports to GitHub Pages
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'push'
+    
+    steps:
+    - name: 🛒 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: 📥 Download CI Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/
+    
+    - name: 📈 Generate Test Summary
+      run: |
+        mkdir -p docs/reports
+        # Use the prepared pages index
+        cp docs/pages-index.md docs/reports/index.md
+        # Add build information
+        echo "" >> docs/reports/index.md
+        echo "---" >> docs/reports/index.md
+        echo "**Build:** \`${{ github.run_number }}\` | **Commit:** \`${{ github.sha }}\` | **Date:** \`$(date -u +'%Y-%m-%d %H:%M:%S UTC')\`" >> docs/reports/index.md
+    
+    - name: 📄 Convert Documentation to HTML
+      run: |
+        mkdir -p docs/html
+        chmod +x scripts/convert-markdown.sh
+        ./scripts/convert-markdown.sh
+    
+    - name: 📁 Prepare Pages Content
+      run: |
+        mkdir -p _site
+        # Copy coverage reports from CI artifact
+        cp -r coverage/* _site/coverage
+        # Copy documentation
+        cp -r docs/html/* _site/
+        # Copy reports index
+        cp docs/reports/index.md _site/index.md
+        # Create a simple index.html
+        echo "<!DOCTYPE html>" > _site/index.html
+        echo "<html><head><title>Easter Egg Hunt - CI Reports</title>" >> _site/index.html
+        echo "<meta charset='utf-8'>" >> _site/index.html
+        echo "<style>body{font-family:Arial,sans-serif;max-width:1200px;margin:0 auto;padding:20px;line-height:1.6;}</style>" >> _site/index.html
+        echo "</head><body>" >> _site/index.html
+        echo "<h1>🎯 Easter Egg Hunt - CI Reports</h1>" >> _site/index.html
+        echo "<p>Welcome to the Easter Egg Hunt project CI reports and documentation.</p>" >> _site/index.html
+        echo "<h2>📊 Latest Reports</h2>" >> _site/index.html
+        echo "<ul>" >> _site/index.html
+        echo "<li><a href='coverage/index.html'>📈 Code Coverage Report</a></li>" >> _site/index.html
+        echo "<li><a href='coverage/Summary.md'>📋 Coverage Summary</a></li>" >> _site/index.html
+        echo "</ul>" >> _site/index.html
+        echo "<h2>📚 Documentation</h2>" >> _site/index.html
+        echo "<ul>" >> _site/index.html
+        echo "<li><a href='architecture.html'>🏗️ Architecture</a></li>" >> _site/index.html
+        echo "<li><a href='developer-guide.html'>👨‍💻 Developer Guide</a></li>" >> _site/index.html
+        echo "<li><a href='troubleshooting.html'>🔧 Troubleshooting</a></li>" >> _site/index.html
+        echo "<li><a href='sprint-planning.html'>📋 Sprint Planning</a></li>" >> _site/index.html
+        echo "</ul>" >> _site/index.html
+        echo "<p><small>Last updated: $(date -u +'%Y-%m-%d %H:%M:%S UTC')</small></p>" >> _site/index.html
+        echo "</body></html>" >> _site/index.html
+    
+    - name: 📦 Upload Pages Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site
+    
+    - name: 🚀 Deploy to GitHub Pages
+      uses: actions/deploy-pages@v4
