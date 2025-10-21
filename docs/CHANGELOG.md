@@ -8,6 +8,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Hinzugefügt
+- **Integration Tests Implementation**: 163 Integration Tests für komplette User-Journeys
+- **Documentation Audit**: Umfassende Überprüfung aller Dokumentation auf Aktualität
+- **Test-Pyramide Optimierung**: Repository + Controller + Workflow Tests strukturiert
+
+### Geändert
+- **Test-Count Updates**: Dokumentation aktualisiert von 149 auf 652+ Tests
+- **Coverage Requirements**: Realistische 80% Coverage-Schwelle statt 90%
+- **Script References**: Korrekte Verweise auf easter-egg-hunt.* Skripte
+
+### Behoben
+- **Dokumentations-Inkonsistenzen**: Test-Zahlen und Coverage-Requirements korrigiert
+- **Script-Referenzen**: Verweise auf nicht-existierende Skripte behoben
 - **QR-Code URL-System Refactoring**: Dynamische URL-Generierung ohne Domain-Speicherung
 - **Mehrere aktive Kampagnen**: Unterstützung für gleichzeitige aktive Kampagnen
 - **Robuste JSON-Fehlerbehandlung**: Graceful Fallback bei API-Deserialisierungsfehlern

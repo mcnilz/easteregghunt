@@ -40,12 +40,12 @@ Verwenden Sie die bereitgestellten Skripte:
 
 **Windows (PowerShell):**
 ```powershell
-.\scripts\dev-with-hotreload.ps1
+.\scripts\easter-egg-hunt.ps1 dev
 ```
 
 **Linux/macOS (Bash):**
 ```bash
-./scripts/dev-with-hotreload.sh
+./scripts/easter-egg-hunt.sh dev
 ```
 
 ### Datenbank-Migrationen
@@ -54,12 +54,12 @@ Die Skripte führen automatisch die Datenbank-Migrationen aus. Sie können diese
 
 **Windows (PowerShell):**
 ```powershell
-.\scripts\migrate-database.ps1
+.\scripts\easter-egg-hunt.ps1 migrate
 ```
 
 **Linux/macOS (Bash):**
 ```bash
-./scripts/migrate-database.sh
+./scripts/easter-egg-hunt.sh migrate
 ```
 
 **Manuell:**

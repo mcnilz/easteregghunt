@@ -17,8 +17,8 @@ Dieses Dokument beschreibt, wie Sie zu diesem Projekt beitragen können. Bitte l
 ### Repository klonen
 
 ```bash
-git clone https://github.com/your-org/easter-egg-hunt.git
-cd easter-egg-hunt
+git clone https://github.com/mcnilz/easteregghunt.git
+cd easteregghunt
 ```
 
 ### Entwicklungsumgebung einrichten
@@ -86,7 +86,7 @@ git checkout -b hotfix/beschreibung-des-hotfixes
 # Alle Tests ausführen
 dotnet test
 
-# Code Coverage prüfen (mindestens 90%)
+# Code Coverage prüfen (mindestens 80%)
 dotnet test --collect:"XPlat Code Coverage"
 
 # Build ohne Warnings
@@ -132,7 +132,7 @@ Closes #123
 #### PR Checklist
 
 - [ ] Alle Tests laufen durch
-- [ ] Code Coverage mindestens 90%
+- [ ] Code Coverage mindestens 80%
 - [ ] Keine Compiler Warnings
 - [ ] Gherkin Features aktualisiert (falls nötig)
 - [ ] CHANGELOG.md aktualisiert

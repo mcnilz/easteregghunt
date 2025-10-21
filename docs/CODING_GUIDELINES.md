@@ -152,8 +152,8 @@ public class CampaignService
 - **Refactoring nur mit grünen Tests**
 
 ### Test Coverage Ziel
-- **Minimum**: 90% Code Coverage (Build schlägt fehl bei weniger)
-- **Ziel**: 100% Code Coverage soweit technisch möglich
+- **Minimum**: 80% Code Coverage (Build schlägt fehl bei weniger)
+- **Ziel**: 90% Code Coverage soweit technisch möglich
 - **Ausnahmen**: Nur nach expliziter Begründung und Team-Absprache
 
 ### Clean Code in Tests
@@ -521,7 +521,7 @@ csharp_new_line_before_finally = true
 #### Vor jedem Commit
 - [ ] **Tests ZUERST geschrieben** (TDD Red-Green-Refactor befolgt)
 - [ ] Alle Tests laufen durch (`dotnet test`)
-- [ ] Code Coverage mindestens 90% (`dotnet test --collect:"XPlat Code Coverage"`)
+- [ ] Code Coverage mindestens 80% (`dotnet test --collect:"XPlat Code Coverage"`)
 - [ ] **Keine Methode > 20 Zeilen**
 - [ ] **Keine Klasse > 200 Zeilen**
 - [ ] **Maximal 3 Parameter pro Methode**

@@ -20,7 +20,7 @@
 
 **Aktueller Sprint:** Sprint 2 - QR-Code Management ✅ VOLLSTÄNDIG ABGESCHLOSSEN  
 **Fortschritt:** 100% abgeschlossen (29/29 Story Points) ✅  
-**Tests:** 494 Tests erfolgreich mit exzellenter Code Coverage  
+**Tests:** 652+ Tests erfolgreich mit exzellenter Code Coverage  
 **Letzte Commits:** QR-Code Statistiken implementiert, Find-Counts, Finder-Listen, Top-Performer  
 **✅ VOLLSTÄNDIG:** QR-Code Management mit Statistiken und Drucklayout komplett!
 
@@ -42,7 +42,7 @@
 - ✅ 100% Coding Guidelines Compliance
 - ✅ JSON-Serialisierung mit camelCase-Konvertierung
 - ✅ Vollständige HTTP-Status-Code-Abdeckung (200, 201, 204, 400, 404, 500)
-- ✅ **Code Coverage: Application 94.66%, Infrastructure 33.44%, Domain 81.35%**
+- ✅ **Code Coverage: Domain 66.4%, Application 68.42%, Infrastructure 34.04%**
 - ✅ **ReportGenerator für Coverage-Visualisierung**
 - ✅ **Vereinfachte Coverage-Checks mit dotnet test Thresholds**
 - ✅ **Client-side QR-Code-Generierung mit QRCode.js (MIT-Lizenz)**

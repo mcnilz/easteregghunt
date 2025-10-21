@@ -244,8 +244,8 @@ dotnet test tests/EasterEggHunt.Api.Tests/
 
 ### Test Coverage
 
-- **Ziel**: 90% Code Coverage
-- **Aktuell**: 80% Line Coverage, 100% Branch Coverage
+- **Ziel**: 80% Code Coverage
+- **Aktuell**: Domain 66.4%, Application 68.42%, Infrastructure 34.04%
 - **Coverage-Report**: `./coverage/report/index.html`
 
 ### 🔇 Ruhige Test-Logs

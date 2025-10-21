@@ -128,43 +128,43 @@ Alle Konfigurationsdateien folgen der gleichen Struktur unter dem `EasterEggHunt
 **Windows (PowerShell)**:
 ```powershell
 # Development (Standard)
-.\scripts\run-environment.ps1 Development
+.\scripts\easter-egg-hunt.ps1 dev
 
 # Staging
-.\scripts\run-environment.ps1 Staging
+.\scripts\easter-egg-hunt.ps1 dev -e Staging
 
 # Production
-.\scripts\run-environment.ps1 Production
+.\scripts\easter-egg-hunt.ps1 dev -e Production
 
 # Test
-.\scripts\run-environment.ps1 Test
+.\scripts\easter-egg-hunt.ps1 dev -e Test
 
 # Nur API starten
-.\scripts\run-environment.ps1 Development Api
+.\scripts\easter-egg-hunt.ps1 dev -p Api
 
 # Nur Web starten
-.\scripts\run-environment.ps1 Development Web
+.\scripts\easter-egg-hunt.ps1 dev -p Web
 ```
 
 **Linux/macOS (Bash)**:
 ```bash
 # Development (Standard)
-./scripts/run-environment.sh Development
+./scripts/easter-egg-hunt.sh dev
 
 # Staging
-./scripts/run-environment.sh Staging
+./scripts/easter-egg-hunt.sh dev -e Staging
 
 # Production
-./scripts/run-environment.sh Production
+./scripts/easter-egg-hunt.sh dev -e Production
 
 # Test
-./scripts/run-environment.sh Test
+./scripts/easter-egg-hunt.sh dev -e Test
 
 # Nur API starten
-./scripts/run-environment.sh Development Api
+./scripts/easter-egg-hunt.sh dev -p Api
 
 # Nur Web starten
-./scripts/run-environment.sh Development Web
+./scripts/easter-egg-hunt.sh dev -p Web
 ```
 
 ### Manuelle Ausführung

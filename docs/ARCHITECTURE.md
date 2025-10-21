@@ -277,10 +277,33 @@ tests/
 
 ### Aktuelle Test-Statistiken
 
-- **149 Tests** insgesamt
-- **81.31% Code Coverage** (Domain: 91.56%, Infrastructure: 86.90%)
-- **Integration Tests** mit echter SQLite-Datenbank
+- **652+ Tests** insgesamt
+  - Domain Tests: 52 Tests
+  - Application Tests: 180 Tests  
+  - Infrastructure Tests: 116 Tests
+  - API Tests: 80 Tests
+  - Integration Tests: 163 Tests
+  - Web Tests: 62 Tests
+- **Code Coverage** (Domain: 66.4%, Application: 68.42%, Infrastructure: 34.04%)
+- **Integration Tests** mit echter SQLite-Datenbank (163 Tests)
 - **Unit Tests** für alle Domain Entities
+
+### Integration Test Architecture
+
+Das System verfügt über umfassende Integration Tests, die komplette User-Journeys testen:
+
+- **Admin-Workflow Tests**: Kompletter Admin-Login → Dashboard → Kampagne erstellen Workflow
+- **Employee-Journey Tests**: QR-Code scannen → Registrierung → Fund speichern
+- **Campaign-Lifecycle Tests**: Kampagne erstellen → QR-Codes hinzufügen → Aktivieren
+- **QR-Code Management Tests**: QR-Code CRUD + Statistiken + Drucklayout
+- **Cross-Cutting Tests**: Sessions, Concurrency, Error-Handling
+
+**Test-Pyramide:**
+```
+    🔺 E2E Workflow Tests (163 Tests)
+   🔺🔺 Controller Integration Tests (9 Tests)  
+  🔺🔺🔺 Repository Integration Tests (12 Tests)
+```
 
 ## 🔒 Security Architecture
 

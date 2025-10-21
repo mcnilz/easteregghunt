@@ -141,9 +141,9 @@ Dieses System wurde entwickelt unter Berücksichtigung von:
 
 ## Kontakt
 
-- **Sicherheitsteam**: [GitHub Issues](../../issues) mit Label "security"
-- **Allgemeine Fragen**: [GitHub Issues](../../issues)
-- **Entwicklerteam**: [GitHub Discussions](../../discussions)
+- **Sicherheitsteam**: [GitHub Issues](https://github.com/mcnilz/easteregghunt/issues) mit Label "security"
+- **Allgemeine Fragen**: [GitHub Issues](https://github.com/mcnilz/easteregghunt/issues)
+- **Entwicklerteam**: [GitHub Discussions](https://github.com/mcnilz/easteregghunt/discussions)
 
 ## Anerkennung
 
