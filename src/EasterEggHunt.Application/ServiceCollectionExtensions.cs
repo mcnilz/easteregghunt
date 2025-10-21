@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         // Service Interfaces und Implementierungen registrieren
+        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICampaignService, CampaignService>();
         services.AddScoped<IQrCodeService, QrCodeService>();
         services.AddScoped<IUserService, UserService>();

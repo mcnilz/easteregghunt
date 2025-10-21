@@ -3,13 +3,14 @@ using EasterEggHunt.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
-namespace EasterEggHunt.Integration.Tests.Controllers;
+namespace EasterEggHunt.Integration.Tests.Repositories;
 
 /// <summary>
-/// Integration Tests für Employee Registrierung
+/// Repository Integration Tests für User-Registrierung
+/// Testet Datenbank-Operationen direkt über Repository-Pattern
 /// </summary>
 [TestFixture]
-public class EmployeeRegistrationIntegrationTests : IntegrationTestBase
+public class UserRepositoryIntegrationTests : IntegrationTestBase
 {
     private IUserRepository _userRepository = null!;
 

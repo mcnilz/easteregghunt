@@ -1,4 +1,7 @@
+using System.Text;
+using System.Text.Json;
 using EasterEggHunt.Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -176,5 +179,127 @@ public abstract class IntegrationTestBase : IDisposable
         };
         Context.Finds.AddRange(finds);
         await Context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Erstellt einen HttpClient mit Admin-Authentication für Workflow-Tests
+    /// </summary>
+    protected static async Task<HttpClient> CreateAuthenticatedAdminClientAsync(WebApplicationFactory<EasterEggHunt.Api.IApiMarker> factory)
+    {
+        var client = factory.CreateClient();
+
+        // Admin-Login durchführen
+        var loginData = new
+        {
+            Username = "admin",
+            Password = "admin123"
+        };
+
+        using var loginContent = new StringContent(
+            JsonSerializer.Serialize(loginData),
+            Encoding.UTF8,
+            "application/json");
+
+        var loginResponse = await client.PostAsync(new Uri("/api/auth/login", UriKind.Relative), loginContent);
+
+        if (loginResponse.IsSuccessStatusCode)
+        {
+            // Cookies werden automatisch vom HttpClient verwaltet
+            return client;
+        }
+
+        throw new InvalidOperationException($"Admin login failed: {loginResponse.StatusCode}");
+    }
+
+    /// <summary>
+    /// Erstellt einen HttpClient mit Employee-Authentication für Workflow-Tests
+    /// </summary>
+    protected static async Task<HttpClient> CreateAuthenticatedEmployeeClientAsync(WebApplicationFactory<EasterEggHunt.Api.IApiMarker> factory, string userName)
+    {
+        var client = factory.CreateClient();
+
+        // Employee registrieren/anmelden
+        var registrationData = new
+        {
+            Name = userName
+        };
+
+        using var registrationContent = new StringContent(
+            JsonSerializer.Serialize(registrationData),
+            Encoding.UTF8,
+            "application/json");
+
+        var registrationResponse = await client.PostAsync(new Uri("/api/users", UriKind.Relative), registrationContent);
+
+        if (registrationResponse.IsSuccessStatusCode)
+        {
+            // Cookies werden automatisch vom HttpClient verwaltet
+            return client;
+        }
+
+        throw new InvalidOperationException($"Employee registration failed: {registrationResponse.StatusCode}");
+    }
+
+    /// <summary>
+    /// Führt Admin-Login durch und gibt Session-Token zurück
+    /// </summary>
+    protected static async Task<string> LoginAsAdminAsync(HttpClient client)
+    {
+        var loginData = new
+        {
+            Username = "admin",
+            Password = "admin123"
+        };
+
+        using var loginContent = new StringContent(
+            JsonSerializer.Serialize(loginData),
+            Encoding.UTF8,
+            "application/json");
+
+        var loginResponse = await client.PostAsync(new Uri("/api/auth/login", UriKind.Relative), loginContent);
+
+        if (loginResponse.IsSuccessStatusCode)
+        {
+            var responseContent = await loginResponse.Content.ReadAsStringAsync();
+            var loginResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+            if (loginResult.TryGetProperty("token", out var tokenElement))
+            {
+                return tokenElement.GetString() ?? string.Empty;
+            }
+        }
+
+        throw new InvalidOperationException($"Admin login failed: {loginResponse.StatusCode}");
+    }
+
+    /// <summary>
+    /// Registriert einen Employee und gibt Session-Token zurück
+    /// </summary>
+    protected static async Task<string> RegisterEmployeeAsync(HttpClient client, string name)
+    {
+        var registrationData = new
+        {
+            Name = name
+        };
+
+        using var registrationContent = new StringContent(
+            JsonSerializer.Serialize(registrationData),
+            Encoding.UTF8,
+            "application/json");
+
+        var registrationResponse = await client.PostAsync(new Uri("/api/users", UriKind.Relative), registrationContent);
+
+        if (registrationResponse.IsSuccessStatusCode)
+        {
+            var responseContent = await registrationResponse.Content.ReadAsStringAsync();
+            var registrationResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+            if (registrationResult.TryGetProperty("sessionId", out var sessionElement))
+            {
+                return sessionElement.GetString() ?? string.Empty;
+            }
+        }
+
+        throw new InvalidOperationException($"Employee registration failed: {registrationResponse.StatusCode}");
     }
 }
