@@ -1,8 +1,6 @@
 name: Deploy CI Reports to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
   workflow_run:
     workflows: ["Continuous Integration"]
     types: [completed]
@@ -35,6 +33,39 @@ jobs:
       with:
         name: coverage-report
         path: coverage/
+      continue-on-error: true
+    
+    - name: 🔧 Setup .NET (Fallback)
+      if: failure()
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: 📦 Restore Dependencies (Fallback)
+      if: failure()
+      run: dotnet restore
+    
+    - name: 🧪 Generate Coverage Reports (Fallback)
+      if: failure()
+      run: |
+        dotnet test --configuration Release --no-build --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          --results-directory ./coverage \
+          --logger trx \
+          --logger "console;verbosity=detailed"
+    
+    - name: 📊 Generate Coverage Report (Fallback)
+      if: failure()
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.2.0
+      with:
+        reports: 'coverage/**/coverage.cobertura.xml'
+        targetdir: 'coverage/report'
+        reporttypes: 'Html;Cobertura;MarkdownSummaryGithub'
+        verbosity: 'Verbose'
+        title: 'Easter Egg Hunt - Code Coverage'
+        tag: '${{ github.run_number }}_${{ github.run_id }}'
+        assemblyfilters: '-EasterEggHunt.Api.Tests*;-EasterEggHunt.Application.Tests*'
+        classfilters: '-EasterEggHunt.Infrastructure.Migrations*;-EasterEggHunt.Infrastructure.Configuration.DbContextConfiguration*;-EasterEggHunt.Infrastructure.Data.EasterEggHuntDbContextFactory*'
     
     - name: 📈 Generate Test Summary
       run: |
@@ -55,8 +86,15 @@ jobs:
     - name: 📁 Prepare Pages Content
       run: |
         mkdir -p _site
-        # Copy coverage reports from CI artifact
-        cp -r coverage/* _site/coverage
+        # Copy coverage reports (from artifact or fallback)
+        if [ -d "coverage/report" ]; then
+          cp -r coverage/report _site/coverage
+        elif [ -d "coverage" ]; then
+          cp -r coverage/* _site/coverage
+        else
+          mkdir -p _site/coverage
+          echo "# No Coverage Reports Available" > _site/coverage/index.html
+        fi
         # Copy documentation
         cp -r docs/html/* _site/
         # Copy reports index
