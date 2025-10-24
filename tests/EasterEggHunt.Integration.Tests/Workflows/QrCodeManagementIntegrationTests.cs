@@ -1,8 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using EasterEggHunt.Api;
 using EasterEggHunt.Integration.Tests.Helpers;
-using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Integration.Tests.Workflows;
@@ -51,7 +49,7 @@ public class QrCodeManagementIntegrationTests : IDisposable
             CampaignId = 1,
             Title = "Test QR-Code",
             Description = "Test Beschreibung",
-            InternalNote = "Test Notizen"
+            InternalNotes = "Test Notizen"
         };
 
         // Act - QR-Code erstellen
@@ -82,7 +80,7 @@ public class QrCodeManagementIntegrationTests : IDisposable
         {
             Title = "Aktualisierter QR-Code",
             Description = "Aktualisierte Beschreibung",
-            InternalNote = "Aktualisierte Notizen"
+            InternalNotes = "Aktualisierte Notizen"
         };
 
         // Act - QR-Code aktualisieren
@@ -372,7 +370,7 @@ public class QrCodeManagementIntegrationTests : IDisposable
             CampaignId = 1,
             Title = "", // Leerer Titel
             Description = "Test Beschreibung",
-            InternalNote = "Test Notizen"
+            InternalNotes = "Test Notizen"
         };
 
         // Act
@@ -433,11 +431,11 @@ public class QrCodeManagementIntegrationTests : IDisposable
         var adminClient = await _factory.CreateAuthenticatedAdminClientAsync();
         var qrCodes = new[]
         {
-            new { CampaignId = 1, Title = "Bulk QR 1", Description = "Beschreibung 1", InternalNote = "Notiz 1" },
-            new { CampaignId = 1, Title = "Bulk QR 2", Description = "Beschreibung 2", InternalNote = "Notiz 2" },
-            new { CampaignId = 1, Title = "Bulk QR 3", Description = "Beschreibung 3", InternalNote = "Notiz 3" },
-            new { CampaignId = 1, Title = "Bulk QR 4", Description = "Beschreibung 4", InternalNote = "Notiz 4" },
-            new { CampaignId = 1, Title = "Bulk QR 5", Description = "Beschreibung 5", InternalNote = "Notiz 5" }
+            new { CampaignId = 1, Title = "Bulk QR 1", Description = "Beschreibung 1", InternalNotes = "Notiz 1" },
+            new { CampaignId = 1, Title = "Bulk QR 2", Description = "Beschreibung 2", InternalNotes = "Notiz 2" },
+            new { CampaignId = 1, Title = "Bulk QR 3", Description = "Beschreibung 3", InternalNotes = "Notiz 3" },
+            new { CampaignId = 1, Title = "Bulk QR 4", Description = "Beschreibung 4", InternalNotes = "Notiz 4" },
+            new { CampaignId = 1, Title = "Bulk QR 5", Description = "Beschreibung 5", InternalNotes = "Notiz 5" }
         };
 
         // Act - Mehrere QR-Codes erstellen

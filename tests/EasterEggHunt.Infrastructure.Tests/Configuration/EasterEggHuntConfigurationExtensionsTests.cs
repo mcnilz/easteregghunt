@@ -1,8 +1,6 @@
-using EasterEggHunt.Domain.Configuration;
 using EasterEggHunt.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests.Configuration;
 

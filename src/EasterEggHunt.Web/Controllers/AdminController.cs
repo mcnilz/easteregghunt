@@ -1,6 +1,7 @@
-using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
+using EasterEggHunterApi.Abstractions.Models.Campaign;
+using EasterEggHunterApi.Abstractions.Models.QrCode;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -92,7 +93,7 @@ public class AdminController : Controller
     /// <returns>Erstellungsformular</returns>
     public IActionResult CreateCampaign()
     {
-        return View(new Models.CreateCampaignRequest());
+        return View(new CreateCampaignRequest());
     }
 
     /// <summary>
@@ -102,7 +103,7 @@ public class AdminController : Controller
     /// <returns>Redirect oder View mit Fehlern</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateCampaign(Models.CreateCampaignRequest request)
+    public async Task<IActionResult> CreateCampaign(CreateCampaignRequest request)
     {
         try
         {
@@ -152,12 +153,10 @@ public class AdminController : Controller
                 return NotFound();
             }
 
-            var request = new Models.UpdateCampaignRequest
+            var request = new UpdateCampaignRequest
             {
-                Id = campaign.Id,
                 Name = campaign.Name,
                 Description = campaign.Description,
-                IsActive = campaign.IsActive
             };
 
             return View(request);
@@ -177,11 +176,12 @@ public class AdminController : Controller
     /// <summary>
     /// Kampagne bearbeiten - POST
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="request">Kampagnen-Daten</param>
     /// <returns>Redirect oder View mit Fehlern</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditCampaign(Models.UpdateCampaignRequest request)
+    public async Task<IActionResult> EditCampaign(int id, UpdateCampaignRequest request)
     {
         try
         {
@@ -190,21 +190,21 @@ public class AdminController : Controller
                 return View(request);
             }
 
-            _logger.LogInformation("Aktualisiere Kampagne {CampaignId}: {CampaignName}", request.Id, request.Name);
-            await _campaignService.UpdateCampaignAsync(request);
+            _logger.LogInformation("Aktualisiere Kampagne {CampaignId}: {CampaignName}", id, request.Name);
+            await _campaignService.UpdateCampaignAsync(id, request);
 
             TempData["SuccessMessage"] = $"Kampagne '{request.Name}' wurde erfolgreich aktualisiert.";
             return RedirectToAction(nameof(Campaigns));
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", request.Id);
+            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", id);
             ModelState.AddModelError("", "Fehler beim Aktualisieren der Kampagne. Bitte versuchen Sie es erneut.");
             return View(request);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Aktualisieren der Kampagne {CampaignId}", request.Id);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Aktualisieren der Kampagne {CampaignId}", id);
             ModelState.AddModelError("", "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
             return View(request);
         }
@@ -370,7 +370,7 @@ public class AdminController : Controller
                 return NotFound();
             }
 
-            var request = new Models.CreateQrCodeRequest
+            var request = new CreateQrCodeRequest
             {
                 CampaignId = campaignId
             };
@@ -396,7 +396,7 @@ public class AdminController : Controller
     /// <returns>Redirect oder View mit Fehlern</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateQrCode(Models.CreateQrCodeRequest request)
+    public async Task<IActionResult> CreateQrCode(CreateQrCodeRequest request)
     {
         try
         {
@@ -440,15 +440,11 @@ public class AdminController : Controller
                 return NotFound();
             }
 
-            var request = new Models.UpdateQrCodeRequest
+            var request = new UpdateQrCodeRequest
             {
-                Id = qrCode.Id,
-                CampaignId = qrCode.CampaignId,
                 Title = qrCode.Title,
                 Description = qrCode.Description,
                 InternalNotes = qrCode.InternalNotes,
-                SortOrder = qrCode.SortOrder,
-                IsActive = qrCode.IsActive
             };
 
             return View(request);
@@ -468,11 +464,12 @@ public class AdminController : Controller
     /// <summary>
     /// QR-Code bearbeiten - POST
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="request">QR-Code-Daten</param>
     /// <returns>Redirect oder View mit Fehlern</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditQrCode(Models.UpdateQrCodeRequest request)
+    public async Task<IActionResult> EditQrCode(int id, UpdateQrCodeRequest request)
     {
         try
         {
@@ -481,21 +478,27 @@ public class AdminController : Controller
                 return View(request);
             }
 
-            _logger.LogInformation("Aktualisiere QR-Code {QrCodeId}: {QrCodeTitle}", request.Id, request.Title);
-            await _qrCodeService.UpdateQrCodeAsync(request);
+            var qrCode = await _qrCodeService.GetQrCodeByIdAsync(id);
+            if (qrCode == null)
+            {
+                return NotFound();
+            }
+
+            _logger.LogInformation("Aktualisiere QR-Code {QrCodeId}: {QrCodeTitle}", id, request.Title);
+            await _qrCodeService.UpdateQrCodeAsync(id, request);
 
             TempData["SuccessMessage"] = $"QR-Code '{request.Title}' wurde erfolgreich aktualisiert.";
-            return RedirectToAction(nameof(QrCodes), new { id = request.CampaignId });
+            return RedirectToAction(nameof(QrCodes), new { id = qrCode.CampaignId });
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Aktualisieren des QR-Codes {QrCodeId}", request.Id);
+            _logger.LogError(ex, "Fehler beim Aktualisieren des QR-Codes {QrCodeId}", id);
             ModelState.AddModelError("", "Fehler beim Aktualisieren des QR-Codes. Bitte versuchen Sie es erneut.");
             return View(request);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unerwarteter Fehler beim Aktualisieren des QR-Codes {QrCodeId}", request.Id);
+            _logger.LogError(ex, "Unerwarteter Fehler beim Aktualisieren des QR-Codes {QrCodeId}", id);
             ModelState.AddModelError("", "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.");
             return View(request);
         }

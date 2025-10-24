@@ -1,5 +1,5 @@
 using EasterEggHunt.Domain.Entities;
-using EasterEggHunt.Web.Models;
+using EasterEggHunterApi.Abstractions.Models.QrCode;
 
 namespace EasterEggHunt.Web.Services;
 
@@ -32,9 +32,10 @@ public interface IQrCodeManagementService
     /// <summary>
     /// Aktualisiert einen bestehenden QR-Code
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="request">QR-Code-Update-Anfrage</param>
     /// <returns>Task</returns>
-    Task UpdateQrCodeAsync(UpdateQrCodeRequest request);
+    Task UpdateQrCodeAsync(int id, UpdateQrCodeRequest request);
 
     /// <summary>
     /// Löscht einen QR-Code

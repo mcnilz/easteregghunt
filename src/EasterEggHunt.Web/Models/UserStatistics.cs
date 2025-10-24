@@ -1,5 +1,3 @@
-using System;
-
 namespace EasterEggHunt.Web.Models;
 
 /// <summary>

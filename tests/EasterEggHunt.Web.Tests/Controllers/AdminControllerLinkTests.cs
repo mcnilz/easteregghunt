@@ -1,5 +1,6 @@
 using EasterEggHunt.Web.Controllers;
 using EasterEggHunt.Web.Services;
+using EasterEggHunterApi.Abstractions.Models.Campaign;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -166,7 +167,7 @@ public class AdminControllerLinkTests : IDisposable
         Assert.That(result, Is.InstanceOf<ViewResult>());
         var viewResult = result as ViewResult;
         Assert.That(viewResult?.ViewName, Is.Null); // Standard-View
-        Assert.That(viewResult?.Model, Is.InstanceOf<Models.CreateCampaignRequest>());
+        Assert.That(viewResult?.Model, Is.InstanceOf<CreateCampaignRequest>());
     }
 
     [Test]

@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
-using EasterEggHunt.Web.Models;
+using EasterEggHunterApi.Abstractions.Models.Campaign;
 
 namespace EasterEggHunt.Web.Services.ApiHelpers;
 
@@ -90,20 +90,20 @@ internal class CampaignApiHelper
         }
     }
 
-    internal async Task UpdateCampaignAsync(UpdateCampaignRequest request)
+    internal async Task UpdateCampaignAsync(int id, UpdateCampaignRequest request)
     {
         try
         {
-            _logger.LogDebug("API-Aufruf: PUT /api/campaigns/{CampaignId}", request.Id);
+            _logger.LogDebug("API-Aufruf: PUT /api/campaigns/{CampaignId}", id);
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync(new Uri($"/api/campaigns/{request.Id}", UriKind.Relative), content);
+            var response = await _httpClient.PutAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative), content);
             response.EnsureSuccessStatusCode();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", request.Id);
+            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", id);
             throw;
         }
     }

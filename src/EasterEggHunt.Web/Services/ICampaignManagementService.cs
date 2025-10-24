@@ -1,5 +1,5 @@
 using EasterEggHunt.Domain.Entities;
-using EasterEggHunt.Web.Models;
+using EasterEggHunterApi.Abstractions.Models.Campaign;
 
 namespace EasterEggHunt.Web.Services;
 
@@ -31,9 +31,10 @@ public interface ICampaignManagementService
     /// <summary>
     /// Aktualisiert eine bestehende Kampagne
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="request">Kampagnen-Update-Anfrage</param>
     /// <returns>Task</returns>
-    Task UpdateCampaignAsync(UpdateCampaignRequest request);
+    Task UpdateCampaignAsync(int id, UpdateCampaignRequest request);
 
     /// <summary>
     /// Löscht eine Kampagne

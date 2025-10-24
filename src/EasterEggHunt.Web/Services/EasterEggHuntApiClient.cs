@@ -1,8 +1,10 @@
-using System.Text;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services.ApiHelpers;
+using EasterEggHunterApi.Abstractions.Models.Auth;
+using EasterEggHunterApi.Abstractions.Models.Campaign;
+using EasterEggHunterApi.Abstractions.Models.QrCode;
 
 namespace EasterEggHunt.Web.Services;
 
@@ -15,7 +17,7 @@ public interface IEasterEggHuntApiClient
     Task<IEnumerable<Campaign>> GetActiveCampaignsAsync();
     Task<Campaign?> GetCampaignByIdAsync(int id);
     Task<Campaign> CreateCampaignAsync(string name, string description, string createdBy);
-    Task UpdateCampaignAsync(UpdateCampaignRequest request);
+    Task UpdateCampaignAsync(int id, UpdateCampaignRequest request);
     Task DeleteCampaignAsync(int id);
 
     // QR-Code Operations
@@ -23,7 +25,7 @@ public interface IEasterEggHuntApiClient
     Task<QrCode?> GetQrCodeByIdAsync(int id);
     Task<QrCode?> GetQrCodeByCodeAsync(string code);
     Task<QrCode> CreateQrCodeAsync(CreateQrCodeRequest request);
-    Task UpdateQrCodeAsync(UpdateQrCodeRequest request);
+    Task UpdateQrCodeAsync(int id, UpdateQrCodeRequest request);
     Task DeleteQrCodeAsync(int id);
 
     // User Operations
@@ -90,8 +92,8 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
     public async Task<Campaign> CreateCampaignAsync(string name, string description, string createdBy)
         => await _campaignHelper.CreateCampaignAsync(name, description, createdBy);
 
-    public async Task UpdateCampaignAsync(UpdateCampaignRequest request)
-        => await _campaignHelper.UpdateCampaignAsync(request);
+    public async Task UpdateCampaignAsync(int id, UpdateCampaignRequest request)
+        => await _campaignHelper.UpdateCampaignAsync(id, request);
 
     public async Task DeleteCampaignAsync(int id)
         => await _campaignHelper.DeleteCampaignAsync(id);
@@ -112,8 +114,8 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
     public async Task<QrCode> CreateQrCodeAsync(CreateQrCodeRequest request)
         => await _qrCodeHelper.CreateQrCodeAsync(request);
 
-    public async Task UpdateQrCodeAsync(UpdateQrCodeRequest request)
-        => await _qrCodeHelper.UpdateQrCodeAsync(request);
+    public async Task UpdateQrCodeAsync(int id, UpdateQrCodeRequest request)
+        => await _qrCodeHelper.UpdateQrCodeAsync(id, request);
 
     public async Task DeleteQrCodeAsync(int id)
         => await _qrCodeHelper.DeleteQrCodeAsync(id);

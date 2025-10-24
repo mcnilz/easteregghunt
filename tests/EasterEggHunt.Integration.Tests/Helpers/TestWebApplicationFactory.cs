@@ -1,17 +1,8 @@
-using System.Text;
-using System.Text.Json;
-using EasterEggHunt.Api;
-using EasterEggHunt.Api.Configuration;
-using EasterEggHunt.Application;
-using EasterEggHunt.Infrastructure;
-using EasterEggHunt.Infrastructure.Configuration;
 using EasterEggHunt.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace EasterEggHunt.Integration.Tests.Helpers;
 

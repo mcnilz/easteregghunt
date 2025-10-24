@@ -1,8 +1,6 @@
-using System.IO;
-using EasterEggHunt.Domain.Entities; // Hinzugefügt für SeedTestDataAsync
+// Hinzugefügt für SeedTestDataAsync
 using EasterEggHunt.Domain.Repositories;
 using EasterEggHunt.Infrastructure.Data;
-using EasterEggHunt.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

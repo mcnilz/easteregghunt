@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <ProjectReference Include="..\EasterEggHunt.Api.Abstractions\EasterEggHunt.Api.Abstractions.csproj" />
     <ProjectReference Include="..\EasterEggHunt.Domain\EasterEggHunt.Domain.csproj" />
   </ItemGroup>
 

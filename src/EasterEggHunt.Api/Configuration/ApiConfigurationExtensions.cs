@@ -1,15 +1,12 @@
 using EasterEggHunt.Domain.Configuration;
 using EasterEggHunt.Infrastructure.Data;
-using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace EasterEggHunt.Api.Configuration;
 
 /// <summary>
 /// API-spezifische Konfigurationsextensions
 /// </summary>
-public static class ApiConfigurationExtensions
+internal static class ApiConfigurationExtensions
 {
     /// <summary>
     /// Konfiguriert CORS für die API

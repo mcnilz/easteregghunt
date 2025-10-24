@@ -1,7 +1,7 @@
 using EasterEggHunt.Api.Controllers;
-using EasterEggHunt.Api.Models;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
+using EasterEggHunterApi.Abstractions.Models.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;

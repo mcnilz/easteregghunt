@@ -1,5 +1,4 @@
 @model CampaignDetailsViewModel
-@using System.Text.Json
 @{
     ViewData["Title"] = "Kampagnen-Details";
 }
@@ -330,35 +329,35 @@
         function viewQrCode(id) {
             console.log('viewQrCode called with id:', id);
             console.log('qrCodesData:', qrCodesData);
-            
+
             const qrCode = qrCodesData.find(q => q.id === id);
             if (!qrCode) {
                 console.error('QR-Code nicht gefunden für ID:', id);
                 alert('QR-Code nicht gefunden');
                 return;
             }
-            
+
             console.log('Found QR-Code:', qrCode);
 
             // Modal mit QR-Code-Daten füllen
             document.getElementById('qrCodeTitle').textContent = qrCode.title;
-            document.getElementById('qrCodeNotes').textContent = qrCode.internalNotes || 'Keine Notiz';
+            document.getElementById('qrCodeNotes').textContent = qrCode.InternalNotes || 'Keine Notiz';
             document.getElementById('qrCodeSortOrder').textContent = qrCode.sortOrder;
             document.getElementById('qrCodeStatus').textContent = qrCode.isActive ? 'Aktiv' : 'Inaktiv';
-            
+
                   // QR-Code URL generieren - IMMER mit aktueller Domain
                   const baseUrl = window.location.origin;
                   let qrCodeUrl;
-                  
+
                   // Verwende den Code direkt für die URL-Generierung
                   qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(qrCode.code)}`;
-            
+
             document.getElementById('qrCodeUrl').value = qrCodeUrl;
 
             // QR-Code Bild generieren
             const qrCodeImageDiv = document.getElementById('qrCodeImage');
             qrCodeImageDiv.innerHTML = ''; // Clear previous QR code
-            
+
             // QR-Code mit QRCode.js generieren
             new QRCode(qrCodeImageDiv, {
                 text: qrCodeUrl,
@@ -377,23 +376,23 @@
             const urlInput = document.getElementById('qrCodeUrl');
             urlInput.select();
             urlInput.setSelectionRange(0, 99999); // Für mobile Geräte
-            
+
             try {
                 document.execCommand('copy');
-                
+
                 // Button-Feedback
                 const copyBtn = document.getElementById('copyUrlBtn');
                 const originalText = copyBtn.innerHTML;
                 copyBtn.innerHTML = '<i class="fas fa-check"></i> Kopiert!';
                 copyBtn.classList.remove('btn-outline-primary');
                 copyBtn.classList.add('btn-success');
-                
+
                 setTimeout(() => {
                     copyBtn.innerHTML = originalText;
                     copyBtn.classList.remove('btn-success');
                     copyBtn.classList.add('btn-outline-primary');
                 }, 2000);
-                
+
             } catch (err) {
                 console.error('Copy failed:', err);
                 alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
@@ -423,10 +422,10 @@
             const selectedIds = Array.from(document.querySelectorAll('.qr-code-checkbox:checked'))
                 .map(cb => cb.value)
                 .join(',');
-            
+
             const size = document.getElementById('qrCodeSize').value;
             const showTitles = document.getElementById('showTitles').checked;
-            
+
             if (selectedIds === '') {
                 alert('Bitte wählen Sie mindestens einen QR-Code aus.');
                 return;
@@ -435,7 +434,7 @@
             // Druckansicht in neuem Tab öffnen
             const printUrl = `/Admin/PrintQrCodes?campaignId=@Model.Campaign.Id&qrCodeIds=${selectedIds}&size=${size}&showTitles=${showTitles}`;
             window.open(printUrl, '_blank');
-            
+
             // Modal schließen
             $('#printQrCodesModal').modal('hide');
         }
@@ -445,7 +444,7 @@
             // QR-Code-Größe Slider
             const sizeSlider = document.getElementById('qrCodeSize');
             const sizeValue = document.getElementById('qrCodeSizeValue');
-            
+
             sizeSlider.addEventListener('input', function() {
                 sizeValue.textContent = this.value + 'px';
             });
@@ -453,7 +452,7 @@
             // Alle QR-Codes auswählen/abwählen
             const selectAllCheckbox = document.getElementById('selectAllQrCodes');
             const qrCodeCheckboxes = document.querySelectorAll('.qr-code-checkbox');
-            
+
             selectAllCheckbox.addEventListener('change', function() {
                 qrCodeCheckboxes.forEach(cb => {
                     cb.checked = this.checked;
@@ -465,7 +464,7 @@
                 cb.addEventListener('change', function() {
                     const checkedCount = document.querySelectorAll('.qr-code-checkbox:checked').length;
                     const totalCount = qrCodeCheckboxes.length;
-                    
+
                     selectAllCheckbox.checked = checkedCount === totalCount;
                     selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < totalCount;
                 });

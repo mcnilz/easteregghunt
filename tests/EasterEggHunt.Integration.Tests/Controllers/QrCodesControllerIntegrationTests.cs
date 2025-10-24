@@ -2,11 +2,8 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using EasterEggHunt.Api;
 using EasterEggHunt.Infrastructure.Data;
 using EasterEggHunt.Integration.Tests.Helpers;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
@@ -144,7 +141,7 @@ public class QrCodesControllerIntegrationTests : IDisposable
             CampaignId = 1,
             Title = "Test QR Code",
             Description = "Test Beschreibung",
-            InternalNote = "Test Notiz"
+            InternalNotes = "Test Notiz"
         };
         var json = JsonSerializer.Serialize(request, _jsonOptions);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -173,7 +170,7 @@ public class QrCodesControllerIntegrationTests : IDisposable
             CampaignId = 0, // Ungültige CampaignId
             Title = "", // Leerer Titel
             Description = "Test Beschreibung",
-            InternalNote = "Test Notiz"
+            InternalNotes = "Test Notiz"
         };
         var json = JsonSerializer.Serialize(request, _jsonOptions);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -193,7 +190,7 @@ public class QrCodesControllerIntegrationTests : IDisposable
         {
             Title = "Aktualisierter Titel",
             Description = "Aktualisierte Beschreibung",
-            InternalNote = "Aktualisierte Notiz"
+            InternalNotes = "Aktualisierte Notiz"
         };
         var json = JsonSerializer.Serialize(request, _jsonOptions);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -220,7 +217,7 @@ public class QrCodesControllerIntegrationTests : IDisposable
         {
             Title = "Aktualisierter Titel",
             Description = "Aktualisierte Beschreibung",
-            InternalNote = "Aktualisierte Notiz"
+            InternalNotes = "Aktualisierte Notiz"
         };
         var json = JsonSerializer.Serialize(request, _jsonOptions);
         using var content = new StringContent(json, Encoding.UTF8, "application/json");

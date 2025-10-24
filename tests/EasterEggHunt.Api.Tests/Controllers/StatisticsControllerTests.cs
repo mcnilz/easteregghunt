@@ -4,7 +4,6 @@ using EasterEggHunt.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Api.Tests.Controllers;
 

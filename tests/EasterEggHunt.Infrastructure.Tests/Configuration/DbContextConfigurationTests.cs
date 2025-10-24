@@ -1,8 +1,6 @@
 using EasterEggHunt.Infrastructure.Configuration;
-using EasterEggHunt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests.Configuration;
 

@@ -1,8 +1,4 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using EasterEggHunt.Domain.Entities;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests.Integration;
 

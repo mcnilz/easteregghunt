@@ -1,5 +1,5 @@
-using EasterEggHunt.Api.Models;
 using EasterEggHunt.Application.Services;
+using EasterEggHunterApi.Abstractions.Models.Auth;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasterEggHunt.Api.Controllers;

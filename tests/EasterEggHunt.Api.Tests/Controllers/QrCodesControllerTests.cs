@@ -1,11 +1,12 @@
 using EasterEggHunt.Api.Controllers;
-using EasterEggHunt.Application.Requests;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
+using EasterEggHunterApi.Abstractions.Models.QrCode;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
+using CreateQrCodeRequest = EasterEggHunterApi.Abstractions.Models.QrCode.CreateQrCodeRequest;
+using UpdateQrCodeRequest = EasterEggHunterApi.Abstractions.Models.QrCode.UpdateQrCodeRequest;
 
 namespace EasterEggHunt.Api.Tests.Controllers;
 
@@ -104,15 +105,15 @@ public class QrCodesControllerTests
     public async Task CreateQrCode_ReturnsCreatedAtAction_WhenValidRequest()
     {
         // Arrange
-        var request = new CreateQrCodeApiRequest
+        var request = new CreateQrCodeRequest
         {
             CampaignId = 1,
             Title = "Test QR Code",
-            InternalNote = "Test Note"
+            InternalNotes = "Test Note"
         };
 
         var qrCode = new QrCode(1, "Test QR Code", "Test Description", "Test Note");
-        _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(It.IsAny<CreateQrCodeRequest>()))
+        _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(It.IsAny<Application.Requests.CreateQrCodeRequest>()))
             .ReturnsAsync(qrCode);
 
         // Act
@@ -129,11 +130,11 @@ public class QrCodesControllerTests
     public async Task CreateQrCode_ReturnsBadRequest_WhenModelStateIsInvalid()
     {
         // Arrange
-        var request = new CreateQrCodeApiRequest
+        var request = new CreateQrCodeRequest
         {
             CampaignId = 0, // Invalid - must be > 0
             Title = "", // Invalid - empty title
-            InternalNote = "Test Note"
+            InternalNotes = "Test Note"
         };
 
         _controller.ModelState.AddModelError("CampaignId", "CampaignId must be greater than 0");
@@ -150,14 +151,14 @@ public class QrCodesControllerTests
     public async Task CreateQrCode_ReturnsBadRequest_WhenArgumentExceptionThrown()
     {
         // Arrange
-        var request = new CreateQrCodeApiRequest
+        var request = new CreateQrCodeRequest
         {
             CampaignId = 1,
             Title = "Test QR Code",
-            InternalNote = "Test Note"
+            InternalNotes = "Test Note"
         };
 
-        _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(It.IsAny<CreateQrCodeRequest>()))
+        _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(It.IsAny<Application.Requests.CreateQrCodeRequest>()))
             .ThrowsAsync(new ArgumentException("Invalid argument"));
 
         // Act
@@ -173,13 +174,13 @@ public class QrCodesControllerTests
     public async Task UpdateQrCode_ReturnsNoContent_WhenQrCodeExists()
     {
         // Arrange
-        var request = new UpdateQrCodeApiRequest
+        var request = new UpdateQrCodeRequest
         {
             Title = "Updated QR Code",
-            InternalNote = "Updated Note"
+            InternalNotes = "Updated Note"
         };
 
-        _mockQrCodeService.Setup(x => x.UpdateQrCodeAsync(It.IsAny<UpdateQrCodeRequest>()))
+        _mockQrCodeService.Setup(x => x.UpdateQrCodeAsync(It.IsAny<Application.Requests.UpdateQrCodeRequest>()))
             .ReturnsAsync(true);
 
         // Act
@@ -193,13 +194,13 @@ public class QrCodesControllerTests
     public async Task UpdateQrCode_ReturnsNotFound_WhenQrCodeDoesNotExist()
     {
         // Arrange
-        var request = new UpdateQrCodeApiRequest
+        var request = new UpdateQrCodeRequest
         {
             Title = "Updated QR Code",
-            InternalNote = "Updated Note"
+            InternalNotes = "Updated Note"
         };
 
-        _mockQrCodeService.Setup(x => x.UpdateQrCodeAsync(It.IsAny<UpdateQrCodeRequest>()))
+        _mockQrCodeService.Setup(x => x.UpdateQrCodeAsync(It.IsAny<Application.Requests.UpdateQrCodeRequest>()))
             .ReturnsAsync(false);
 
         // Act

@@ -1,4 +1,3 @@
-using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Models;
 using Microsoft.Extensions.Logging;
 

@@ -1,10 +1,10 @@
 using EasterEggHunt.Api.Controllers;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
+using EasterEggHunterApi.Abstractions.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Api.Tests.Controllers;
 

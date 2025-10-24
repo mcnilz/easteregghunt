@@ -1,15 +1,10 @@
 using EasterEggHunt.Domain.Repositories;
-using EasterEggHunt.Infrastructure;
-using EasterEggHunt.Infrastructure.Configuration;
 using EasterEggHunt.Infrastructure.Data;
-using EasterEggHunt.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests;
 

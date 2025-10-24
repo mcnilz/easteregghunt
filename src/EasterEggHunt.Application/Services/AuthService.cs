@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Repositories;
 using Microsoft.Extensions.Logging;

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
-using EasterEggHunt.Web.Models;
+using EasterEggHunterApi.Abstractions.Models.Auth;
+using LoginRequest = EasterEggHunterApi.Abstractions.Models.Auth.LoginRequest;
 
 namespace EasterEggHunt.Web.Services.ApiHelpers;
 
@@ -25,12 +26,7 @@ internal class AuthApiHelper
         try
         {
             _logger.LogDebug("API-Aufruf: POST /api/auth/login");
-            var request = new
-            {
-                Username = username,
-                Password = password,
-                RememberMe = rememberMe
-            };
+            var request = new LoginRequest() { Username = username, Password = password, RememberMe = rememberMe };
 
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");

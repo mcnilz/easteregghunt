@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
-using EasterEggHunt.Web.Models;
+using EasterEggHunterApi.Abstractions.Models.QrCode;
 
 namespace EasterEggHunt.Web.Services.ApiHelpers;
 
@@ -106,20 +106,20 @@ internal class QrCodeApiHelper
         }
     }
 
-    internal async Task UpdateQrCodeAsync(UpdateQrCodeRequest request)
+    internal async Task UpdateQrCodeAsync(int id, UpdateQrCodeRequest request)
     {
         try
         {
-            _logger.LogDebug("API-Aufruf: PUT /api/qrcodes/{QrCodeId}", request.Id);
+            _logger.LogDebug("API-Aufruf: PUT /api/qrcodes/{QrCodeId}", id);
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync(new Uri($"/api/qrcodes/{request.Id}", UriKind.Relative), content);
+            var response = await _httpClient.PutAsync(new Uri($"/api/qrcodes/{id}", UriKind.Relative), content);
             response.EnsureSuccessStatusCode();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Aktualisieren des QR-Codes {QrCodeId}", request.Id);
+            _logger.LogError(ex, "Fehler beim Aktualisieren des QR-Codes {QrCodeId}", id);
             throw;
         }
     }

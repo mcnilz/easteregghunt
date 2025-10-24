@@ -1,8 +1,9 @@
-using System.ComponentModel.DataAnnotations;
-using EasterEggHunt.Application.Requests;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
+using EasterEggHunterApi.Abstractions.Models.QrCode;
 using Microsoft.AspNetCore.Mvc;
+using CreateQrCodeRequest = EasterEggHunterApi.Abstractions.Models.QrCode.CreateQrCodeRequest;
+using UpdateQrCodeRequest = EasterEggHunterApi.Abstractions.Models.QrCode.UpdateQrCodeRequest;
 
 namespace EasterEggHunt.Api.Controllers;
 
@@ -80,7 +81,7 @@ public class QrCodesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<QrCode>> CreateQrCode([FromBody] CreateQrCodeApiRequest request)
+    public async Task<ActionResult<QrCode>> CreateQrCode([FromBody] CreateQrCodeRequest request)
     {
         try
         {
@@ -89,12 +90,12 @@ public class QrCodesController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var createRequest = new CreateQrCodeRequest
+            var createRequest = new Application.Requests.CreateQrCodeRequest
             {
                 CampaignId = request.CampaignId,
                 Title = request.Title,
                 Description = request.Description ?? string.Empty,
-                InternalNotes = request.InternalNote ?? string.Empty
+                InternalNotes = request.InternalNotes ?? string.Empty
             };
             var qrCode = await _qrCodeService.CreateQrCodeAsync(createRequest);
 
@@ -123,7 +124,7 @@ public class QrCodesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> UpdateQrCode(int id, [FromBody] UpdateQrCodeApiRequest request)
+    public async Task<ActionResult> UpdateQrCode(int id, [FromBody] UpdateQrCodeRequest request)
     {
         try
         {
@@ -132,12 +133,12 @@ public class QrCodesController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var updateRequest = new UpdateQrCodeRequest
+            var updateRequest = new Application.Requests.UpdateQrCodeRequest
             {
                 Id = id,
                 Title = request.Title,
                 Description = request.Description ?? string.Empty,
-                InternalNotes = request.InternalNote ?? string.Empty
+                InternalNotes = request.InternalNotes ?? string.Empty
             };
             var success = await _qrCodeService.UpdateQrCodeAsync(updateRequest);
             if (!success)
@@ -310,76 +311,4 @@ public class QrCodesController : ControllerBase
         }
     }
 
-}
-
-/// <summary>
-/// Request-Model für QR-Code-Erstellung
-/// </summary>
-public class CreateQrCodeApiRequest
-{
-    /// <summary>
-    /// ID der zugehörigen Kampagne
-    /// </summary>
-    [Required(ErrorMessage = "Kampagnen-ID ist erforderlich")]
-    [Range(1, int.MaxValue, ErrorMessage = "Kampagnen-ID muss größer als 0 sein")]
-    public int CampaignId { get; set; }
-
-    /// <summary>
-    /// Titel des QR-Codes
-    /// </summary>
-    [Required(ErrorMessage = "Titel ist erforderlich")]
-    [StringLength(100, ErrorMessage = "Titel darf maximal 100 Zeichen haben")]
-    public string Title { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Beschreibung des QR-Codes
-    /// </summary>
-    [StringLength(500, ErrorMessage = "Beschreibung darf maximal 500 Zeichen haben")]
-    public string? Description { get; set; }
-
-    /// <summary>
-    /// Interne Notiz für Administratoren
-    /// </summary>
-    [Required(ErrorMessage = "Interne Notiz ist erforderlich")]
-    [StringLength(500, ErrorMessage = "Interne Notiz darf maximal 500 Zeichen haben")]
-    public string InternalNote { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Request-Model für QR-Code-Aktualisierung
-/// </summary>
-public class UpdateQrCodeApiRequest
-{
-    /// <summary>
-    /// Neuer Titel des QR-Codes
-    /// </summary>
-    [Required(ErrorMessage = "Titel ist erforderlich")]
-    [StringLength(100, ErrorMessage = "Titel darf maximal 100 Zeichen haben")]
-    public string Title { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Neue Beschreibung des QR-Codes
-    /// </summary>
-    [StringLength(500, ErrorMessage = "Beschreibung darf maximal 500 Zeichen haben")]
-    public string? Description { get; set; }
-
-    /// <summary>
-    /// Neue interne Notiz
-    /// </summary>
-    [Required(ErrorMessage = "Interne Notiz ist erforderlich")]
-    [StringLength(500, ErrorMessage = "Interne Notiz darf maximal 500 Zeichen haben")]
-    public string InternalNote { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Request-Model für Sortierreihenfolge-Änderung
-/// </summary>
-public class SetSortOrderRequest
-{
-    /// <summary>
-    /// Neue Sortierreihenfolge
-    /// </summary>
-    [Required(ErrorMessage = "Sortierreihenfolge ist erforderlich")]
-    [Range(0, int.MaxValue, ErrorMessage = "Sortierreihenfolge muss größer oder gleich 0 sein")]
-    public int SortOrder { get; set; }
 }

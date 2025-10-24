@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using EasterEggHunt.Domain.Entities;
-
 namespace EasterEggHunt.Web.Models;
 
 public sealed class ProgressViewModel

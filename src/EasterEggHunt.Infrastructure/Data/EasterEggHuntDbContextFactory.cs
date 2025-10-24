@@ -1,7 +1,6 @@
 using EasterEggHunt.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 
 namespace EasterEggHunt.Infrastructure.Data;
 

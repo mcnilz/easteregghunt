@@ -2,7 +2,8 @@ using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Controllers;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
-using Microsoft.AspNetCore.Authorization;
+using EasterEggHunterApi.Abstractions.Models.Campaign;
+using EasterEggHunterApi.Abstractions.Models.QrCode;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -229,14 +230,12 @@ public sealed class AdminControllerTests : IDisposable
         // Arrange
         var request = new UpdateCampaignRequest
         {
-            Id = 1,
             Name = "Updated Campaign",
             Description = "Updated Description",
-            IsActive = true
         };
 
         // Act
-        var result = await _controller.EditCampaign(request);
+        var result = await _controller.EditCampaign(1, request);
 
         // Assert
         Assert.That(result, Is.InstanceOf<RedirectToActionResult>());

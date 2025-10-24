@@ -1,8 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using EasterEggHunt.Api;
 using EasterEggHunt.Integration.Tests.Helpers;
-using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Integration.Tests.Workflows;

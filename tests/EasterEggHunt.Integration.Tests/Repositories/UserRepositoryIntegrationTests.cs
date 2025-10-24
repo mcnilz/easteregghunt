@@ -1,6 +1,5 @@
 using EasterEggHunt.Domain.Repositories;
 using EasterEggHunt.Infrastructure.Repositories;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Integration.Tests.Repositories;

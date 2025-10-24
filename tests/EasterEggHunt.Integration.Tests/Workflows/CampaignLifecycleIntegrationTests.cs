@@ -1,8 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using EasterEggHunt.Api;
 using EasterEggHunt.Integration.Tests.Helpers;
-using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Integration.Tests.Workflows;
@@ -314,9 +312,9 @@ public class CampaignLifecycleIntegrationTests : IDisposable
         var adminClient = await _factory.CreateAuthenticatedAdminClientAsync();
         var qrCodes = new[]
         {
-            new { CampaignId = 1, Title = "QR-Code 1", Description = "Beschreibung 1", InternalNote = "Notiz 1" },
-            new { CampaignId = 1, Title = "QR-Code 2", Description = "Beschreibung 2", InternalNote = "Notiz 2" },
-            new { CampaignId = 1, Title = "QR-Code 3", Description = "Beschreibung 3", InternalNote = "Notiz 3" }
+            new { CampaignId = 1, Title = "QR-Code 1", Description = "Beschreibung 1", InternalNotes = "Notiz 1" },
+            new { CampaignId = 1, Title = "QR-Code 2", Description = "Beschreibung 2", InternalNotes = "Notiz 2" },
+            new { CampaignId = 1, Title = "QR-Code 3", Description = "Beschreibung 3", InternalNotes = "Notiz 3" }
         };
 
         // Act - QR-Codes zur Kampagne hinzufügen

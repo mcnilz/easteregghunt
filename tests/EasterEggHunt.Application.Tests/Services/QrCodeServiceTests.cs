@@ -4,7 +4,6 @@ using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Application.Tests.Services;
 

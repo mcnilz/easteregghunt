@@ -1,6 +1,4 @@
-using EasterEggHunt.Web.Configuration;
 using EasterEggHunt.Web.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 

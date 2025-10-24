@@ -1,5 +1,5 @@
 using EasterEggHunt.Domain.Entities;
-using EasterEggHunt.Web.Models;
+using EasterEggHunterApi.Abstractions.Models.QrCode;
 
 namespace EasterEggHunt.Web.Services;
 
@@ -79,18 +79,19 @@ public class QrCodeManagementService : IQrCodeManagementService
     /// <summary>
     /// Aktualisiert einen bestehenden QR-Code
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="request">QR-Code-Update-Anfrage</param>
     /// <returns>Task</returns>
-    public async Task UpdateQrCodeAsync(UpdateQrCodeRequest request)
+    public async Task UpdateQrCodeAsync(int id, UpdateQrCodeRequest request)
     {
         try
         {
-            _logger.LogInformation("Aktualisiere QR-Code {QrCodeId}: {QrCodeTitle}", request.Id, request.Title);
-            await _apiClient.UpdateQrCodeAsync(request);
+            _logger.LogInformation("Aktualisiere QR-Code {QrCodeId}: {QrCodeTitle}", id, request.Title);
+            await _apiClient.UpdateQrCodeAsync(id, request);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Aktualisieren des QR-Codes {QrCodeId}", request.Id);
+            _logger.LogError(ex, "Fehler beim Aktualisieren des QR-Codes {QrCodeId}", id);
             throw;
         }
     }
@@ -135,14 +136,12 @@ public class QrCodeManagementService : IQrCodeManagementService
                 {
                     var updateRequest = new UpdateQrCodeRequest
                     {
-                        Id = qrCodeId,
-                        CampaignId = campaignId,
+
                         Title = qrCode.Title,
                         Description = qrCode.Description,
                         InternalNotes = qrCode.InternalNotes,
-                        SortOrder = i
                     };
-                    await _apiClient.UpdateQrCodeAsync(updateRequest);
+                    await _apiClient.UpdateQrCodeAsync(qrCodeId, updateRequest);
                 }
             }
         }

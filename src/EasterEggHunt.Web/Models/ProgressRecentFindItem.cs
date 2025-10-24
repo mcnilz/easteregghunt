@@ -1,5 +1,3 @@
-using System;
-
 namespace EasterEggHunt.Web.Models;
 
 public sealed class ProgressRecentFindItem

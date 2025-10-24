@@ -1,7 +1,4 @@
 using EasterEggHunt.Domain.Configuration;
-using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace EasterEggHunt.Web.Configuration;
 

@@ -1,5 +1,5 @@
 using EasterEggHunt.Domain.Entities;
-using EasterEggHunt.Web.Models;
+using EasterEggHunterApi.Abstractions.Models.Campaign;
 
 namespace EasterEggHunt.Web.Services;
 
@@ -84,18 +84,19 @@ public class CampaignManagementService : ICampaignManagementService
     /// <summary>
     /// Aktualisiert eine bestehende Kampagne
     /// </summary>
+    /// <param name="id"></param>
     /// <param name="request">Kampagnen-Update-Anfrage</param>
     /// <returns>Task</returns>
-    public async Task UpdateCampaignAsync(UpdateCampaignRequest request)
+    public async Task UpdateCampaignAsync(int id, UpdateCampaignRequest request)
     {
         try
         {
-            _logger.LogInformation("Aktualisiere Kampagne {CampaignId}: {CampaignName}", request.Id, request.Name);
-            await _apiClient.UpdateCampaignAsync(request);
+            _logger.LogInformation("Aktualisiere Kampagne {CampaignId}: {CampaignName}", id, request.Name);
+            await _apiClient.UpdateCampaignAsync(id, request);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", request.Id);
+            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", id);
             throw;
         }
     }

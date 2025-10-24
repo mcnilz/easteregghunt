@@ -1,14 +1,12 @@
 using EasterEggHunt.Domain.Configuration;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace EasterEggHunt.Api.Configuration;
 
 /// <summary>
 /// Gemeinsame Konfigurationserweiterungen für EasterEggHunt-Anwendungen
 /// </summary>
-public static class CommonConfigurationExtensions
+internal static class CommonConfigurationExtensions
 {
     /// <summary>
     /// Konfiguriert die Datenbank-Migration

@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
+using EasterEggHunterApi.Abstractions.Models.User;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasterEggHunt.Api.Controllers;
@@ -190,33 +190,4 @@ public class UsersController : ControllerBase
             return StatusCode(500, "Interner Serverfehler");
         }
     }
-}
-
-/// <summary>
-/// Request-Model für Benutzer-Erstellung
-/// </summary>
-public class CreateUserRequest
-{
-    /// <summary>
-    /// Name des Benutzers
-    /// </summary>
-    [Required(ErrorMessage = "Name ist erforderlich")]
-    [StringLength(100, MinimumLength = 2, ErrorMessage = "Name muss zwischen 2 und 100 Zeichen haben")]
-    public string Name { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Response-Model für Benutzername-Prüfung
-/// </summary>
-public class CheckUserNameResponse
-{
-    /// <summary>
-    /// Gibt an, ob der Name bereits existiert
-    /// </summary>
-    public bool Exists { get; set; }
-
-    /// <summary>
-    /// Der geprüfte Name
-    /// </summary>
-    public string Name { get; set; } = string.Empty;
 }

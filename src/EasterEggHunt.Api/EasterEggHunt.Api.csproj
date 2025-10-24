@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EasterEggHunt.Api.Abstractions\EasterEggHunt.Api.Abstractions.csproj" />
     <ProjectReference Include="..\EasterEggHunt.Application\EasterEggHunt.Application.csproj" />
     <ProjectReference Include="..\EasterEggHunt.Infrastructure\EasterEggHunt.Infrastructure.csproj" />
   </ItemGroup>

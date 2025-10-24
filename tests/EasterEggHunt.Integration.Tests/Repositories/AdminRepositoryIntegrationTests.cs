@@ -1,4 +1,3 @@
-using EasterEggHunt.Integration.Tests;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Integration.Tests.Repositories;

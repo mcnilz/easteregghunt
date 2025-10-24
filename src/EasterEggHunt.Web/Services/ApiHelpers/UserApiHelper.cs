@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
-using EasterEggHunt.Web.Models;
 
 namespace EasterEggHunt.Web.Services.ApiHelpers;
 

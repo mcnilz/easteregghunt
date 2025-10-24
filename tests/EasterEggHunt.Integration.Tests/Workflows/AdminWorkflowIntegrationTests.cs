@@ -1,8 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using EasterEggHunt.Api;
 using EasterEggHunt.Integration.Tests.Helpers;
-using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Integration.Tests.Workflows;
@@ -173,7 +171,7 @@ public class AdminWorkflowIntegrationTests : IDisposable
             CampaignId = 1, // Annahme: erste Kampagne hat ID 1
             Title = "Test QR-Code",
             Description = "Test Beschreibung",
-            InternalNote = "Test Notizen"
+            InternalNotes = "Test Notizen"
         };
 
         var qrCodeContent = new StringContent(
@@ -220,7 +218,7 @@ public class AdminWorkflowIntegrationTests : IDisposable
             CampaignId = 1,
             Title = "Workflow Test QR-Code",
             Description = "Test für QR-Code Workflow",
-            InternalNote = "Workflow Test Notizen"
+            InternalNotes = "Workflow Test Notizen"
         };
 
         var createContent = new StringContent(
@@ -240,7 +238,7 @@ public class AdminWorkflowIntegrationTests : IDisposable
         {
             Title = "Aktualisierter QR-Code",
             Description = "Aktualisierte Beschreibung",
-            InternalNote = "Aktualisierte Notizen"
+            InternalNotes = "Aktualisierte Notizen"
         };
 
         var updateContent = new StringContent(
