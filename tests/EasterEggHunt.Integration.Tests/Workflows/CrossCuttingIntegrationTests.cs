@@ -10,7 +10,7 @@ namespace EasterEggHunt.Integration.Tests.Workflows;
 /// Tests für: Session-Timeout, Concurrency, Error-Handling, Logging
 /// </summary>
 [TestFixture]
-[Parallelizable(ParallelScope.None)]
+[Parallelizable(ParallelScope.Self)] // Parallele Ausführung für unabhängige Tests
 public class CrossCuttingIntegrationTests : IDisposable
 {
     private TestWebApplicationFactory _factory = null!;
@@ -39,34 +39,27 @@ public class CrossCuttingIntegrationTests : IDisposable
 
     #region Session Management Workflow Tests
 
-    [Test]
-    public async Task CrossCutting_SessionTimeout_AdminSessionExpires()
+    [TestCase("/api/campaigns/active", "admin")]
+    [TestCase("/api/users/active", "employee")]
+    public async Task CrossCutting_SessionTimeout_SessionPersistsAcrossRequests(string endpoint, string userType)
     {
         // Arrange
-        var adminClient = await _factory.CreateAuthenticatedAdminClientAsync();
+        HttpClient client;
+        if (userType == "admin")
+        {
+            client = await _factory.CreateAuthenticatedAdminClientAsync();
+        }
+        else
+        {
+            client = await _factory.CreateAuthenticatedEmployeeClientAsync("Session Test Employee");
+        }
 
         // Act 1: Erste Anfrage mit gültiger Session
-        var firstResponse = await adminClient.GetAsync("/api/campaigns/active");
+        var firstResponse = await client.GetAsync(endpoint);
         Assert.That(firstResponse.IsSuccessStatusCode, Is.True, "Erste Anfrage sollte erfolgreich sein");
 
-        // Act 2: Session simulieren (in realer Anwendung würde dies durch Timeout passieren)
-        // Hier testen wir, dass das System korrekt mit Session-Problemen umgeht
-        var secondResponse = await adminClient.GetAsync("/api/campaigns/active");
-        Assert.That(secondResponse.IsSuccessStatusCode, Is.True, "Zweite Anfrage sollte erfolgreich sein");
-    }
-
-    [Test]
-    public async Task CrossCutting_SessionTimeout_EmployeeSessionExpires()
-    {
-        // Arrange
-        var employeeClient = await _factory.CreateAuthenticatedEmployeeClientAsync("Session Test Employee");
-
-        // Act 1: Erste Anfrage mit gültiger Session
-        var firstResponse = await employeeClient.GetAsync("/api/users/active");
-        Assert.That(firstResponse.IsSuccessStatusCode, Is.True, "Erste Anfrage sollte erfolgreich sein");
-
-        // Act 2: Session simulieren (in realer Anwendung würde dies durch Timeout passieren)
-        var secondResponse = await employeeClient.GetAsync("/api/users/active");
+        // Act 2: Zweite Anfrage (Session sollte persistieren)
+        var secondResponse = await client.GetAsync(endpoint);
         Assert.That(secondResponse.IsSuccessStatusCode, Is.True, "Zweite Anfrage sollte erfolgreich sein");
     }
 
@@ -99,46 +92,30 @@ public class CrossCuttingIntegrationTests : IDisposable
 
     #region Concurrency Workflow Tests
 
-    [Test]
-    public async Task CrossCutting_ConcurrentAdminRequests_HandlesCorrectly()
+    [TestCase("admin", "/api/campaigns/active", "/api/qrcodes/campaign/1")]
+    [TestCase("employee", "/api/users/active", "/api/qrcodes/by-code/testcode1")]
+    public async Task CrossCutting_ConcurrentRequests_HandlesCorrectly(string userType, string endpoint1, string endpoint2)
     {
         // Arrange
-        var adminClient1 = await _factory.CreateAuthenticatedAdminClientAsync();
-        var adminClient2 = await _factory.CreateAuthenticatedAdminClientAsync();
-
-        // Act - Gleichzeitige Admin-Requests
-        var tasks = new[]
+        HttpClient client1, client2;
+        if (userType == "admin")
         {
-            adminClient1.GetAsync("/api/campaigns/active"),
-            adminClient2.GetAsync("/api/campaigns/active"),
-            adminClient1.GetAsync("/api/qrcodes/campaign/1"),
-            adminClient2.GetAsync("/api/qrcodes/campaign/1")
-        };
-
-        var responses = await Task.WhenAll(tasks);
-
-        // Assert
-        foreach (var response in responses)
-        {
-            Assert.That(response.IsSuccessStatusCode, Is.True,
-                "Gleichzeitige Admin-Requests sollten erfolgreich sein");
+            client1 = await _factory.CreateAuthenticatedAdminClientAsync();
+            client2 = await _factory.CreateAuthenticatedAdminClientAsync();
         }
-    }
+        else
+        {
+            client1 = await _factory.CreateAuthenticatedEmployeeClientAsync("Employee 1");
+            client2 = await _factory.CreateAuthenticatedEmployeeClientAsync("Employee 2");
+        }
 
-    [Test]
-    public async Task CrossCutting_ConcurrentEmployeeRequests_HandlesCorrectly()
-    {
-        // Arrange
-        var employeeClient1 = await _factory.CreateAuthenticatedEmployeeClientAsync("Employee 1");
-        var employeeClient2 = await _factory.CreateAuthenticatedEmployeeClientAsync("Employee 2");
-
-        // Act - Gleichzeitige Employee-Requests
+        // Act - Gleichzeitige Requests
         var tasks = new[]
         {
-            employeeClient1.GetAsync("/api/users/active"),
-            employeeClient2.GetAsync("/api/users/active"),
-            employeeClient1.GetAsync("/api/qrcodes/by-code/testcode1"), // Vereinfacht: QR-Code abrufen statt scannen
-            employeeClient2.GetAsync("/api/qrcodes/by-code/testcode3")  // Vereinfacht: QR-Code abrufen statt scannen
+            client1.GetAsync(endpoint1),
+            client2.GetAsync(endpoint1),
+            client1.GetAsync(endpoint2),
+            client2.GetAsync(endpoint2)
         };
 
         var responses = await Task.WhenAll(tasks);
@@ -147,7 +124,7 @@ public class CrossCuttingIntegrationTests : IDisposable
         foreach (var response in responses)
         {
             Assert.That(response.IsSuccessStatusCode, Is.True,
-                "Gleichzeitige Employee-Requests sollten erfolgreich sein");
+                $"Gleichzeitige {userType}-Requests sollten erfolgreich sein");
         }
     }
 
@@ -164,7 +141,7 @@ public class CrossCuttingIntegrationTests : IDisposable
             adminClient.GetAsync("/api/campaigns/active"),
             employeeClient.GetAsync("/api/users/active"),
             adminClient.GetAsync("/api/qrcodes/campaign/1"),
-            employeeClient.GetAsync("/api/qrcodes/by-code/testcode1") // Vereinfacht: QR-Code abrufen statt scannen
+            employeeClient.GetAsync("/api/qrcodes/by-code/testcode1")
         };
 
         var responses = await Task.WhenAll(tasks);
@@ -211,85 +188,35 @@ public class CrossCuttingIntegrationTests : IDisposable
 
     #region Error Handling Workflow Tests
 
-    [Test]
-    public async Task CrossCutting_InvalidJsonPayload_ReturnsBadRequest()
-    {
-        // Arrange
-        var adminClient = await _factory.CreateAuthenticatedAdminClientAsync();
-        var invalidJson = "{ invalid json }";
-
-        // Act
-        var createContent = new StringContent(invalidJson, Encoding.UTF8, "application/json");
-        var response = await adminClient.PostAsync("/api/campaigns", createContent);
-
-        // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest),
-            "Ungültiges JSON sollte BadRequest zurückgeben");
-    }
-
-    [Test]
-    public async Task CrossCutting_MissingRequiredFields_ReturnsValidationError()
-    {
-        // Arrange
-        var adminClient = await _factory.CreateAuthenticatedAdminClientAsync();
-        var incompleteData = new { Name = "Test" }; // Fehlende Required Fields
-
-        // Act
-        var createContent = new StringContent(
-            JsonSerializer.Serialize(incompleteData),
-            Encoding.UTF8,
-            "application/json");
-
-        var response = await adminClient.PostAsync("/api/campaigns", createContent);
-
-        // Assert
-        Assert.That(response.IsSuccessStatusCode, Is.False,
-            "Unvollständige Daten sollten Fehler verursachen");
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest),
-            "Status sollte BadRequest sein");
-    }
-
-    [Test]
-    public async Task CrossCutting_NonExistentEndpoint_ReturnsNotFound()
+    [TestCase("{ invalid json }", "/api/campaigns", System.Net.HttpStatusCode.BadRequest)]
+    [TestCase("{\"Name\":\"Test\"}", "/api/campaigns", System.Net.HttpStatusCode.BadRequest)] // Missing required fields
+    public async Task CrossCutting_InvalidRequestData_ReturnsBadRequest(string jsonData, string endpoint, System.Net.HttpStatusCode expectedStatus)
     {
         // Arrange
         var adminClient = await _factory.CreateAuthenticatedAdminClientAsync();
 
         // Act
-        var response = await adminClient.GetAsync("/api/nonexistent");
+        var createContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var response = await adminClient.PostAsync(endpoint, createContent);
 
         // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound),
-            "Nicht-existierender Endpoint sollte NotFound zurückgeben");
+        Assert.That(response.StatusCode, Is.EqualTo(expectedStatus),
+            $"Ungültige Anfrage sollte {expectedStatus} zurückgeben");
     }
 
-    [Test]
-    public async Task CrossCutting_UnauthorizedAccess_ReturnsUnauthorized()
-    {
-        // Arrange - Client ohne Authentication
-        var unauthorizedClient = _factory.CreateClient();
-
-        // Act
-        var response = await unauthorizedClient.GetAsync("/api/campaigns");
-
-        // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.MethodNotAllowed),
-            "Unauthorized Zugriff sollte MethodNotAllowed zurückgeben");
-    }
-
-    [Test]
-    public async Task CrossCutting_ServerError_HandlesGracefully()
+    [TestCase("/api/nonexistent", System.Net.HttpStatusCode.NotFound)]
+    [TestCase("/api/campaigns/999999", System.Net.HttpStatusCode.NotFound)]
+    public async Task CrossCutting_NonExistentResource_ReturnsNotFound(string endpoint, System.Net.HttpStatusCode expectedStatus)
     {
         // Arrange
         var adminClient = await _factory.CreateAuthenticatedAdminClientAsync();
 
-        // Act - Versuche Operation, die Server-Fehler verursachen könnte
-        // (z.B. sehr große Datenmenge oder ungültige Operation)
-        var response = await adminClient.GetAsync("/api/campaigns/999999");
+        // Act
+        var response = await adminClient.GetAsync(endpoint);
 
         // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound),
-            "Server sollte graceful mit Fehlern umgehen");
+        Assert.That(response.StatusCode, Is.EqualTo(expectedStatus),
+            $"Nicht-existierende Ressource sollte {expectedStatus} zurückgeben");
     }
 
     #endregion

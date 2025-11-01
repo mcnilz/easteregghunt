@@ -10,7 +10,7 @@ namespace EasterEggHunt.Integration.Tests.Workflows;
 /// Basierend auf: features/admin_authentication.feature, features/campaign_management.feature
 /// </summary>
 [TestFixture]
-[Parallelizable(ParallelScope.None)]
+[Parallelizable(ParallelScope.Self)] // Parallele Ausführung für unabhängige Tests
 public class AdminWorkflowIntegrationTests : IDisposable
 {
     private TestWebApplicationFactory _factory = null!;

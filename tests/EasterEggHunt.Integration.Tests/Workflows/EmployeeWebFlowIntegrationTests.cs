@@ -14,7 +14,7 @@ namespace EasterEggHunt.Integration.Tests.Workflows;
 /// - /api/finds/check (GetExistingFindAsync)
 /// </summary>
 [TestFixture]
-[Parallelizable(ParallelScope.None)]
+[Parallelizable(ParallelScope.Self)] // Parallele Ausführung für unabhängige Tests
 public class EmployeeWebFlowIntegrationTests : IDisposable
 {
     private TestWebApplicationFactory _factory = null!;
