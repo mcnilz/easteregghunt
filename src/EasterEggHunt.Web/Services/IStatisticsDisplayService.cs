@@ -31,6 +31,11 @@ public interface IStatisticsDisplayService
     /// Lädt System-Übersichtsstatistiken
     /// </summary>
     /// <returns>System-Statistiken</returns>
-    Task<SystemOverviewStatistics> GetSystemOverviewAsync();
+    Task<Models.SystemOverviewStatistics> GetSystemOverviewAsync();
 
+    /// <summary>
+    /// Lädt Top-Performer-Statistiken
+    /// </summary>
+    /// <returns>Top-Performer-Statistiken</returns>
+    Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync();
 }

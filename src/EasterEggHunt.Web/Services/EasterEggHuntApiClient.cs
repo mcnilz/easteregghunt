@@ -51,6 +51,7 @@ public interface IEasterEggHuntApiClient
     // Statistics Operations
     Task<QrCodeStatisticsViewModel> GetQrCodeStatisticsAsync(int qrCodeId);
     Task<CampaignQrCodeStatisticsViewModel> GetCampaignQrCodeStatisticsAsync(int campaignId);
+    Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync();
 }
 
 /// <summary>
@@ -177,6 +178,9 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
 
     public async Task<CampaignQrCodeStatisticsViewModel> GetCampaignQrCodeStatisticsAsync(int campaignId)
         => await _statisticsHelper.GetCampaignQrCodeStatisticsAsync(campaignId);
+
+    public async Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync()
+        => await _statisticsHelper.GetTopPerformersAsync();
 
     #endregion
 }

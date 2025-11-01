@@ -680,4 +680,27 @@ public class AdminController : Controller
             return View("Error");
         }
     }
+
+    /// <summary>
+    /// Teilnehmer-Rangliste
+    /// </summary>
+    /// <returns>Leaderboard-Ansicht</returns>
+    public async Task<IActionResult> Leaderboard()
+    {
+        try
+        {
+            var topPerformers = await _statisticsService.GetTopPerformersAsync();
+            return View(topPerformers);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Teilnehmer-Rangliste");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Teilnehmer-Rangliste");
+            return View("Error");
+        }
+    }
 }

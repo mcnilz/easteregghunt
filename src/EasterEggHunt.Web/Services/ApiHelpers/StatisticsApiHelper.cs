@@ -54,4 +54,22 @@ internal class StatisticsApiHelper
             throw;
         }
     }
+
+    internal async Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync()
+    {
+        try
+        {
+            _logger.LogDebug("API-Aufruf: GET /api/statistics/top-performers");
+            var response = await _httpClient.GetAsync(new Uri("/api/statistics/top-performers", UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<Models.TopPerformersStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Top-Performer-Statistiken zurück");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Top-Performer-Statistiken");
+            throw;
+        }
+    }
 }

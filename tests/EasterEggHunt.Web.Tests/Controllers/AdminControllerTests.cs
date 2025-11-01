@@ -452,6 +452,73 @@ public sealed class AdminControllerTests : IDisposable
         Assert.That(value, Is.Not.Null);
     }
 
+    [Test]
+    public async Task Leaderboard_ReturnsViewWithTopPerformers()
+    {
+        // Arrange
+        var topPerformers = new Models.TopPerformersStatisticsViewModel
+        {
+            TopByTotalFinds = new List<Models.UserStatistics>
+            {
+                new Models.UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8 },
+                new Models.UserStatistics { UserId = 2, UserName = "User2", TotalFinds = 8, UniqueQrCodesFound = 7 }
+            },
+            TopByUniqueQrCodes = new List<Models.UserStatistics>
+            {
+                new Models.UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8 },
+                new Models.UserStatistics { UserId = 2, UserName = "User2", TotalFinds = 8, UniqueQrCodesFound = 7 }
+            },
+            MostRecentActivity = new List<Models.UserStatistics>
+            {
+                new Models.UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8, LastFindDate = DateTime.UtcNow }
+            },
+            GeneratedAt = DateTime.UtcNow
+        };
+
+        _mockStatisticsService.Setup(x => x.GetTopPerformersAsync())
+            .ReturnsAsync(topPerformers);
+
+        // Act
+        var result = await _controller.Leaderboard();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.Model, Is.EqualTo(topPerformers));
+    }
+
+    [Test]
+    public async Task Leaderboard_ReturnsErrorView_WhenExceptionOccurs()
+    {
+        // Arrange
+        _mockStatisticsService.Setup(x => x.GetTopPerformersAsync())
+            .ThrowsAsync(new HttpRequestException("API Error"));
+
+        // Act
+        var result = await _controller.Leaderboard();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
+    }
+
+    [Test]
+    public async Task Leaderboard_ReturnsErrorView_WhenUnexpectedExceptionOccurs()
+    {
+        // Arrange
+        _mockStatisticsService.Setup(x => x.GetTopPerformersAsync())
+            .ThrowsAsync(new InvalidOperationException("Unexpected error"));
+
+        // Act
+        var result = await _controller.Leaderboard();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
+    }
+
     public void Dispose()
     {
         _controller?.Dispose();

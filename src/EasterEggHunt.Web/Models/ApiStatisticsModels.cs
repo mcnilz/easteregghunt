@@ -117,3 +117,29 @@ public class CampaignQrCodeStatisticsDto
     /// </summary>
     public DateTime GeneratedAt { get; set; }
 }
+
+/// <summary>
+/// API DTO für Top-Performer-Statistiken
+/// </summary>
+public class TopPerformersStatisticsViewModel
+{
+    /// <summary>
+    /// Top-Performer nach Gesamtanzahl der Funde
+    /// </summary>
+    public IReadOnlyList<UserStatistics> TopByTotalFinds { get; set; } = new List<UserStatistics>();
+
+    /// <summary>
+    /// Top-Performer nach einzigartigen QR-Codes
+    /// </summary>
+    public IReadOnlyList<UserStatistics> TopByUniqueQrCodes { get; set; } = new List<UserStatistics>();
+
+    /// <summary>
+    /// Benutzer mit der neuesten Aktivität
+    /// </summary>
+    public IReadOnlyList<UserStatistics> MostRecentActivity { get; set; } = new List<UserStatistics>();
+
+    /// <summary>
+    /// Zeitpunkt der Generierung der Statistiken
+    /// </summary>
+    public DateTime GeneratedAt { get; set; }
+}

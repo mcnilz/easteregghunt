@@ -130,7 +130,7 @@ public class StatisticsDisplayService : IStatisticsDisplayService
     /// Lädt System-Übersichtsstatistiken
     /// </summary>
     /// <returns>System-Statistiken</returns>
-    public async Task<SystemOverviewStatistics> GetSystemOverviewAsync()
+    public async Task<Models.SystemOverviewStatistics> GetSystemOverviewAsync()
     {
         try
         {
@@ -154,7 +154,7 @@ public class StatisticsDisplayService : IStatisticsDisplayService
                 }
             }
 
-            return new SystemOverviewStatistics
+            return new Models.SystemOverviewStatistics
             {
                 TotalCampaigns = campaigns.Count(),
                 ActiveCampaigns = campaigns.Count(c => c.IsActive),
@@ -183,14 +183,14 @@ public class StatisticsDisplayService : IStatisticsDisplayService
     /// Lädt Benutzer-Statistiken
     /// </summary>
     /// <returns>Benutzer-Statistiken</returns>
-    public async Task<IEnumerable<UserStatistics>> GetUserStatisticsAsync()
+    public async Task<IEnumerable<Models.UserStatistics>> GetUserStatisticsAsync()
     {
         try
         {
             _logger.LogInformation("Lade Benutzer-Statistiken");
 
             var users = await _apiClient.GetActiveUsersAsync();
-            var userStatistics = new List<UserStatistics>();
+            var userStatistics = new List<Models.UserStatistics>();
 
             foreach (var user in users)
             {
@@ -203,6 +203,24 @@ public class StatisticsDisplayService : IStatisticsDisplayService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "Fehler beim Laden der Benutzer-Statistiken");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Lädt Top-Performer-Statistiken
+    /// </summary>
+    /// <returns>Top-Performer-Statistiken</returns>
+    public async Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Lade Top-Performer-Statistiken");
+            return await _apiClient.GetTopPerformersAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Top-Performer-Statistiken");
             throw;
         }
     }

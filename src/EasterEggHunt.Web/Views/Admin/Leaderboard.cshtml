@@ -1,0 +1,323 @@
+@model EasterEggHunt.Web.Models.TopPerformersStatisticsViewModel
+@{
+    ViewData["Title"] = "Teilnehmer-Rangliste";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1>Teilnehmer-Rangliste</h1>
+        <p class="lead text-muted">Top-Performer nach verschiedenen Kriterien</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="leaderboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="total-finds-tab" data-bs-toggle="tab" data-bs-target="#total-finds" type="button" role="tab">
+                    <i class="fas fa-trophy"></i> Top Funde
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="unique-qr-tab" data-bs-toggle="tab" data-bs-target="#unique-qr" type="button" role="tab">
+                    <i class="fas fa-qrcode"></i> Top QR-Codes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="recent-activity-tab" data-bs-toggle="tab" data-bs-target="#recent-activity" type="button" role="tab">
+                    <i class="fas fa-clock"></i> Neueste Aktivität
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="leaderboardTabsContent">
+            <!-- Top Funde Tab -->
+            <div class="tab-pane fade show active" id="total-finds" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-trophy text-warning"></i> Top 10 nach Gesamtanzahl der Funde
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.TopByTotalFinds.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 80px;">Rang</th>
+                                            <th>Teilnehmer</th>
+                                            <th class="text-center">Funde</th>
+                                            <th class="text-center">Einzigartige QR-Codes</th>
+                                            <th class="text-center">Erster Fund</th>
+                                            <th class="text-center">Letzter Fund</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.TopByTotalFinds.Count; i++)
+                                        {
+                                            var user = Model.TopByTotalFinds[i];
+                                            <tr>
+                                                <td>
+                                                    @if (i == 0)
+                                                    {
+                                                        <span class="badge bg-warning text-dark fs-6">
+                                                            <i class="fas fa-crown"></i> @(i + 1)
+                                                        </span>
+                                                    }
+                                                    else if (i == 1)
+                                                    {
+                                                        <span class="badge bg-secondary fs-6">
+                                                            <i class="fas fa-medal"></i> @(i + 1)
+                                                        </span>
+                                                    }
+                                                    else if (i == 2)
+                                                    {
+                                                        <span class="badge bg-info fs-6">
+                                                            <i class="fas fa-medal"></i> @(i + 1)
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-primary fs-6">@(i + 1)</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <strong>@user.UserName</strong>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-success fs-6">@user.TotalFinds</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-info">@user.UniqueQrCodesFound</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (user.FirstFindDate.HasValue)
+                                                    {
+                                                        <small class="text-muted">@user.FirstFindDate.Value.ToString("dd.MM.yyyy HH:mm")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-muted">-</small>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (user.LastFindDate.HasValue)
+                                                    {
+                                                        <small class="text-muted">@user.LastFindDate.Value.ToString("dd.MM.yyyy HH:mm")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-muted">-</small>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Noch keine Funde vorhanden.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top QR-Codes Tab -->
+            <div class="tab-pane fade" id="unique-qr" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-qrcode text-info"></i> Top 10 nach einzigartigen QR-Codes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.TopByUniqueQrCodes.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 80px;">Rang</th>
+                                            <th>Teilnehmer</th>
+                                            <th class="text-center">Einzigartige QR-Codes</th>
+                                            <th class="text-center">Gesamt-Funde</th>
+                                            <th class="text-center">Erster Fund</th>
+                                            <th class="text-center">Letzter Fund</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.TopByUniqueQrCodes.Count; i++)
+                                        {
+                                            var user = Model.TopByUniqueQrCodes[i];
+                                            <tr>
+                                                <td>
+                                                    @if (i == 0)
+                                                    {
+                                                        <span class="badge bg-warning text-dark fs-6">
+                                                            <i class="fas fa-crown"></i> @(i + 1)
+                                                        </span>
+                                                    }
+                                                    else if (i == 1)
+                                                    {
+                                                        <span class="badge bg-secondary fs-6">
+                                                            <i class="fas fa-medal"></i> @(i + 1)
+                                                        </span>
+                                                    }
+                                                    else if (i == 2)
+                                                    {
+                                                        <span class="badge bg-info fs-6">
+                                                            <i class="fas fa-medal"></i> @(i + 1)
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-primary fs-6">@(i + 1)</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <strong>@user.UserName</strong>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-info fs-6">@user.UniqueQrCodesFound</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-success">@user.TotalFinds</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (user.FirstFindDate.HasValue)
+                                                    {
+                                                        <small class="text-muted">@user.FirstFindDate.Value.ToString("dd.MM.yyyy HH:mm")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-muted">-</small>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (user.LastFindDate.HasValue)
+                                                    {
+                                                        <small class="text-muted">@user.LastFindDate.Value.ToString("dd.MM.yyyy HH:mm")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-muted">-</small>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Noch keine Funde vorhanden.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Neueste Aktivität Tab -->
+            <div class="tab-pane fade" id="recent-activity" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clock text-primary"></i> Neueste Aktivität
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.MostRecentActivity.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Teilnehmer</th>
+                                            <th class="text-center">Letzter Fund</th>
+                                            <th class="text-center">Funde</th>
+                                            <th class="text-center">Einzigartige QR-Codes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var user in Model.MostRecentActivity)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@user.UserName</strong>
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (user.LastFindDate.HasValue)
+                                                    {
+                                                        <small class="text-muted">@user.LastFindDate.Value.ToString("dd.MM.yyyy HH:mm")</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-muted">-</small>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-success">@user.TotalFinds</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-info">@user.UniqueQrCodesFound</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Noch keine Aktivität vorhanden.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-sync-alt"></i> Letzte Aktualisierung: @Model.GeneratedAt.ToString("dd.MM.yyyy HH:mm:ss")
+                    </small>
+                    <div>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a asp-action="Statistics" class="btn btn-primary">
+                            <i class="fas fa-chart-bar"></i> Statistiken
+                        </a>
+                        <button class="btn btn-outline-primary" onclick="refreshLeaderboard()">
+                            <i class="fas fa-sync-alt"></i> Aktualisieren
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function refreshLeaderboard() {
+            location.reload();
+        }
+    </script>
+}
+

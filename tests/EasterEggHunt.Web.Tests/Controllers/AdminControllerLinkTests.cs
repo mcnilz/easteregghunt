@@ -292,6 +292,11 @@ public class AdminControllerLinkTests : IDisposable
 
         var qrCodeStatsResult = await _controller.QrCodeStatistics(qrCodeId);
         Assert.That(qrCodeStatsResult, Is.InstanceOf<ViewResult>());
+
+        var topPerformers = new Models.TopPerformersStatisticsViewModel();
+        _mockStatisticsService.Setup(x => x.GetTopPerformersAsync()).ReturnsAsync(topPerformers);
+        var leaderboardResult = await _controller.Leaderboard();
+        Assert.That(leaderboardResult, Is.InstanceOf<ViewResult>());
     }
 
     [Test]
