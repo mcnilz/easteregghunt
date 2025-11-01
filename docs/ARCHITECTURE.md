@@ -277,16 +277,20 @@ tests/
 
 ### Aktuelle Test-Statistiken
 
-- **652+ Tests** insgesamt
-  - Domain Tests: 52 Tests
-  - Application Tests: 180 Tests  
-  - Infrastructure Tests: 116 Tests
+- **~792 Tests** insgesamt
+  - Domain Tests: 203 Tests (89.6% Coverage) ✅
+  - Application Tests: 237 Tests (90.52% Coverage) ✅
+  - Infrastructure Tests: 173 Tests (39.16% Coverage) ⚠️
   - API Tests: 80 Tests
-  - Integration Tests: 163 Tests
+  - Integration Tests: 37 Tests (E2E)
   - Web Tests: 62 Tests
-- **Code Coverage** (Domain: 66.4%, Application: 68.42%, Infrastructure: 34.04%)
-- **Integration Tests** mit echter SQLite-Datenbank (163 Tests)
-- **Unit Tests** für alle Domain Entities
+- **Code Coverage** (Domain: 89.6%, Application: 90.52%, Infrastructure: 39.16%)
+- **Test-Pyramide**: 73% Unit, 22% Integration, 5% E2E ✅
+- **Test-Geschwindigkeit**: ~22s für alle Tests ✅
+- **Integration Tests** mit echter SQLite-Datenbank
+- **Unit Tests** für alle Domain Entities mit umfassenden Edge Cases
+
+**Detaillierte Metriken:** Siehe [TEST_METRICS.md](./TEST_METRICS.md) und [TEST_STRATEGY.md](./TEST_STRATEGY.md)
 
 ### Integration Test Architecture
 
