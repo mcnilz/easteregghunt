@@ -166,13 +166,6 @@ public class SeedDataServiceTests
     }
 
     [Test]
-    public async Task StopAsync_ShouldCompleteSuccessfully()
-    {
-        // Act & Assert - Sollte keine Exception werfen
-        await _seedService.StopAsync(CancellationToken.None);
-    }
-
-    [Test]
     public void Constructor_WithValidParameters_ShouldCreateInstance()
     {
         // Arrange
@@ -192,4 +185,91 @@ public class SeedDataServiceTests
         // Assert
         Assert.That(service, Is.Not.Null);
     }
+
+    #region Additional Edge Case Tests
+
+    [Test]
+    public async Task StartAsync_WithSeedDataDisabled_ShouldSkipSeeding()
+    {
+        // Arrange
+        var configurationData = new Dictionary<string, string?>
+        {
+            ["EasterEggHunt:Database:SeedData"] = "false"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurationData)
+            .Build();
+
+        var mockLogger = new Mock<ILogger<SeedDataService>>();
+        var seedService = new SeedDataService(_serviceProvider, mockLogger.Object, configuration);
+
+        // Act
+        await seedService.StartAsync(CancellationToken.None);
+
+        // Assert
+        var campaigns = await _context.Campaigns.ToListAsync();
+        Assert.That(campaigns, Is.Empty);
+    }
+
+    [Test]
+    public async Task StartAsync_WithMissingSeedDataConfig_ShouldDefaultToTrue()
+    {
+        // Arrange - Keine SeedData-Konfiguration
+        var configurationData = new Dictionary<string, string?>();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configurationData)
+            .Build();
+
+        var mockLogger = new Mock<ILogger<SeedDataService>>();
+        var seedService = new SeedDataService(_serviceProvider, mockLogger.Object, configuration);
+
+        // Act
+        await seedService.StartAsync(CancellationToken.None);
+
+        // Assert - Should seed because default is true
+        var campaigns = await _context.Campaigns.ToListAsync();
+        Assert.That(campaigns, Is.Not.Empty);
+    }
+
+    [Test]
+    public async Task StopAsync_ShouldCompleteSuccessfully()
+    {
+        // Act & Assert - Should not throw
+        await _seedService.StopAsync(CancellationToken.None);
+    }
+
+    [Test]
+    public async Task StartAsync_WithCancellationToken_ShouldHandleCancellation()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert - Should handle cancellation gracefully
+        // Note: In practice, EF Core might throw OperationCanceledException
+        // but we test that the method handles it
+        try
+        {
+            await _seedService.StartAsync(cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected behavior - cancellation was handled
+        }
+    }
+
+    [Test]
+    public async Task StartAsync_MultipleTimes_ShouldOnlySeedOnce()
+    {
+        // Act
+        await _seedService.StartAsync(CancellationToken.None);
+        await _seedService.StartAsync(CancellationToken.None);
+        await _seedService.StartAsync(CancellationToken.None);
+
+        // Assert - Should only have one set of seed data
+        var campaigns = await _context.Campaigns.ToListAsync();
+        Assert.That(campaigns.Count, Is.EqualTo(3)); // 3 campaigns from seed
+    }
+
+    #endregion
 }
