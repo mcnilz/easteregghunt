@@ -245,4 +245,75 @@ public class StatisticsDisplayService : IStatisticsDisplayService
         }
     }
 
+    /// <summary>
+    /// Lädt System-Statistiken für die Statistiken-Übersichtsseite
+    /// </summary>
+    /// <returns>System-Statistiken mit Top Found QR-Codes und Unfound QR-Codes</returns>
+    public async Task<StatisticsViewModel> GetStatisticsAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Lade System-Statistiken");
+
+            var campaigns = await _apiClient.GetActiveCampaignsAsync();
+            var users = await _apiClient.GetActiveUsersAsync();
+
+            var allQrCodes = new List<QrCode>();
+            var qrCodeStatistics = new List<QrCodeStatisticsViewModel>();
+            var unfoundQrCodesByCampaign = new Dictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>>();
+
+            // Alle QR-Codes und deren Statistiken sammeln
+            foreach (var campaign in campaigns)
+            {
+                var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign.Id);
+                allQrCodes.AddRange(qrCodes);
+
+                var unfoundInCampaign = new List<QrCodeStatisticsViewModel>();
+
+                foreach (var qrCode in qrCodes)
+                {
+                    var statistics = await _apiClient.GetQrCodeStatisticsAsync(qrCode.Id);
+                    qrCodeStatistics.Add(statistics);
+
+                    // Ungerundene QR-Codes sammeln
+                    if (statistics.FindCount == 0)
+                    {
+                        unfoundInCampaign.Add(statistics);
+                    }
+                }
+
+                // Ungerundene QR-Codes nach Kampagne gruppieren
+                if (unfoundInCampaign.Any())
+                {
+                    unfoundQrCodesByCampaign[campaign.Name] = unfoundInCampaign;
+                }
+            }
+
+            // Top 10 QR-Codes nach FindCount
+            var topFoundQrCodes = qrCodeStatistics
+                .OrderByDescending(s => s.FindCount)
+                .Take(10)
+                .ToList();
+
+            // Grundlegende Statistiken berechnen
+            var totalFinds = qrCodeStatistics.Sum(s => s.FindCount);
+
+            return new StatisticsViewModel
+            {
+                TotalCampaigns = campaigns.Count(),
+                ActiveCampaigns = campaigns.Count(c => c.IsActive),
+                TotalUsers = users.Count(),
+                ActiveUsers = users.Count(u => u.IsActive),
+                TotalQrCodes = allQrCodes.Count,
+                TotalFinds = totalFinds,
+                TopFoundQrCodes = topFoundQrCodes,
+                UnfoundQrCodesByCampaign = unfoundQrCodesByCampaign
+            };
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der System-Statistiken");
+            throw;
+        }
+    }
 }

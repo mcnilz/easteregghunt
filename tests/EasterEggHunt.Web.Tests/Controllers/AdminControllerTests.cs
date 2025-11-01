@@ -519,6 +519,126 @@ public sealed class AdminControllerTests : IDisposable
         Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
     }
 
+    [Test]
+    public async Task Statistics_ReturnsViewWithStatistics()
+    {
+        // Arrange
+        var statistics = new StatisticsViewModel
+        {
+            TotalCampaigns = 3,
+            ActiveCampaigns = 2,
+            TotalUsers = 10,
+            ActiveUsers = 8,
+            TotalQrCodes = 15,
+            TotalFinds = 25,
+            TopFoundQrCodes = new List<QrCodeStatisticsViewModel>
+            {
+                new QrCodeStatisticsViewModel
+                {
+                    QrCodeId = 1,
+                    Title = "Top QR Code",
+                    FindCount = 10,
+                    CampaignName = "Test Campaign"
+                },
+                new QrCodeStatisticsViewModel
+                {
+                    QrCodeId = 2,
+                    Title = "Second QR Code",
+                    FindCount = 8,
+                    CampaignName = "Test Campaign"
+                }
+            },
+            UnfoundQrCodesByCampaign = new Dictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>>
+            {
+                ["Test Campaign"] = new List<QrCodeStatisticsViewModel>
+                {
+                    new QrCodeStatisticsViewModel
+                    {
+                        QrCodeId = 3,
+                        Title = "Unfound QR Code",
+                        FindCount = 0,
+                        CampaignName = "Test Campaign"
+                    }
+                }
+            }
+        };
+
+        _mockStatisticsService.Setup(x => x.GetStatisticsAsync())
+            .ReturnsAsync(statistics);
+
+        // Act
+        var result = await _controller.Statistics();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.Model, Is.EqualTo(statistics));
+    }
+
+    [Test]
+    public async Task Statistics_ReturnsErrorView_WhenHttpRequestExceptionOccurs()
+    {
+        // Arrange
+        _mockStatisticsService.Setup(x => x.GetStatisticsAsync())
+            .ThrowsAsync(new HttpRequestException("API Error"));
+
+        // Act
+        var result = await _controller.Statistics();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
+    }
+
+    [Test]
+    public async Task Statistics_ReturnsErrorView_WhenUnexpectedExceptionOccurs()
+    {
+        // Arrange
+        _mockStatisticsService.Setup(x => x.GetStatisticsAsync())
+            .ThrowsAsync(new InvalidOperationException("Unexpected error"));
+
+        // Act
+        var result = await _controller.Statistics();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
+    }
+
+    [Test]
+    public async Task Statistics_WithEmptyData_ReturnsViewWithEmptyStatistics()
+    {
+        // Arrange
+        var statistics = new StatisticsViewModel
+        {
+            TotalCampaigns = 0,
+            ActiveCampaigns = 0,
+            TotalUsers = 0,
+            ActiveUsers = 0,
+            TotalQrCodes = 0,
+            TotalFinds = 0,
+            TopFoundQrCodes = new List<QrCodeStatisticsViewModel>(),
+            UnfoundQrCodesByCampaign = new Dictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>>()
+        };
+
+        _mockStatisticsService.Setup(x => x.GetStatisticsAsync())
+            .ReturnsAsync(statistics);
+
+        // Act
+        var result = await _controller.Statistics();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.Model, Is.EqualTo(statistics));
+        var model = viewResult.Model as StatisticsViewModel;
+        Assert.That(model!.TotalCampaigns, Is.EqualTo(0));
+        Assert.That(model.TotalFinds, Is.EqualTo(0));
+        Assert.That(model.TopFoundQrCodes, Is.Empty);
+    }
+
     public void Dispose()
     {
         _controller?.Dispose();

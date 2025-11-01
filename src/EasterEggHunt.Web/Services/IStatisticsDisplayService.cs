@@ -46,4 +46,10 @@ public interface IStatisticsDisplayService
     /// <param name="endDate">Enddatum (optional)</param>
     /// <returns>Zeitbasierte Statistiken</returns>
     Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+
+    /// <summary>
+    /// Lädt System-Statistiken für die Statistiken-Übersichtsseite
+    /// </summary>
+    /// <returns>System-Statistiken mit Top Found QR-Codes und Unfound QR-Codes</returns>
+    Task<StatisticsViewModel> GetStatisticsAsync();
 }

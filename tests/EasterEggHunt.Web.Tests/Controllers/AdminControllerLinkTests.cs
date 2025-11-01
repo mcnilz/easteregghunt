@@ -297,6 +297,37 @@ public class AdminControllerLinkTests : IDisposable
         _mockStatisticsService.Setup(x => x.GetTopPerformersAsync()).ReturnsAsync(topPerformers);
         var leaderboardResult = await _controller.Leaderboard();
         Assert.That(leaderboardResult, Is.InstanceOf<ViewResult>());
+
+        var statistics = new Models.StatisticsViewModel();
+        _mockStatisticsService.Setup(x => x.GetStatisticsAsync()).ReturnsAsync(statistics);
+        var statisticsResult = await _controller.Statistics();
+        Assert.That(statisticsResult, Is.InstanceOf<ViewResult>());
+    }
+
+    [Test]
+    public async Task Statistics_WithValidData_ReturnsView()
+    {
+        // Arrange
+        var statistics = new Models.StatisticsViewModel
+        {
+            TotalCampaigns = 2,
+            ActiveCampaigns = 1,
+            TotalUsers = 5,
+            ActiveUsers = 4,
+            TotalQrCodes = 10,
+            TotalFinds = 15
+        };
+        _mockStatisticsService.Setup(x => x.GetStatisticsAsync())
+            .ReturnsAsync(statistics);
+
+        // Act
+        var result = await _controller.Statistics();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult?.ViewName, Is.Null); // Standard-View
+        Assert.That(viewResult?.Model, Is.InstanceOf<Models.StatisticsViewModel>());
     }
 
     [Test]

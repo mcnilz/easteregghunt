@@ -705,6 +705,30 @@ public class AdminController : Controller
     }
 
     /// <summary>
+    /// System-Statistiken Übersicht
+    /// </summary>
+    /// <returns>Statistik-Ansicht</returns>
+    public async Task<IActionResult> Statistics()
+    {
+        try
+        {
+            _logger.LogInformation("Lade System-Statistiken");
+            var statistics = await _statisticsService.GetStatisticsAsync();
+            return View(statistics);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der System-Statistiken");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der System-Statistiken");
+            return View("Error");
+        }
+    }
+
+    /// <summary>
     /// Zeitbasierte Statistiken
     /// </summary>
     /// <param name="startDate">Startdatum (optional)</param>
