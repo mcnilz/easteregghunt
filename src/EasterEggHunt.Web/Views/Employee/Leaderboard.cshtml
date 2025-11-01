@@ -1,4 +1,4 @@
-@model LeaderboardViewModel
+@model EasterEggHunt.Web.Models.LeaderboardViewModel
 @{
     ViewData["Title"] = "Leaderboard";
     Layout = "~/Views/Employee/_Layout.cshtml";
@@ -36,10 +36,10 @@
                                 {
                                     var entry = Model.Entries[i];
                                     var position = i + 1;
-                                    var medalClass = position <= 3 ? 
-                                        (position == 1 ? "text-warning" : position == 2 ? "text-secondary" : "text-warning") : 
+                                    var medalClass = position <= 3 ?
+                                        (position == 1 ? "text-warning" : position == 2 ? "text-secondary" : "text-warning") :
                                         "text-muted";
-                                    
+
                                     <tr class="@(position <= 3 ? "table-warning" : "")">
                                         <td>
                                             @if (position <= 3)

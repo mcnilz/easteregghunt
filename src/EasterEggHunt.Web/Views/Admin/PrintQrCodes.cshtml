@@ -1,4 +1,4 @@
-@model PrintQrCodesViewModel
+@model EasterEggHunt.Web.Models.PrintQrCodesViewModel
 @{
     ViewData["Title"] = $"QR-Codes drucken - {Model.Campaign.Name}";
     Layout = null; // Kein Layout für Druckansicht
@@ -217,22 +217,22 @@
             {
                 <div class="qr-code-item">
                     <div class="qr-code-image">
-                        <div id="qrcode-@qrCode.Id" 
-                             data-url="@qrCode.Code" 
+                        <div id="qrcode-@qrCode.Id"
+                             data-url="@qrCode.Code"
                              data-size="@Model.Size"
                              title="@qrCode.Title"></div>
                     </div>
-                    
+
                     @if (Model.ShowTitles)
                     {
                         <div class="qr-code-title">@qrCode.Title</div>
                     }
-                    
+
                     @if (!string.IsNullOrWhiteSpace(qrCode.Description))
                     {
                         <div class="qr-code-description">@qrCode.Description</div>
                     }
-                    
+
                     <div class="qr-code-url" id="qr-url-@qrCode.Id">@qrCode.Code</div>
                 </div>
             }
@@ -259,20 +259,20 @@
 
         function generateQrCodes() {
             const qrContainers = document.querySelectorAll('div[id^="qrcode-"]');
-            
+
             qrContainers.forEach(container => {
                 const code = container.getAttribute('data-url');
                 const size = parseInt(container.getAttribute('data-size')) || 200;
-                
+
                 if (code) {
                     try {
                         // URL für QR-Code bestimmen
                         let qrCodeUrl;
-                        
+
                         // Mit aktueller Domain kombinieren
                         const baseUrl = window.location.origin;
                         qrCodeUrl = `${baseUrl}/qr/${encodeURIComponent(code)}`;
-                        
+
                         // QR-Code mit korrekter URL generieren
                         const qrCode = new QRCode(container, {
                             text: qrCodeUrl,
@@ -282,14 +282,14 @@
                             colorLight: '#FFFFFF',
                             correctLevel: QRCode.CorrectLevel.M
                         });
-                        
+
                         // URL-Text auch aktualisieren
                         const qrCodeId = container.id.replace('qrcode-', '');
                         const urlElement = document.getElementById(`qr-url-${qrCodeId}`);
                         if (urlElement) {
                             urlElement.textContent = qrCodeUrl;
                         }
-                        
+
                     } catch (error) {
                         console.error('QR-Code-Generierung fehlgeschlagen:', error);
                         // Fallback: Text anzeigen

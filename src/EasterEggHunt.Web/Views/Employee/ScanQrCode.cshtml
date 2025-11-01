@@ -1,4 +1,4 @@
-@model ScanQrCodeViewModel
+@model EasterEggHunt.Web.Models.ScanQrCodeViewModel
 @{
     ViewData["Title"] = "QR-Code scannen";
     Layout = "~/Views/Employee/_Layout.cshtml";
@@ -20,11 +20,11 @@
             <div class="card-body">
                 <form asp-action="ScanQrCode" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    
+
                     <div class="mb-3">
                         <label asp-for="QrCode" class="form-label">QR-Code</label>
-                        <input asp-for="QrCode" class="form-control form-control-lg" 
-                               placeholder="QR-Code hier eingeben oder scannen..." 
+                        <input asp-for="QrCode" class="form-control form-control-lg"
+                               placeholder="QR-Code hier eingeben oder scannen..."
                                autofocus />
                         <span asp-validation-for="QrCode" class="text-danger"></span>
                     </div>
@@ -38,7 +38,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -64,7 +64,7 @@
                 </ol>
             </div>
         </div>
-        
+
         <div class="card mt-3">
             <div class="card-header">
                 <h5 class="card-title mb-0">Tipps</h5>
@@ -125,7 +125,7 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
+
     <script>
         function clearForm() {
             document.getElementById('QrCode').value = '';

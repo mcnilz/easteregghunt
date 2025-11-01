@@ -1,4 +1,4 @@
-@model List<CampaignOverviewViewModel>
+@model List<EasterEggHunt.Web.Models.CampaignOverviewViewModel>
 @{
     ViewData["Title"] = "Kampagnen";
     Layout = "~/Views/Employee/_Layout.cshtml";
@@ -23,7 +23,7 @@
                     </div>
                     <div class="card-body">
                         <p class="card-text">@campaign.Campaign.Description</p>
-                        
+
                         <div class="row text-center mb-3">
                             <div class="col-6">
                                 <h6 class="text-primary">@campaign.TotalQrCodes</h6>
@@ -38,7 +38,7 @@
                         @if (campaign.TotalQrCodes > 0)
                         {
                             <div class="progress mb-3">
-                                <div class="progress-bar bg-success" role="progressbar" 
+                                <div class="progress-bar bg-success" role="progressbar"
                                      style="width: @((campaign.TotalFinds / (double)campaign.TotalQrCodes) * 100)%">
                                 </div>
                             </div>

@@ -1,4 +1,4 @@
-@model EmployeeRegistrationViewModel
+@model EasterEggHunt.Web.Models.EmployeeRegistrationViewModel
 @{
     ViewData["Title"] = "Registrierung";
     Layout = "~/Views/Employee/_Layout.cshtml";
@@ -42,10 +42,10 @@
 
                         <div class="mb-4">
                             <label asp-for="Name" class="form-label fw-bold">Dein Name</label>
-                            <input asp-for="Name" 
-                                   class="form-control form-control-lg" 
-                                   placeholder="z.B. Max Mustermann" 
-                                   autofocus 
+                            <input asp-for="Name"
+                                   class="form-control form-control-lg"
+                                   placeholder="z.B. Max Mustermann"
+                                   autofocus
                                    autocomplete="name" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                             <div class="form-text">
@@ -84,7 +84,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    
+
     <script>
         // Auto-Focus auf Name-Feld
         document.addEventListener('DOMContentLoaded', function() {
@@ -110,4 +110,3 @@
         })();
     </script>
 }
-
