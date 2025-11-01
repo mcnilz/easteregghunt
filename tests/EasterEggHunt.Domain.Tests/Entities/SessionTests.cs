@@ -145,4 +145,315 @@ public class SessionTests
         var ex = Assert.Throws<ArgumentNullException>(() => session.UpdateData(null!));
         Assert.That(ex.ParamName, Is.EqualTo("data"));
     }
+
+    [Test]
+    public void Constructor_WithZeroUserId_ShouldCreateSession()
+    {
+        // Act
+        var session = new Session(0);
+
+        // Assert
+        Assert.That(session.UserId, Is.EqualTo(0));
+        Assert.That(session.IsActive, Is.True);
+    }
+
+    [Test]
+    public void Constructor_WithNegativeUserId_ShouldCreateSession()
+    {
+        // Act
+        var session = new Session(-1);
+
+        // Assert
+        Assert.That(session.UserId, Is.EqualTo(-1));
+        Assert.That(session.IsActive, Is.True);
+    }
+
+    [Test]
+    public void Constructor_WithZeroExpirationDays_ShouldCreateSession()
+    {
+        // Act
+        var session = new Session(ValidUserId, 0);
+
+        // Assert
+        Assert.That(session.ExpiresAt, Is.EqualTo(DateTime.UtcNow).Within(TimeSpan.FromSeconds(5)));
+    }
+
+    [Test]
+    public void Constructor_WithNegativeExpirationDays_ShouldCreateExpiredSession()
+    {
+        // Act
+        var session = new Session(ValidUserId, -1);
+
+        // Assert
+        Assert.That(session.ExpiresAt, Is.LessThan(DateTime.UtcNow));
+        Assert.That(session.IsValid(), Is.False);
+    }
+
+    [Test]
+    public void Constructor_WithLargeExpirationDays_ShouldCreateSession()
+    {
+        // Act
+        var session = new Session(ValidUserId, 365);
+
+        // Assert
+        Assert.That(session.ExpiresAt, Is.EqualTo(DateTime.UtcNow.AddDays(365)).Within(TimeSpan.FromSeconds(5)));
+    }
+
+    [Test]
+    public void Constructor_CreatedAtShouldBeSetCorrectly()
+    {
+        // Arrange
+        var beforeCreation = DateTime.UtcNow;
+
+        // Act
+        var session = new Session(ValidUserId);
+        var afterCreation = DateTime.UtcNow;
+
+        // Assert
+        Assert.That(session.CreatedAt, Is.GreaterThanOrEqualTo(beforeCreation));
+        Assert.That(session.CreatedAt, Is.LessThanOrEqualTo(afterCreation));
+    }
+
+    [Test]
+    public void Constructor_CreatedAtShouldBeUtcTime()
+    {
+        // Act
+        var session = new Session(ValidUserId);
+
+        // Assert
+        Assert.That(session.CreatedAt.Kind, Is.EqualTo(DateTimeKind.Utc));
+        Assert.That(session.ExpiresAt.Kind, Is.EqualTo(DateTimeKind.Utc));
+    }
+
+    [Test]
+    public void Constructor_DataShouldBeEmptyJsonObject()
+    {
+        // Act
+        var session = new Session(ValidUserId);
+
+        // Assert
+        Assert.That(session.Data, Is.EqualTo("{}"));
+    }
+
+    [Test]
+    public void Constructor_IdShouldBeGuid()
+    {
+        // Act
+        var session = new Session(ValidUserId);
+
+        // Assert
+        Assert.That(Guid.TryParse(session.Id, out _), Is.True);
+    }
+
+    [Test]
+    public void IsValid_WithActiveAndExpiredSession_ShouldReturnFalse()
+    {
+        // Arrange - Session die bereits abgelaufen ist
+        var session = new Session(ValidUserId, -1);
+
+        // Act
+        var isValid = session.IsValid();
+
+        // Assert
+        Assert.That(isValid, Is.False);
+    }
+
+    [Test]
+    public void IsValid_WithInactiveAndNotExpiredSession_ShouldReturnFalse()
+    {
+        // Arrange
+        var session = new Session(ValidUserId, 30);
+        session.Deactivate();
+
+        // Act
+        var isValid = session.IsValid();
+
+        // Assert
+        Assert.That(isValid, Is.False);
+    }
+
+    [Test]
+    public void Extend_WithZeroDays_ShouldNotChangeExpiration()
+    {
+        // Arrange
+        var session = new Session(ValidUserId, 7);
+        var originalExpiration = session.ExpiresAt;
+
+        // Act
+        session.Extend(0);
+
+        // Assert
+        Assert.That(session.ExpiresAt, Is.EqualTo(originalExpiration).Within(TimeSpan.FromSeconds(5)));
+    }
+
+    [Test]
+    public void Extend_WithNegativeDays_ShouldShortenExpiration()
+    {
+        // Arrange
+        var session = new Session(ValidUserId, 30);
+        var originalExpiration = session.ExpiresAt;
+
+        // Act
+        session.Extend(-10);
+
+        // Assert
+        Assert.That(session.ExpiresAt, Is.EqualTo(originalExpiration.AddDays(-10)).Within(TimeSpan.FromSeconds(5)));
+    }
+
+    [Test]
+    public void Extend_MultipleTimes_ShouldAccumulateDays()
+    {
+        // Arrange
+        var session = new Session(ValidUserId, 7);
+
+        // Act
+        session.Extend(5);
+        session.Extend(3);
+
+        // Assert
+        Assert.That(session.ExpiresAt, Is.EqualTo(DateTime.UtcNow.AddDays(7 + 5 + 3)).Within(TimeSpan.FromSeconds(5)));
+    }
+
+    [Test]
+    public void Deactivate_AlreadyInactive_ShouldRemainInactive()
+    {
+        // Arrange
+        var session = new Session(ValidUserId);
+        session.Deactivate();
+
+        // Act
+        session.Deactivate();
+
+        // Assert
+        Assert.That(session.IsActive, Is.False);
+    }
+
+    [Test]
+    public void Deactivate_ShouldNotAffectExpiration()
+    {
+        // Arrange
+        var session = new Session(ValidUserId, 30);
+        var originalExpiration = session.ExpiresAt;
+
+        // Act
+        session.Deactivate();
+
+        // Assert
+        Assert.That(session.ExpiresAt, Is.EqualTo(originalExpiration));
+    }
+
+    [Test]
+    public void UpdateData_WithEmptyString_ShouldUpdateData()
+    {
+        // Arrange
+        var session = new Session(ValidUserId);
+
+        // Act
+        session.UpdateData(string.Empty);
+
+        // Assert
+        Assert.That(session.Data, Is.EqualTo(string.Empty));
+    }
+
+    [Test]
+    public void UpdateData_WithValidJson_ShouldUpdateData()
+    {
+        // Arrange
+        var session = new Session(ValidUserId);
+        var jsonData = "{\"key\":\"value\",\"number\":123}";
+
+        // Act
+        session.UpdateData(jsonData);
+
+        // Assert
+        Assert.That(session.Data, Is.EqualTo(jsonData));
+    }
+
+    [Test]
+    public void UpdateData_WithInvalidJsonString_ShouldUpdateData()
+    {
+        // Arrange - Domain Entity validiert nicht JSON, das sollte Service-Ebene tun
+        var session = new Session(ValidUserId);
+        var invalidJson = "not valid json";
+
+        // Act
+        session.UpdateData(invalidJson);
+
+        // Assert
+        Assert.That(session.Data, Is.EqualTo(invalidJson));
+    }
+
+    [Test]
+    public void UpdateData_WithVeryLongJson_ShouldUpdateData()
+    {
+        // Arrange
+        var session = new Session(ValidUserId);
+        var longJson = "{\"data\":\"" + new string('A', 1000) + "\"}";
+
+        // Act
+        session.UpdateData(longJson);
+
+        // Assert
+        Assert.That(session.Data, Is.EqualTo(longJson));
+    }
+
+    [Test]
+    public void UpdateData_MultipleTimes_ShouldUpdateData()
+    {
+        // Arrange
+        var session = new Session(ValidUserId);
+
+        // Act
+        session.UpdateData("{\"first\":1}");
+        session.UpdateData("{\"second\":2}");
+
+        // Assert
+        Assert.That(session.Data, Is.EqualTo("{\"second\":2}"));
+    }
+
+    [Test]
+    public void Extend_WithMaxIntValue_ShouldThrowArgumentOutOfRangeException()
+    {
+        // Arrange
+        var session = new Session(ValidUserId, 30);
+
+        // Act & Assert - int.MaxValue Tage führt zu DateTime Overflow
+        Assert.Throws<ArgumentOutOfRangeException>(() => session.Extend(int.MaxValue));
+    }
+
+    [Test]
+    public void Extend_WithLargeButValidValue_ShouldExtendExpiration()
+    {
+        // Arrange
+        var session = new Session(ValidUserId, 30);
+        var originalExpiration = session.ExpiresAt;
+
+        // Act - 10000 Tage ist immer noch ein gültiges DateTime
+        session.Extend(10000);
+
+        // Assert
+        Assert.That(session.ExpiresAt, Is.GreaterThan(originalExpiration));
+    }
+
+    [Test]
+    public void Constructor_WithMaxIntUserId_ShouldCreateSession()
+    {
+        // Act
+        var session = new Session(int.MaxValue);
+
+        // Assert
+        Assert.That(session.UserId, Is.EqualTo(int.MaxValue));
+        Assert.That(session.IsActive, Is.True);
+    }
+
+    [Test]
+    public void Constructor_WithMinIntUserId_ShouldCreateSession()
+    {
+        // Act
+        var session = new Session(int.MinValue);
+
+        // Assert
+        Assert.That(session.UserId, Is.EqualTo(int.MinValue));
+        Assert.That(session.IsActive, Is.True);
+    }
 }
