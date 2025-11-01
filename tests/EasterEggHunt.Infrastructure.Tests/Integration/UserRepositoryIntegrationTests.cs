@@ -282,4 +282,54 @@ public class UserRepositoryIntegrationTests : IntegrationTestBase
         Assert.That(retrievedUser, Is.Not.Null);
         Assert.That(retrievedUser!.IsActive, Is.False);
     }
+
+    #region Additional Query Methods Tests
+
+    [Test]
+    public async Task GetActiveAsync_ShouldReturnOnlyActiveUsers()
+    {
+        // Arrange
+        var activeUser = new User("Active User");
+        var inactiveUser = new User("Inactive User");
+        inactiveUser.Deactivate();
+        await UserRepository.AddAsync(activeUser);
+        await UserRepository.AddAsync(inactiveUser);
+        await UserRepository.SaveChangesAsync();
+
+        // Act
+        var activeUsers = await UserRepository.GetActiveAsync();
+
+        // Assert
+        Assert.That(activeUsers, Is.Not.Null);
+        Assert.That(activeUsers, Has.Some.Matches<User>(u => u.Id == activeUser.Id));
+        Assert.That(activeUsers, Has.None.Matches<User>(u => u.Id == inactiveUser.Id));
+    }
+
+    [Test]
+    public async Task NameExistsAsync_WithExistingName_ShouldReturnTrue()
+    {
+        // Arrange
+        var user = new User("Existing Name");
+        await UserRepository.AddAsync(user);
+        await UserRepository.SaveChangesAsync();
+
+        // Act
+        var exists = await UserRepository.NameExistsAsync("Existing Name");
+
+        // Assert
+        Assert.That(exists, Is.True);
+    }
+
+    [Test]
+    public async Task NameExistsAsync_WithNonExistingName_ShouldReturnFalse()
+    {
+        // Act
+        var exists = await UserRepository.NameExistsAsync("Non Existing Name");
+
+        // Assert
+        Assert.That(exists, Is.False);
+    }
+
+
+    #endregion
 }

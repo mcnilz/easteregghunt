@@ -237,4 +237,87 @@ public class QrCodeRepositoryIntegrationTests : IntegrationTestBase
         Assert.That(retrievedQrCode.Code, Is.Not.Empty);
         Assert.That(retrievedQrCode.Code.Length, Is.EqualTo(12));
     }
+
+    #region Additional Query Methods Tests
+
+    [Test]
+    public async Task GetActiveByCampaignIdAsync_ShouldReturnOnlyActiveQrCodes()
+    {
+        // Arrange
+        var activeQrCode = new QrCode(_testCampaign.Id, "Active QR", "Description", "Note");
+        var inactiveQrCode = new QrCode(_testCampaign.Id, "Inactive QR", "Description", "Note");
+        inactiveQrCode.Deactivate();
+        await QrCodeRepository.AddAsync(activeQrCode);
+        await QrCodeRepository.AddAsync(inactiveQrCode);
+        await QrCodeRepository.SaveChangesAsync();
+
+        // Act
+        var activeQrCodes = await QrCodeRepository.GetActiveByCampaignIdAsync(_testCampaign.Id);
+
+        // Assert
+        Assert.That(activeQrCodes, Is.Not.Null);
+        Assert.That(activeQrCodes, Has.Some.Matches<QrCode>(q => q.Id == activeQrCode.Id));
+        Assert.That(activeQrCodes, Has.None.Matches<QrCode>(q => q.Id == inactiveQrCode.Id));
+    }
+
+    [Test]
+    public async Task GetByCodeAsync_WithExistingCode_ShouldReturnQrCode()
+    {
+        // Arrange
+        var qrCode = new QrCode(_testCampaign.Id, "Code Test", "Description", "Note");
+        await QrCodeRepository.AddAsync(qrCode);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var retrievedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
+        var code = retrievedQrCode!.Code;
+
+        // Act
+        var foundQrCode = await QrCodeRepository.GetByCodeAsync(code);
+
+        // Assert
+        Assert.That(foundQrCode, Is.Not.Null);
+        Assert.That(foundQrCode!.Id, Is.EqualTo(qrCode.Id));
+        Assert.That(foundQrCode.Code, Is.EqualTo(code));
+    }
+
+    [Test]
+    public async Task GetByCodeAsync_WithNonExistingCode_ShouldReturnNull()
+    {
+        // Act
+        var foundQrCode = await QrCodeRepository.GetByCodeAsync("NONEXISTING");
+
+        // Assert
+        Assert.That(foundQrCode, Is.Null);
+    }
+
+    [Test]
+    public async Task CodeExistsAsync_WithExistingCode_ShouldReturnTrue()
+    {
+        // Arrange
+        var qrCode = new QrCode(_testCampaign.Id, "Exists Test", "Description", "Note");
+        await QrCodeRepository.AddAsync(qrCode);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var retrievedQrCode = await QrCodeRepository.GetByIdAsync(qrCode.Id);
+        var code = retrievedQrCode!.Code;
+
+        // Act
+        var exists = await QrCodeRepository.CodeExistsAsync(code);
+
+        // Assert
+        Assert.That(exists, Is.True);
+    }
+
+    [Test]
+    public async Task CodeExistsAsync_WithNonExistingCode_ShouldReturnFalse()
+    {
+        // Act
+        var exists = await QrCodeRepository.CodeExistsAsync("NONEXISTING");
+
+        // Assert
+        Assert.That(exists, Is.False);
+    }
+
+
+    #endregion
 }

@@ -310,4 +310,113 @@ public class AdminUserRepositoryIntegrationTests : IntegrationTestBase
         Assert.That(updatedAdminUser, Is.Not.Null);
         Assert.That(updatedAdminUser!.LastLogin, Is.EqualTo(loginTime).Within(TimeSpan.FromSeconds(5)));
     }
+
+    #region Additional Query Methods Tests
+
+    [Test]
+    public async Task GetActiveAsync_ShouldReturnOnlyActiveAdminUsers()
+    {
+        // Arrange
+        var activeAdmin = new AdminUser("Active Admin", "active@admin.com", "hashedPassword123");
+        var inactiveAdmin = new AdminUser("Inactive Admin", "inactive@admin.com", "hashedPassword123");
+        inactiveAdmin.Deactivate();
+        await AdminUserRepository.AddAsync(activeAdmin);
+        await AdminUserRepository.AddAsync(inactiveAdmin);
+        await AdminUserRepository.SaveChangesAsync();
+
+        // Act
+        var activeUsers = await AdminUserRepository.GetActiveAsync();
+
+        // Assert
+        Assert.That(activeUsers, Is.Not.Null);
+        Assert.That(activeUsers, Has.Some.Matches<AdminUser>(a => a.Id == activeAdmin.Id));
+        Assert.That(activeUsers, Has.None.Matches<AdminUser>(a => a.Id == inactiveAdmin.Id));
+    }
+
+    [Test]
+    public async Task UsernameExistsAsync_WithExistingUsername_ShouldReturnTrue()
+    {
+        // Arrange
+        var adminUser = new AdminUser("Existing Username", "existing@admin.com", "hashedPassword123");
+        await AdminUserRepository.AddAsync(adminUser);
+        await AdminUserRepository.SaveChangesAsync();
+
+        // Act
+        var exists = await AdminUserRepository.UsernameExistsAsync("Existing Username");
+
+        // Assert
+        Assert.That(exists, Is.True);
+    }
+
+    [Test]
+    public async Task UsernameExistsAsync_WithNonExistingUsername_ShouldReturnFalse()
+    {
+        // Act
+        var exists = await AdminUserRepository.UsernameExistsAsync("Non Existing Username");
+
+        // Assert
+        Assert.That(exists, Is.False);
+    }
+
+    [Test]
+    public async Task EmailExistsAsync_WithExistingEmail_ShouldReturnTrue()
+    {
+        // Arrange
+        var adminUser = new AdminUser("Email Test", "existing@admin.com", "hashedPassword123");
+        await AdminUserRepository.AddAsync(adminUser);
+        await AdminUserRepository.SaveChangesAsync();
+
+        // Act
+        var exists = await AdminUserRepository.EmailExistsAsync("existing@admin.com");
+
+        // Assert
+        Assert.That(exists, Is.True);
+    }
+
+    [Test]
+    public async Task EmailExistsAsync_WithNonExistingEmail_ShouldReturnFalse()
+    {
+        // Act
+        var exists = await AdminUserRepository.EmailExistsAsync("nonexisting@admin.com");
+
+        // Assert
+        Assert.That(exists, Is.False);
+    }
+
+    [Test]
+    public async Task SaveAsync_WithNewAdminUser_ShouldAddAdminUser()
+    {
+        // Arrange
+        var adminUser = new AdminUser("New Admin", "new@admin.com", "hashedPassword123");
+
+        // Act
+        var savedAdmin = await AdminUserRepository.SaveAsync(adminUser);
+
+        // Assert
+        Assert.That(savedAdmin, Is.Not.Null);
+        Assert.That(savedAdmin.Id, Is.GreaterThan(0));
+        var retrievedAdmin = await AdminUserRepository.GetByIdAsync(savedAdmin.Id);
+        Assert.That(retrievedAdmin, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task SaveAsync_WithExistingAdminUser_ShouldUpdateAdminUser()
+    {
+        // Arrange
+        var adminUser = new AdminUser("Original Admin", "original@admin.com", "hashedPassword123");
+        await AdminUserRepository.AddAsync(adminUser);
+        await AdminUserRepository.SaveChangesAsync();
+
+        adminUser.Email = "updated@admin.com";
+
+        // Act
+        var savedAdmin = await AdminUserRepository.SaveAsync(adminUser);
+
+        // Assert
+        Assert.That(savedAdmin.Email, Is.EqualTo("updated@admin.com"));
+        var retrievedAdmin = await AdminUserRepository.GetByIdAsync(adminUser.Id);
+        Assert.That(retrievedAdmin!.Email, Is.EqualTo("updated@admin.com"));
+    }
+
+    #endregion
 }

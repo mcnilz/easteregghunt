@@ -320,4 +320,214 @@ public class FindRepositoryIntegrationTests : IntegrationTestBase
         Assert.That(retrievedFind.User, Is.Not.Null);
         Assert.That(retrievedFind.User.Id, Is.EqualTo(_testUser.Id));
     }
+
+    #region Additional Query Methods Tests
+
+    [Test]
+    public async Task GetFirstByUserAndQrAsync_WithExistingFinds_ShouldReturnFirstFind()
+    {
+        // Arrange
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        await FindRepository.AddAsync(find1);
+        await FindRepository.SaveChangesAsync();
+
+        Thread.Sleep(10); // Ensure different timestamps
+
+        var find2 = new Find(_testQrCode.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        await FindRepository.AddAsync(find2);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var firstFind = await FindRepository.GetFirstByUserAndQrAsync(_testUser.Id, _testQrCode.Id);
+
+        // Assert
+        Assert.That(firstFind, Is.Not.Null);
+        Assert.That(firstFind!.Id, Is.EqualTo(find1.Id));
+        Assert.That(firstFind.FoundAt, Is.LessThanOrEqualTo(find2.FoundAt));
+    }
+
+    [Test]
+    public async Task GetFirstByUserAndQrAsync_WithNonExistingFinds_ShouldReturnNull()
+    {
+        // Act
+        var firstFind = await FindRepository.GetFirstByUserAndQrAsync(999, 999);
+
+        // Assert
+        Assert.That(firstFind, Is.Null);
+    }
+
+    [Test]
+    public async Task GetCampaignFindsAggregateAsync_ShouldReturnTotalFindsAndUniqueFinders()
+    {
+        // Arrange
+        var user2 = new User("User 2");
+        await UserRepository.AddAsync(user2);
+        await UserRepository.SaveChangesAsync();
+
+        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Description 2", "Note 2");
+        await QrCodeRepository.AddAsync(qrCode2);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(qrCode2.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        var find3 = new Find(_testQrCode.Id, user2.Id, "192.168.1.2", "User Agent 3");
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.AddAsync(find3);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var (totalFinds, uniqueFinders) = await FindRepository.GetCampaignFindsAggregateAsync(_testCampaign.Id);
+
+        // Assert
+        Assert.That(totalFinds, Is.EqualTo(3));
+        Assert.That(uniqueFinders, Is.EqualTo(2)); // Two different users
+    }
+
+    [Test]
+    public async Task GetUniqueQrCodesCountByUserIdAsync_ShouldReturnUniqueCount()
+    {
+        // Arrange
+        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Description 2", "Note 2");
+        await QrCodeRepository.AddAsync(qrCode2);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(qrCode2.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        var find3 = new Find(_testQrCode.Id, _testUser.Id, "192.168.1.2", "User Agent 3"); // Same QR code
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.AddAsync(find3);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var uniqueCount = await FindRepository.GetUniqueQrCodesCountByUserIdAsync(_testUser.Id);
+
+        // Assert
+        Assert.That(uniqueCount, Is.EqualTo(2)); // Two unique QR codes
+    }
+
+    [Test]
+    public async Task GetByUserAndCampaignAsync_ShouldReturnFindsForUserAndCampaign()
+    {
+        // Arrange
+        var campaign2 = new Campaign("Campaign 2", "Description 2", "Admin");
+        await CampaignRepository.AddAsync(campaign2);
+        await CampaignRepository.SaveChangesAsync();
+
+        var qrCode2 = new QrCode(campaign2.Id, "QR Code 2", "Description 2", "Note 2");
+        await QrCodeRepository.AddAsync(qrCode2);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(qrCode2.Id, _testUser.Id, "192.168.1.1", "User Agent 2"); // Different campaign
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var finds = await FindRepository.GetByUserAndCampaignAsync(_testUser.Id, _testCampaign.Id);
+
+        // Assert
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(1));
+        Assert.That(finds.First().Id, Is.EqualTo(find1.Id));
+    }
+
+    [Test]
+    public async Task GetByUserAndCampaignAsync_WithTakeParameter_ShouldLimitResults()
+    {
+        // Arrange
+        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Description 2", "Note 2");
+        await QrCodeRepository.AddAsync(qrCode2);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(qrCode2.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        var find3 = new Find(_testQrCode.Id, _testUser.Id, "192.168.1.2", "User Agent 3");
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.AddAsync(find3);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var finds = await FindRepository.GetByUserAndCampaignAsync(_testUser.Id, _testCampaign.Id, take: 2);
+
+        // Assert
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task GetByUserAndCampaignAsync_WithNullTake_ShouldReturnAllResults()
+    {
+        // Arrange
+        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Description 2", "Note 2");
+        await QrCodeRepository.AddAsync(qrCode2);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(qrCode2.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var finds = await FindRepository.GetByUserAndCampaignAsync(_testUser.Id, _testCampaign.Id, take: null);
+
+        // Assert
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task GetByCampaignIdAsync_ShouldReturnFindsForCampaign()
+    {
+        // Arrange
+        var campaign2 = new Campaign("Campaign 2", "Description 2", "Admin");
+        await CampaignRepository.AddAsync(campaign2);
+        await CampaignRepository.SaveChangesAsync();
+
+        var qrCode2 = new QrCode(campaign2.Id, "QR Code 2", "Description 2", "Note 2");
+        await QrCodeRepository.AddAsync(qrCode2);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(qrCode2.Id, _testUser.Id, "192.168.1.1", "User Agent 2"); // Different campaign
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var finds = await FindRepository.GetByCampaignIdAsync(_testCampaign.Id);
+
+        // Assert
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(1));
+        Assert.That(finds.First().Id, Is.EqualTo(find1.Id));
+    }
+
+    [Test]
+    public async Task GetByCampaignIdAsync_WithMultipleQrCodes_ShouldReturnAllFinds()
+    {
+        // Arrange
+        var qrCode2 = new QrCode(_testCampaign.Id, "QR Code 2", "Description 2", "Note 2");
+        await QrCodeRepository.AddAsync(qrCode2);
+        await QrCodeRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(qrCode2.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var finds = await FindRepository.GetByCampaignIdAsync(_testCampaign.Id);
+
+        // Assert
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(2));
+    }
+
+    #endregion
 }

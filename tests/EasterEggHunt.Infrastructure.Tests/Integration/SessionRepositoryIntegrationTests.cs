@@ -329,4 +329,126 @@ public class SessionRepositoryIntegrationTests : IntegrationTestBase
         Assert.That(updatedSession, Is.Not.Null);
         Assert.That(updatedSession!.ExpiresAt, Is.EqualTo(originalExpiration.AddDays(10)).Within(TimeSpan.FromMinutes(1)));
     }
+
+    #region Additional Query Methods Tests
+
+    [Test]
+    public async Task GetActiveByUserIdAsync_ShouldReturnActiveSessionForUser()
+    {
+        // Arrange
+        var user2 = new User("User 2");
+        await UserRepository.AddAsync(user2);
+        await UserRepository.SaveChangesAsync();
+
+        var activeSession1 = new Session(_testUser.Id, 30);
+        var activeSession2 = new Session(user2.Id, 30);
+        var inactiveSession = new Session(_testUser.Id, 30);
+        inactiveSession.Deactivate();
+
+        await SessionRepository.AddAsync(activeSession1);
+        await SessionRepository.AddAsync(activeSession2);
+        await SessionRepository.AddAsync(inactiveSession);
+        await SessionRepository.SaveChangesAsync();
+
+        // Act
+        var activeSession = await SessionRepository.GetActiveByUserIdAsync(_testUser.Id);
+
+        // Assert
+        Assert.That(activeSession, Is.Not.Null);
+        Assert.That(activeSession!.Id, Is.EqualTo(activeSession1.Id));
+        Assert.That(activeSession.IsActive, Is.True);
+    }
+
+    [Test]
+    public async Task GetActiveByUserIdAsync_WithNoActiveSession_ShouldReturnNull()
+    {
+        // Arrange
+        var expiredSession = new Session(_testUser.Id, -1);
+        await SessionRepository.AddAsync(expiredSession);
+        await SessionRepository.SaveChangesAsync();
+
+        // Act
+        var activeSession = await SessionRepository.GetActiveByUserIdAsync(_testUser.Id);
+
+        // Assert
+        Assert.That(activeSession, Is.Null);
+    }
+
+    [Test]
+    public async Task DeactivateAllByUserIdAsync_ShouldDeactivateAllUserSessions()
+    {
+        // Arrange
+        var session1 = new Session(_testUser.Id, 30);
+        var session2 = new Session(_testUser.Id, 60);
+        await SessionRepository.AddAsync(session1);
+        await SessionRepository.AddAsync(session2);
+        await SessionRepository.SaveChangesAsync();
+
+        // Act
+        var deactivatedCount = await SessionRepository.DeactivateAllByUserIdAsync(_testUser.Id);
+        await SessionRepository.SaveChangesAsync();
+
+        // Assert
+        Assert.That(deactivatedCount, Is.EqualTo(2));
+        var updatedSession1 = await SessionRepository.GetByIdAsync(session1.Id);
+        var updatedSession2 = await SessionRepository.GetByIdAsync(session2.Id);
+        Assert.That(updatedSession1!.IsActive, Is.False);
+        Assert.That(updatedSession2!.IsActive, Is.False);
+    }
+
+    [Test]
+    public async Task DeactivateAllByUserIdAsync_WithNoActiveSessions_ShouldReturnZero()
+    {
+        // Arrange
+        var session = new Session(_testUser.Id, 30);
+        session.Deactivate();
+        await SessionRepository.AddAsync(session);
+        await SessionRepository.SaveChangesAsync();
+
+        // Act
+        var deactivatedCount = await SessionRepository.DeactivateAllByUserIdAsync(_testUser.Id);
+        await SessionRepository.SaveChangesAsync();
+
+        // Assert
+        Assert.That(deactivatedCount, Is.EqualTo(0));
+    }
+
+    [Test]
+    public async Task DeleteExpiredAsync_WithNoExpiredSessions_ShouldReturnZero()
+    {
+        // Arrange
+        var validSession = new Session(_testUser.Id, 30);
+        await SessionRepository.AddAsync(validSession);
+        await SessionRepository.SaveChangesAsync();
+
+        // Act
+        var deletedCount = await SessionRepository.DeleteExpiredAsync();
+        await SessionRepository.SaveChangesAsync();
+
+        // Assert
+        Assert.That(deletedCount, Is.EqualTo(0));
+        var remainingSessions = await SessionRepository.GetAllAsync();
+        Assert.That(remainingSessions, Has.Some.Matches<Session>(s => s.Id == validSession.Id));
+    }
+
+    [Test]
+    public async Task GetActiveAsync_WithExpiredSessions_ShouldNotReturnExpired()
+    {
+        // Arrange
+        var validSession = new Session(_testUser.Id, 30);
+        var expiredSession = new Session(_testUser.Id, -1);
+        await SessionRepository.AddAsync(validSession);
+        await SessionRepository.AddAsync(expiredSession);
+        await SessionRepository.SaveChangesAsync();
+
+        // Act
+        var activeSessions = await SessionRepository.GetActiveAsync();
+
+        // Assert
+        Assert.That(activeSessions, Is.Not.Null);
+        Assert.That(activeSessions, Has.Some.Matches<Session>(s => s.Id == validSession.Id));
+        Assert.That(activeSessions, Has.None.Matches<Session>(s => s.Id == expiredSession.Id));
+    }
+
+    #endregion
 }
