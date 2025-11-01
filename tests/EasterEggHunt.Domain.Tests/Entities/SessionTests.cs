@@ -456,4 +456,46 @@ public class SessionTests
         Assert.That(session.UserId, Is.EqualTo(int.MinValue));
         Assert.That(session.IsActive, Is.True);
     }
+
+    #region Parameterless Constructor Tests (Entity Framework)
+
+    [Test]
+    public void ParameterlessConstructor_ShouldCreateDefaultSession()
+    {
+        // Act
+        var session = new Session();
+
+        // Assert
+        Assert.That(session.Id, Is.EqualTo(string.Empty));
+        Assert.That(session.UserId, Is.EqualTo(0));
+        Assert.That(session.CreatedAt, Is.EqualTo(DateTime.MinValue));
+        Assert.That(session.ExpiresAt, Is.EqualTo(DateTime.MinValue));
+        Assert.That(session.Data, Is.EqualTo(string.Empty));
+        Assert.That(session.IsActive, Is.False);
+    }
+
+    [Test]
+    public void ParameterlessConstructor_ShouldAllowSettingProperties()
+    {
+        // Arrange
+        var session = new Session();
+
+        // Act
+        session.Id = "test-session-id";
+        session.UserId = 123;
+        session.CreatedAt = DateTime.UtcNow;
+        session.ExpiresAt = DateTime.UtcNow.AddDays(30);
+        session.Data = "{\"key\":\"value\"}";
+        session.IsActive = true;
+
+        // Assert
+        Assert.That(session.Id, Is.EqualTo("test-session-id"));
+        Assert.That(session.UserId, Is.EqualTo(123));
+        Assert.That(session.Data, Is.EqualTo("{\"key\":\"value\"}"));
+        Assert.That(session.IsActive, Is.True);
+        Assert.That(session.CreatedAt, Is.Not.EqualTo(DateTime.MinValue));
+        Assert.That(session.ExpiresAt, Is.Not.EqualTo(DateTime.MinValue));
+    }
+
+    #endregion
 }

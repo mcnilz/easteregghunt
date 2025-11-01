@@ -450,6 +450,55 @@ public class QrCodeTests
         Assert.That(qrCode.InternalNotes, Is.EqualTo(longNotes));
     }
 
+    #region Parameterless Constructor Tests (Entity Framework)
+
+    [Test]
+    public void ParameterlessConstructor_ShouldCreateDefaultQrCode()
+    {
+        // Act
+        var qrCode = new QrCode();
+
+        // Assert
+        Assert.That(qrCode.Title, Is.EqualTo(string.Empty));
+        Assert.That(qrCode.Description, Is.EqualTo(string.Empty));
+        Assert.That(qrCode.InternalNotes, Is.EqualTo(string.Empty));
+        Assert.That(qrCode.Code, Is.EqualTo(string.Empty));
+        Assert.That(qrCode.CreatedAt, Is.EqualTo(DateTime.MinValue));
+        Assert.That(qrCode.UpdatedAt, Is.EqualTo(DateTime.MinValue));
+        Assert.That(qrCode.IsActive, Is.False);
+        Assert.That(qrCode.SortOrder, Is.EqualTo(0));
+        Assert.That(qrCode.Finds, Is.Not.Null);
+    }
+
+    [Test]
+    public void ParameterlessConstructor_ShouldAllowSettingProperties()
+    {
+        // Arrange
+        var qrCode = new QrCode();
+
+        // Act
+        qrCode.Title = "Test Title";
+        qrCode.Description = "Test Description";
+        qrCode.InternalNotes = "Test Notes";
+        qrCode.Code = "TESTCODE123";
+        qrCode.IsActive = true;
+        qrCode.SortOrder = 5;
+        qrCode.CreatedAt = DateTime.UtcNow;
+        qrCode.UpdatedAt = DateTime.UtcNow;
+
+        // Assert
+        Assert.That(qrCode.Title, Is.EqualTo("Test Title"));
+        Assert.That(qrCode.Description, Is.EqualTo("Test Description"));
+        Assert.That(qrCode.InternalNotes, Is.EqualTo("Test Notes"));
+        Assert.That(qrCode.Code, Is.EqualTo("TESTCODE123"));
+        Assert.That(qrCode.IsActive, Is.True);
+        Assert.That(qrCode.SortOrder, Is.EqualTo(5));
+        Assert.That(qrCode.CreatedAt, Is.Not.EqualTo(DateTime.MinValue));
+        Assert.That(qrCode.UpdatedAt, Is.Not.EqualTo(DateTime.MinValue));
+    }
+
+    #endregion
+
     [Test]
     public void SetSortOrder_WithNegativeValue_ShouldUpdateSortOrder()
     {

@@ -288,4 +288,43 @@ public class FindTests
         // Assert
         Assert.That(find.UserAgent, Is.EqualTo(userAgentWithNewlines));
     }
+
+    #region Parameterless Constructor Tests (Entity Framework)
+
+    [Test]
+    public void ParameterlessConstructor_ShouldCreateDefaultFind()
+    {
+        // Act
+        var find = new Find();
+
+        // Assert
+        Assert.That(find.QrCodeId, Is.EqualTo(0));
+        Assert.That(find.UserId, Is.EqualTo(0));
+        Assert.That(find.IpAddress, Is.EqualTo(string.Empty));
+        Assert.That(find.UserAgent, Is.EqualTo(string.Empty));
+        Assert.That(find.FoundAt, Is.EqualTo(DateTime.MinValue));
+    }
+
+    [Test]
+    public void ParameterlessConstructor_ShouldAllowSettingProperties()
+    {
+        // Arrange
+        var find = new Find();
+
+        // Act
+        find.QrCodeId = 123;
+        find.UserId = 456;
+        find.IpAddress = "192.168.1.1";
+        find.UserAgent = "Test User Agent";
+        find.FoundAt = DateTime.UtcNow;
+
+        // Assert
+        Assert.That(find.QrCodeId, Is.EqualTo(123));
+        Assert.That(find.UserId, Is.EqualTo(456));
+        Assert.That(find.IpAddress, Is.EqualTo("192.168.1.1"));
+        Assert.That(find.UserAgent, Is.EqualTo("Test User Agent"));
+        Assert.That(find.FoundAt, Is.Not.EqualTo(DateTime.MinValue));
+    }
+
+    #endregion
 }

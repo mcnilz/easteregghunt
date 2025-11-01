@@ -336,4 +336,42 @@ public class UserTests
         Assert.That(user.Name, Is.EqualTo(nameWithNewlines));
         Assert.That(user.IsActive, Is.True);
     }
+
+    #region Parameterless Constructor Tests (Entity Framework)
+
+    [Test]
+    public void ParameterlessConstructor_ShouldCreateDefaultUser()
+    {
+        // Act
+        var user = new User();
+
+        // Assert
+        Assert.That(user.Name, Is.EqualTo(string.Empty));
+        Assert.That(user.FirstSeen, Is.EqualTo(DateTime.MinValue));
+        Assert.That(user.LastSeen, Is.EqualTo(DateTime.MinValue));
+        Assert.That(user.IsActive, Is.False);
+        Assert.That(user.Finds, Is.Not.Null);
+        Assert.That(user.Sessions, Is.Not.Null);
+    }
+
+    [Test]
+    public void ParameterlessConstructor_ShouldAllowSettingProperties()
+    {
+        // Arrange
+        var user = new User();
+
+        // Act
+        user.Name = "Test User";
+        user.IsActive = true;
+        user.FirstSeen = DateTime.UtcNow;
+        user.LastSeen = DateTime.UtcNow;
+
+        // Assert
+        Assert.That(user.Name, Is.EqualTo("Test User"));
+        Assert.That(user.IsActive, Is.True);
+        Assert.That(user.FirstSeen, Is.Not.EqualTo(DateTime.MinValue));
+        Assert.That(user.LastSeen, Is.Not.EqualTo(DateTime.MinValue));
+    }
+
+    #endregion
 }

@@ -391,4 +391,46 @@ public class AdminUserTests
         // Assert
         Assert.That(adminUser.CreatedAt, Is.EqualTo(originalCreatedAt));
     }
+
+    #region Parameterless Constructor Tests (Entity Framework)
+
+    [Test]
+    public void ParameterlessConstructor_ShouldCreateDefaultAdminUser()
+    {
+        // Act
+        var adminUser = new AdminUser();
+
+        // Assert
+        Assert.That(adminUser.Username, Is.EqualTo(string.Empty));
+        Assert.That(adminUser.Email, Is.EqualTo(string.Empty));
+        Assert.That(adminUser.PasswordHash, Is.EqualTo(string.Empty));
+        Assert.That(adminUser.CreatedAt, Is.EqualTo(DateTime.MinValue));
+        Assert.That(adminUser.LastLogin, Is.Null);
+        Assert.That(adminUser.IsActive, Is.False);
+    }
+
+    [Test]
+    public void ParameterlessConstructor_ShouldAllowSettingProperties()
+    {
+        // Arrange
+        var adminUser = new AdminUser();
+
+        // Act
+        adminUser.Username = "testadmin";
+        adminUser.Email = "test@example.com";
+        adminUser.PasswordHash = "hashedpassword123";
+        adminUser.IsActive = true;
+        adminUser.CreatedAt = DateTime.UtcNow;
+        adminUser.LastLogin = DateTime.UtcNow;
+
+        // Assert
+        Assert.That(adminUser.Username, Is.EqualTo("testadmin"));
+        Assert.That(adminUser.Email, Is.EqualTo("test@example.com"));
+        Assert.That(adminUser.PasswordHash, Is.EqualTo("hashedpassword123"));
+        Assert.That(adminUser.IsActive, Is.True);
+        Assert.That(adminUser.CreatedAt, Is.Not.EqualTo(DateTime.MinValue));
+        Assert.That(adminUser.LastLogin, Is.Not.Null);
+    }
+
+    #endregion
 }

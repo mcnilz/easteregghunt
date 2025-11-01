@@ -374,4 +374,47 @@ public class CampaignTests
         Assert.That(campaign.CreatedBy, Is.EqualTo("C"));
         Assert.That(campaign.IsActive, Is.True);
     }
+
+    #region Parameterless Constructor Tests (Entity Framework)
+
+    [Test]
+    public void ParameterlessConstructor_ShouldCreateDefaultCampaign()
+    {
+        // Act
+        var campaign = new Campaign();
+
+        // Assert
+        Assert.That(campaign.Name, Is.EqualTo(string.Empty));
+        Assert.That(campaign.Description, Is.EqualTo(string.Empty));
+        Assert.That(campaign.CreatedBy, Is.EqualTo(string.Empty));
+        Assert.That(campaign.CreatedAt, Is.EqualTo(DateTime.MinValue));
+        Assert.That(campaign.UpdatedAt, Is.EqualTo(DateTime.MinValue));
+        Assert.That(campaign.IsActive, Is.False);
+        Assert.That(campaign.QrCodes, Is.Not.Null);
+    }
+
+    [Test]
+    public void ParameterlessConstructor_ShouldAllowSettingProperties()
+    {
+        // Arrange
+        var campaign = new Campaign();
+
+        // Act
+        campaign.Name = "Test Campaign";
+        campaign.Description = "Test Description";
+        campaign.CreatedBy = "Test Admin";
+        campaign.IsActive = true;
+        campaign.CreatedAt = DateTime.UtcNow;
+        campaign.UpdatedAt = DateTime.UtcNow;
+
+        // Assert
+        Assert.That(campaign.Name, Is.EqualTo("Test Campaign"));
+        Assert.That(campaign.Description, Is.EqualTo("Test Description"));
+        Assert.That(campaign.CreatedBy, Is.EqualTo("Test Admin"));
+        Assert.That(campaign.IsActive, Is.True);
+        Assert.That(campaign.CreatedAt, Is.Not.EqualTo(DateTime.MinValue));
+        Assert.That(campaign.UpdatedAt, Is.Not.EqualTo(DateTime.MinValue));
+    }
+
+    #endregion
 }
