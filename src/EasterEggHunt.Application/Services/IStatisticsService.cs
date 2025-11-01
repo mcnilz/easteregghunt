@@ -46,4 +46,12 @@ public interface IStatisticsService
     /// </summary>
     /// <returns>Top-Performer-Statistiken</returns>
     Task<TopPerformersStatistics> GetTopPerformersAsync();
+
+    /// <summary>
+    /// Ruft zeitbasierte Statistiken ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Zeitbasierte Statistiken gruppiert nach Tag, Woche und Monat</returns>
+    Task<TimeBasedStatistics> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
 }

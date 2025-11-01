@@ -75,4 +75,28 @@ public interface IFindService
     /// Benutzer-Funde für Kampagne, optional limitiert, FoundAt DESC
     /// </summary>
     Task<IEnumerable<Find>> GetFindsByUserAndCampaignAsync(int userId, int campaignId, int? take = null);
+
+    /// <summary>
+    /// Ruft Funde gruppiert nach Tag ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Funde gruppiert nach Tag</returns>
+    Task<IEnumerable<(DateTime Date, int Count, int UniqueFinders, int UniqueQrCodes)>> GetDailyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+
+    /// <summary>
+    /// Ruft Funde gruppiert nach Woche ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Funde gruppiert nach Woche</returns>
+    Task<IEnumerable<(DateTime WeekStart, int Count, int UniqueFinders, int UniqueQrCodes)>> GetWeeklyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+
+    /// <summary>
+    /// Ruft Funde gruppiert nach Monat ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Funde gruppiert nach Monat</returns>
+    Task<IEnumerable<(DateTime MonthStart, int Count, int UniqueFinders, int UniqueQrCodes)>> GetMonthlyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
 }

@@ -230,4 +230,39 @@ public class StatisticsService : IStatisticsService
                 .ToList()
         };
     }
+
+    public async Task<TimeBasedStatistics> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        _logger.LogInformation("Abrufen der zeitbasierten Statistiken (StartDate={StartDate}, EndDate={EndDate})", startDate, endDate);
+
+        var dailyStats = await _findService.GetDailyStatisticsAsync(startDate, endDate);
+        var weeklyStats = await _findService.GetWeeklyStatisticsAsync(startDate, endDate);
+        var monthlyStats = await _findService.GetMonthlyStatisticsAsync(startDate, endDate);
+
+        return new TimeBasedStatistics
+        {
+            DailyStatistics = dailyStats.Select(s => new TimeSeriesStatistics
+            {
+                Date = s.Date,
+                Count = s.Count,
+                UniqueFinders = s.UniqueFinders,
+                UniqueQrCodes = s.UniqueQrCodes
+            }).ToList(),
+            WeeklyStatistics = weeklyStats.Select(s => new TimeSeriesStatistics
+            {
+                Date = s.WeekStart,
+                Count = s.Count,
+                UniqueFinders = s.UniqueFinders,
+                UniqueQrCodes = s.UniqueQrCodes
+            }).ToList(),
+            MonthlyStatistics = monthlyStats.Select(s => new TimeSeriesStatistics
+            {
+                Date = s.MonthStart,
+                Count = s.Count,
+                UniqueFinders = s.UniqueFinders,
+                UniqueQrCodes = s.UniqueQrCodes
+            }).ToList(),
+            GeneratedAt = DateTime.UtcNow
+        };
+    }
 }

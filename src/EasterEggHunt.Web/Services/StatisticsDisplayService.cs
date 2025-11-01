@@ -225,4 +225,24 @@ public class StatisticsDisplayService : IStatisticsDisplayService
         }
     }
 
+    /// <summary>
+    /// Lädt zeitbasierte Statistiken
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Zeitbasierte Statistiken</returns>
+    public async Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            _logger.LogInformation("Lade zeitbasierte Statistiken (StartDate={StartDate}, EndDate={EndDate})", startDate, endDate);
+            return await _apiClient.GetTimeBasedStatisticsAsync(startDate, endDate);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der zeitbasierten Statistiken");
+            throw;
+        }
+    }
+
 }

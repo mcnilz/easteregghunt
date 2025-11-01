@@ -72,4 +72,37 @@ internal class StatisticsApiHelper
             throw;
         }
     }
+
+    internal async Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            var url = "/api/statistics/time-based";
+            var queryParams = new List<string>();
+            if (startDate.HasValue)
+            {
+                queryParams.Add($"startDate={startDate.Value:yyyy-MM-dd}");
+            }
+            if (endDate.HasValue)
+            {
+                queryParams.Add($"endDate={endDate.Value:yyyy-MM-dd}");
+            }
+            if (queryParams.Any())
+            {
+                url += "?" + string.Join("&", queryParams);
+            }
+
+            _logger.LogDebug("API-Aufruf: GET {Url}", url);
+            var response = await _httpClient.GetAsync(new Uri(url, UriKind.Relative));
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<Models.TimeBasedStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine zeitbasierten Statistiken zurück");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der zeitbasierten Statistiken");
+            throw;
+        }
+    }
 }

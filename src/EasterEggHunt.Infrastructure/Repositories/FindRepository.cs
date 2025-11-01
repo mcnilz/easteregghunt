@@ -188,4 +188,114 @@ public class FindRepository : IFindRepository
     {
         return await _context.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Ruft Funde gruppiert nach Tag ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Funde gruppiert nach Tag</returns>
+    public async Task<IEnumerable<(DateTime Date, int Count, int UniqueFinders, int UniqueQrCodes)>> GetDailyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.Finds.AsQueryable();
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt >= startDate.Value.Date);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt < endDate.Value.Date.AddDays(1));
+        }
+
+        return await query
+            .GroupBy(f => f.FoundAt.Date)
+            .Select(g => new
+            {
+                Date = g.Key,
+                Count = g.Count(),
+                UniqueFinders = g.Select(f => f.UserId).Distinct().Count(),
+                UniqueQrCodes = g.Select(f => f.QrCodeId).Distinct().Count()
+            })
+            .OrderBy(g => g.Date)
+            .Select(g => new ValueTuple<DateTime, int, int, int>(g.Date, g.Count, g.UniqueFinders, g.UniqueQrCodes))
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Ruft Funde gruppiert nach Woche ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Funde gruppiert nach Woche</returns>
+    public async Task<IEnumerable<(DateTime WeekStart, int Count, int UniqueFinders, int UniqueQrCodes)>> GetWeeklyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.Finds.AsQueryable();
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt >= startDate.Value.Date);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt < endDate.Value.Date.AddDays(1));
+        }
+
+        return await query
+            .GroupBy(f => new
+            {
+                Year = f.FoundAt.Year,
+                Week = System.Globalization.ISOWeek.GetWeekOfYear(f.FoundAt)
+            })
+            .Select(g => new
+            {
+                WeekStart = System.Globalization.ISOWeek.ToDateTime(g.Key.Year, g.Key.Week, DayOfWeek.Monday),
+                Count = g.Count(),
+                UniqueFinders = g.Select(f => f.UserId).Distinct().Count(),
+                UniqueQrCodes = g.Select(f => f.QrCodeId).Distinct().Count()
+            })
+            .OrderBy(g => g.WeekStart)
+            .Select(g => new ValueTuple<DateTime, int, int, int>(g.WeekStart, g.Count, g.UniqueFinders, g.UniqueQrCodes))
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Ruft Funde gruppiert nach Monat ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Funde gruppiert nach Monat</returns>
+    public async Task<IEnumerable<(DateTime MonthStart, int Count, int UniqueFinders, int UniqueQrCodes)>> GetMonthlyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        var query = _context.Finds.AsQueryable();
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt >= startDate.Value.Date);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt < endDate.Value.Date.AddDays(1));
+        }
+
+        return await query
+            .GroupBy(f => new
+            {
+                Year = f.FoundAt.Year,
+                Month = f.FoundAt.Month
+            })
+            .Select(g => new
+            {
+                MonthStart = new DateTime(g.Key.Year, g.Key.Month, 1),
+                Count = g.Count(),
+                UniqueFinders = g.Select(f => f.UserId).Distinct().Count(),
+                UniqueQrCodes = g.Select(f => f.QrCodeId).Distinct().Count()
+            })
+            .OrderBy(g => g.MonthStart)
+            .Select(g => new ValueTuple<DateTime, int, int, int>(g.MonthStart, g.Count, g.UniqueFinders, g.UniqueQrCodes))
+            .ToListAsync();
+    }
 }

@@ -426,8 +426,8 @@ Vollständige Statistiken und System-Verfeinerung
 **Damit** ich den Erfolg der Kampagne bewerten kann  
 
 **Akzeptanzkriterien:**
-- [ ] Teilnehmer-Rangliste
-- [ ] Zeitbasierte Statistiken
+- [x] Teilnehmer-Rangliste ✅
+- [x] Zeitbasierte Statistiken ✅
 - [ ] Fund-Historie mit Filter
 - [ ] Export-Funktionen (CSV, PDF)
 - [ ] Diagramme und Visualisierungen

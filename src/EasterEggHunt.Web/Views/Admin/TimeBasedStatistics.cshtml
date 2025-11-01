@@ -1,0 +1,517 @@
+@model EasterEggHunt.Web.Models.TimeBasedStatisticsViewModel
+@{
+    ViewData["Title"] = "Zeitbasierte Statistiken";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1>Zeitbasierte Statistiken</h1>
+        <p class="lead text-muted">Funde über Zeit analysiert - täglich, wöchentlich und monatlich</p>
+    </div>
+</div>
+
+<!-- Filter-Formular -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-filter"></i> Zeitraum-Filter
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="get" asp-action="TimeBasedStatistics" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="startDate" class="form-label">Startdatum</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="endDate" class="form-label">Enddatum</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search"></i> Filtern
+                        </button>
+                        <a asp-action="TimeBasedStatistics" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Zurücksetzen
+                        </a>
+                    </div>
+                </form>
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger mt-3">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <p class="mb-0"><i class="fas fa-exclamation-triangle"></i> @error.ErrorMessage</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs für verschiedene Zeiträume -->
+<div class="row mt-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="statisticsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="daily-tab" data-bs-toggle="tab" data-bs-target="#daily" type="button" role="tab">
+                    <i class="fas fa-calendar-day"></i> Täglich
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="weekly-tab" data-bs-toggle="tab" data-bs-target="#weekly" type="button" role="tab">
+                    <i class="fas fa-calendar-week"></i> Wöchentlich
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab">
+                    <i class="fas fa-calendar-alt"></i> Monatlich
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="statisticsTabsContent">
+            <!-- Tägliche Statistiken -->
+            <div class="tab-pane fade show active" id="daily" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line"></i> Tägliche Funde
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.DailyStatistics.Any())
+                        {
+                            <canvas id="dailyChart"></canvas>
+                            <div class="row mt-4">
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Gesamt Funde</h6>
+                                            <h3 class="text-primary">@Model.DailyStatistics.Sum(s => s.Count)</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Durchschnitt pro Tag</h6>
+                                            <h3 class="text-success">@((Model.DailyStatistics.Count > 0 ? Model.DailyStatistics.Average(s => s.Count) : 0).ToString("F1"))</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Spitzentag</h6>
+                                            <h3 class="text-warning">@(Model.DailyStatistics.OrderByDescending(s => s.Count).FirstOrDefault()?.Count ?? 0)</h3>
+                                            @if (Model.DailyStatistics.Any())
+                                            {
+                                                <small class="text-muted">@Model.DailyStatistics.OrderByDescending(s => s.Count).FirstOrDefault()?.Date.ToString("dd.MM.yyyy")</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Keine täglichen Statistiken für den gewählten Zeitraum vorhanden.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wöchentliche Statistiken -->
+            <div class="tab-pane fade" id="weekly" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line"></i> Wöchentliche Funde
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.WeeklyStatistics.Any())
+                        {
+                            <canvas id="weeklyChart"></canvas>
+                            <div class="row mt-4">
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Gesamt Funde</h6>
+                                            <h3 class="text-primary">@Model.WeeklyStatistics.Sum(s => s.Count)</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Durchschnitt pro Woche</h6>
+                                            <h3 class="text-success">@((Model.WeeklyStatistics.Count > 0 ? Model.WeeklyStatistics.Average(s => s.Count) : 0).ToString("F1"))</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Spitzenwoche</h6>
+                                            <h3 class="text-warning">@(Model.WeeklyStatistics.OrderByDescending(s => s.Count).FirstOrDefault()?.Count ?? 0)</h3>
+                                            @if (Model.WeeklyStatistics.Any())
+                                            {
+                                                var peakWeek = Model.WeeklyStatistics.OrderByDescending(s => s.Count).FirstOrDefault()!;
+                                                var peakWeekNumber = System.Globalization.ISOWeek.GetWeekOfYear(peakWeek.Date);
+                                                <small class="text-muted">KW @peakWeekNumber, @peakWeek.Date.Year</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Keine wöchentlichen Statistiken für den gewählten Zeitraum vorhanden.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monatliche Statistiken -->
+            <div class="tab-pane fade" id="monthly" role="tabpanel">
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line"></i> Monatliche Funde
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.MonthlyStatistics.Any())
+                        {
+                            <canvas id="monthlyChart"></canvas>
+                            <div class="row mt-4">
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Gesamt Funde</h6>
+                                            <h3 class="text-primary">@Model.MonthlyStatistics.Sum(s => s.Count)</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Durchschnitt pro Monat</h6>
+                                            <h3 class="text-success">@((Model.MonthlyStatistics.Count > 0 ? Model.MonthlyStatistics.Average(s => s.Count) : 0).ToString("F1"))</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Spitzenmonat</h6>
+                                            <h3 class="text-warning">@(Model.MonthlyStatistics.OrderByDescending(s => s.Count).FirstOrDefault()?.Count ?? 0)</h3>
+                                            @if (Model.MonthlyStatistics.Any())
+                                            {
+                                                <small class="text-muted">@Model.MonthlyStatistics.OrderByDescending(s => s.Count).FirstOrDefault()?.Date.ToString("MMMM yyyy")</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Keine monatlichen Statistiken für den gewählten Zeitraum vorhanden.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Zusammenfassung -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i> Zusammenfassung
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h5 class="text-muted">Tage</h5>
+                            <h3 class="text-primary">@Model.DailyStatistics.Count</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h5 class="text-muted">Wochen</h5>
+                            <h3 class="text-success">@Model.WeeklyStatistics.Count</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h5 class="text-muted">Monate</h5>
+                            <h3 class="text-info">@Model.MonthlyStatistics.Count</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h5 class="text-muted">Gesamt Funde</h5>
+                            <h3 class="text-warning">@(Model.DailyStatistics.Sum(s => s.Count))</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-sync-alt"></i> Letzte Aktualisierung: @Model.GeneratedAt.ToString("dd.MM.yyyy HH:mm:ss")
+                    </small>
+                    <div>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a asp-action="Statistics" class="btn btn-primary">
+                            <i class="fas fa-chart-bar"></i> Statistiken
+                        </a>
+                        <a asp-action="Leaderboard" class="btn btn-warning">
+                            <i class="fas fa-trophy"></i> Rangliste
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Chart.js Konfiguration
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.plugins.legend.display = true;
+        Chart.defaults.plugins.legend.position = 'top';
+
+        // Tägliche Statistiken
+        @if (Model.DailyStatistics.Any())
+        {
+            <text>
+            const dailyCtx = document.getElementById('dailyChart');
+            const dailyData = {
+                labels: [
+                    @foreach (var stat in Model.DailyStatistics)
+                    {
+                        @:"@stat.Date.ToString("dd.MM.yyyy")",
+                    }
+                ],
+                datasets: [
+                    {
+                        label: 'Funde',
+                        data: [@string.Join(",", Model.DailyStatistics.Select(s => s.Count))],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    },
+                    {
+                        label: 'Einzigartige Finder',
+                        data: [@string.Join(",", Model.DailyStatistics.Select(s => s.UniqueFinders))],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    },
+                    {
+                        label: 'Einzigartige QR-Codes',
+                        data: [@string.Join(",", Model.DailyStatistics.Select(s => s.UniqueQrCodes))],
+                        borderColor: 'rgb(255, 206, 86)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    }
+                ]
+            };
+
+            new Chart(dailyCtx, {
+                type: 'line',
+                data: dailyData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Tägliche Funde über Zeit'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+
+        // Wöchentliche Statistiken
+        @if (Model.WeeklyStatistics.Any())
+        {
+            <text>
+            const weeklyCtx = document.getElementById('weeklyChart');
+            const weeklyLabels = [
+                    @foreach (var stat in Model.WeeklyStatistics)
+                    {
+                        var weekNumber = System.Globalization.ISOWeek.GetWeekOfYear(stat.Date);
+                        @:"KW @weekNumber, @stat.Date.Year",
+                    }
+                ];
+            const weeklyData = {
+                labels: weeklyLabels,
+                datasets: [
+                    {
+                        label: 'Funde',
+                        data: [@string.Join(",", Model.WeeklyStatistics.Select(s => s.Count))],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    },
+                    {
+                        label: 'Einzigartige Finder',
+                        data: [@string.Join(",", Model.WeeklyStatistics.Select(s => s.UniqueFinders))],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    },
+                    {
+                        label: 'Einzigartige QR-Codes',
+                        data: [@string.Join(",", Model.WeeklyStatistics.Select(s => s.UniqueQrCodes))],
+                        borderColor: 'rgb(255, 206, 86)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    }
+                ]
+            };
+
+            new Chart(weeklyCtx, {
+                type: 'line',
+                data: weeklyData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Wöchentliche Funde über Zeit'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+
+        // Monatliche Statistiken
+        @if (Model.MonthlyStatistics.Any())
+        {
+            <text>
+            const monthlyCtx = document.getElementById('monthlyChart');
+            const monthlyData = {
+                labels: [
+                    @foreach (var stat in Model.MonthlyStatistics)
+                    {
+                        @:"@stat.Date.ToString("MMMM yyyy")",
+                    }
+                ],
+                datasets: [
+                    {
+                        label: 'Funde',
+                        data: [@string.Join(",", Model.MonthlyStatistics.Select(s => s.Count))],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    },
+                    {
+                        label: 'Einzigartige Finder',
+                        data: [@string.Join(",", Model.MonthlyStatistics.Select(s => s.UniqueFinders))],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    },
+                    {
+                        label: 'Einzigartige QR-Codes',
+                        data: [@string.Join(",", Model.MonthlyStatistics.Select(s => s.UniqueQrCodes))],
+                        borderColor: 'rgb(255, 206, 86)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    }
+                ]
+            };
+
+            new Chart(monthlyCtx, {
+                type: 'line',
+                data: monthlyData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Monatliche Funde über Zeit'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+    </script>
+}
+

@@ -136,4 +136,25 @@ public class FindService : IFindService
         _logger.LogInformation("Funde für Benutzer {UserId} und Kampagne {CampaignId} abrufen (take={Take})", userId, campaignId, take);
         return await _findRepository.GetByUserAndCampaignAsync(userId, campaignId, take);
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<(DateTime Date, int Count, int UniqueFinders, int UniqueQrCodes)>> GetDailyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        _logger.LogInformation("Abrufen der täglichen Statistiken (StartDate={StartDate}, EndDate={EndDate})", startDate, endDate);
+        return await _findRepository.GetDailyStatisticsAsync(startDate, endDate);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<(DateTime WeekStart, int Count, int UniqueFinders, int UniqueQrCodes)>> GetWeeklyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        _logger.LogInformation("Abrufen der wöchentlichen Statistiken (StartDate={StartDate}, EndDate={EndDate})", startDate, endDate);
+        return await _findRepository.GetWeeklyStatisticsAsync(startDate, endDate);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<(DateTime MonthStart, int Count, int UniqueFinders, int UniqueQrCodes)>> GetMonthlyStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        _logger.LogInformation("Abrufen der monatlichen Statistiken (StartDate={StartDate}, EndDate={EndDate})", startDate, endDate);
+        return await _findRepository.GetMonthlyStatisticsAsync(startDate, endDate);
+    }
 }

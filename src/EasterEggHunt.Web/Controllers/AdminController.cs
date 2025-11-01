@@ -703,4 +703,41 @@ public class AdminController : Controller
             return View("Error");
         }
     }
+
+    /// <summary>
+    /// Zeitbasierte Statistiken
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Zeitbasierte Statistiken-Ansicht</returns>
+    public async Task<IActionResult> TimeBasedStatistics(DateTime? startDate = null, DateTime? endDate = null)
+    {
+        try
+        {
+            if (startDate.HasValue && endDate.HasValue && startDate.Value > endDate.Value)
+            {
+                ModelState.AddModelError("", "Startdatum darf nicht nach Enddatum liegen");
+                startDate = null;
+                endDate = null;
+            }
+
+            var statistics = await _statisticsService.GetTimeBasedStatisticsAsync(startDate, endDate);
+
+            // Filter-Parameter an View übergeben
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+
+            return View(statistics);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der zeitbasierten Statistiken");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der zeitbasierten Statistiken");
+            return View("Error");
+        }
+    }
 }

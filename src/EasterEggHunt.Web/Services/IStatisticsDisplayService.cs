@@ -38,4 +38,12 @@ public interface IStatisticsDisplayService
     /// </summary>
     /// <returns>Top-Performer-Statistiken</returns>
     Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync();
+
+    /// <summary>
+    /// Lädt zeitbasierte Statistiken
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <returns>Zeitbasierte Statistiken</returns>
+    Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
 }

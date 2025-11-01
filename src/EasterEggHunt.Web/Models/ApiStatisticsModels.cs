@@ -143,3 +143,55 @@ public class TopPerformersStatisticsViewModel
     /// </summary>
     public DateTime GeneratedAt { get; set; }
 }
+
+/// <summary>
+/// API DTO für zeitbasierte Statistiken (Funde pro Zeitraum)
+/// </summary>
+public class TimeSeriesStatisticsViewModel
+{
+    /// <summary>
+    /// Zeitpunkt des Zeitraums (Tag/Woche/Monat)
+    /// </summary>
+    public DateTime Date { get; set; }
+
+    /// <summary>
+    /// Anzahl der Funde in diesem Zeitraum
+    /// </summary>
+    public int Count { get; set; }
+
+    /// <summary>
+    /// Anzahl der einzigartigen Finder in diesem Zeitraum
+    /// </summary>
+    public int UniqueFinders { get; set; }
+
+    /// <summary>
+    /// Anzahl der einzigartigen QR-Codes gefunden in diesem Zeitraum
+    /// </summary>
+    public int UniqueQrCodes { get; set; }
+}
+
+/// <summary>
+/// API DTO für zeitbasierte Übersichtsstatistiken
+/// </summary>
+public class TimeBasedStatisticsViewModel
+{
+    /// <summary>
+    /// Statistiken gruppiert nach Tagen
+    /// </summary>
+    public IReadOnlyList<TimeSeriesStatisticsViewModel> DailyStatistics { get; set; } = new List<TimeSeriesStatisticsViewModel>();
+
+    /// <summary>
+    /// Statistiken gruppiert nach Wochen
+    /// </summary>
+    public IReadOnlyList<TimeSeriesStatisticsViewModel> WeeklyStatistics { get; set; } = new List<TimeSeriesStatisticsViewModel>();
+
+    /// <summary>
+    /// Statistiken gruppiert nach Monaten
+    /// </summary>
+    public IReadOnlyList<TimeSeriesStatisticsViewModel> MonthlyStatistics { get; set; } = new List<TimeSeriesStatisticsViewModel>();
+
+    /// <summary>
+    /// Zeitpunkt der Generierung der Statistiken
+    /// </summary>
+    public DateTime GeneratedAt { get; set; }
+}

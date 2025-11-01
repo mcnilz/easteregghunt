@@ -52,6 +52,7 @@ public interface IEasterEggHuntApiClient
     Task<QrCodeStatisticsViewModel> GetQrCodeStatisticsAsync(int qrCodeId);
     Task<CampaignQrCodeStatisticsViewModel> GetCampaignQrCodeStatisticsAsync(int campaignId);
     Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync();
+    Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
 }
 
 /// <summary>
@@ -181,6 +182,9 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
 
     public async Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync()
         => await _statisticsHelper.GetTopPerformersAsync();
+
+    public async Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+        => await _statisticsHelper.GetTimeBasedStatisticsAsync(startDate, endDate);
 
     #endregion
 }

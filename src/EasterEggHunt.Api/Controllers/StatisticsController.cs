@@ -175,4 +175,38 @@ public class StatisticsController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, "Fehler beim Abrufen der Statistiken");
         }
     }
+
+    /// <summary>
+    /// Ruft zeitbasierte Statistiken ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional, Format: yyyy-MM-dd)</param>
+    /// <param name="endDate">Enddatum (optional, Format: yyyy-MM-dd)</param>
+    /// <returns>Zeitbasierte Statistiken gruppiert nach Tag, Woche und Monat</returns>
+    [HttpGet("time-based")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<TimeBasedStatistics>> GetTimeBasedStatistics([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        try
+        {
+            if (startDate.HasValue && endDate.HasValue && startDate.Value > endDate.Value)
+            {
+                return BadRequest("Startdatum darf nicht nach Enddatum liegen");
+            }
+
+            var statistics = await _statisticsService.GetTimeBasedStatisticsAsync(startDate, endDate);
+            return Ok(statistics);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Ungültige Parameter für zeitbasierte Statistiken");
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der zeitbasierten Statistiken");
+            return StatusCode(StatusCodes.Status500InternalServerError, "Fehler beim Abrufen der Statistiken");
+        }
+    }
 }
