@@ -481,4 +481,262 @@ public class FindServiceTests
     }
 
     #endregion
+
+    #region Repository Exception Tests
+
+    [Test]
+    public void RegisterFindAsync_WhenQrCodeRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _findService.RegisterFindAsync(qrCodeId, 1, "192.168.1.1", "useragent"));
+    }
+
+    [Test]
+    public void RegisterFindAsync_WhenUserRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var userId = 1;
+        var qrCode = new QrCode(1, "Test QR", "Test Description", "Test Notes");
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync(qrCode);
+        _mockUserRepository.Setup(r => r.GetByIdAsync(userId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _findService.RegisterFindAsync(qrCodeId, userId, "192.168.1.1", "useragent"));
+    }
+
+    [Test]
+    public void RegisterFindAsync_WhenFindRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var userId = 1;
+        var qrCode = new QrCode(1, "Test QR", "Test Description", "Test Notes");
+        var user = new User("testuser");
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync(qrCode);
+        _mockUserRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        _mockFindRepository.Setup(r => r.AddAsync(It.IsAny<Find>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _findService.RegisterFindAsync(qrCodeId, userId, "192.168.1.1", "useragent"));
+    }
+
+    [Test]
+    public void RegisterFindAsync_WhenSaveChangesThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var userId = 1;
+        var qrCode = new QrCode(1, "Test QR", "Test Description", "Test Notes");
+        var user = new User("testuser");
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync(qrCode);
+        _mockUserRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        _mockFindRepository.Setup(r => r.AddAsync(It.IsAny<Find>()))
+            .ReturnsAsync((Find find) => find);
+        _mockFindRepository.Setup(r => r.SaveChangesAsync())
+            .ThrowsAsync(new InvalidOperationException("Save failed"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _findService.RegisterFindAsync(qrCodeId, userId, "192.168.1.1", "useragent"));
+    }
+
+    [Test]
+    public void GetFindsByQrCodeIdAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        _mockFindRepository.Setup(r => r.GetByQrCodeIdAsync(qrCodeId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _findService.GetFindsByQrCodeIdAsync(qrCodeId));
+    }
+
+    [Test]
+    public void GetFindsByUserIdAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userId = 1;
+        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _findService.GetFindsByUserIdAsync(userId));
+    }
+
+    [Test]
+    public void GetExistingFindAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var userId = 1;
+        _mockFindRepository.Setup(r => r.GetFirstByUserAndQrAsync(userId, qrCodeId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _findService.GetExistingFindAsync(qrCodeId, userId));
+    }
+
+    [Test]
+    public void HasUserFoundQrCodeAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var userId = 1;
+        _mockFindRepository.Setup(r => r.UserHasFoundQrCodeAsync(userId, qrCodeId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _findService.HasUserFoundQrCodeAsync(qrCodeId, userId));
+    }
+
+    #endregion
+
+    #region Boundary Conditions Tests
+
+    [Test]
+    public async Task RegisterFindAsync_WithZeroIds_ShouldRegisterFind()
+    {
+        // Arrange
+        var qrCodeId = 0;
+        var userId = 0;
+        var qrCode = new QrCode(1, "Test QR", "Test Description", "Test Notes") { Id = qrCodeId };
+        var user = new User("testuser") { Id = userId };
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync(qrCode);
+        _mockUserRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        _mockFindRepository.Setup(r => r.AddAsync(It.IsAny<Find>()))
+            .ReturnsAsync((Find find) => find);
+        _mockFindRepository.Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _findService.RegisterFindAsync(qrCodeId, userId, "192.168.1.1", "useragent");
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.QrCodeId, Is.EqualTo(qrCodeId));
+        Assert.That(result.UserId, Is.EqualTo(userId));
+    }
+
+    [Test]
+    public void RegisterFindAsync_WithNegativeIds_ShouldFailValidation()
+    {
+        // Arrange
+        var qrCodeId = -1;
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync((QrCode?)null);
+
+        // Act & Assert - QR-Code sollte nicht gefunden werden
+        var ex = Assert.ThrowsAsync<ArgumentException>(() =>
+            _findService.RegisterFindAsync(qrCodeId, -1, "192.168.1.1", "useragent"));
+        Assert.That(ex!.Message, Does.Contain("QR-Code mit ID"));
+    }
+
+    [Test]
+    public async Task RegisterFindAsync_WithVeryLongIpAddress_ShouldRegisterFind()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var userId = 1;
+        var longIpAddress = "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:8080";
+        var qrCode = new QrCode(1, "Test QR", "Test Description", "Test Notes");
+        var user = new User("testuser");
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync(qrCode);
+        _mockUserRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        _mockFindRepository.Setup(r => r.AddAsync(It.IsAny<Find>()))
+            .ReturnsAsync((Find find) => find);
+        _mockFindRepository.Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _findService.RegisterFindAsync(qrCodeId, userId, longIpAddress, "useragent");
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.IpAddress, Is.EqualTo(longIpAddress));
+    }
+
+    [Test]
+    public async Task RegisterFindAsync_WithVeryLongUserAgent_ShouldRegisterFind()
+    {
+        // Arrange
+        var qrCodeId = 1;
+        var userId = 1;
+        var longUserAgent = new string('A', 500) + " Browser/1.0";
+        var qrCode = new QrCode(1, "Test QR", "Test Description", "Test Notes");
+        var user = new User("testuser");
+        _mockQrCodeRepository.Setup(r => r.GetByIdAsync(qrCodeId))
+            .ReturnsAsync(qrCode);
+        _mockUserRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        _mockFindRepository.Setup(r => r.AddAsync(It.IsAny<Find>()))
+            .ReturnsAsync((Find find) => find);
+        _mockFindRepository.Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _findService.RegisterFindAsync(qrCodeId, userId, "192.168.1.1", longUserAgent);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.UserAgent, Is.EqualTo(longUserAgent));
+    }
+
+    [Test]
+    public async Task GetFindsByQrCodeIdAsync_WithZeroId_ShouldCallRepository()
+    {
+        // Arrange
+        var qrCodeId = 0;
+        _mockFindRepository.Setup(r => r.GetByQrCodeIdAsync(qrCodeId))
+            .ReturnsAsync(new List<Find>());
+
+        // Act
+        var result = await _findService.GetFindsByQrCodeIdAsync(qrCodeId);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        _mockFindRepository.Verify(r => r.GetByQrCodeIdAsync(qrCodeId), Times.Once);
+    }
+
+    [Test]
+    public async Task GetFindsByUserIdAsync_WithZeroId_ShouldCallRepository()
+    {
+        // Arrange
+        var userId = 0;
+        _mockFindRepository.Setup(r => r.GetByUserIdAsync(userId))
+            .ReturnsAsync(new List<Find>());
+
+        // Act
+        var result = await _findService.GetFindsByUserIdAsync(userId);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        _mockFindRepository.Verify(r => r.GetByUserIdAsync(userId), Times.Once);
+    }
+
+    #endregion
 }

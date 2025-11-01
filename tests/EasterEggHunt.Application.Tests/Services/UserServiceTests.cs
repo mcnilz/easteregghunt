@@ -365,4 +365,219 @@ public class UserServiceTests
     }
 
     #endregion
+
+    #region Repository Exception Tests
+
+    [Test]
+    public void CreateUserAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userName = "testuser";
+        _mockRepository.Setup(r => r.NameExistsAsync(userName))
+            .ReturnsAsync(false);
+        _mockRepository.Setup(r => r.AddAsync(It.IsAny<User>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.CreateUserAsync(userName));
+    }
+
+    [Test]
+    public void CreateUserAsync_WhenSaveChangesThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userName = "testuser";
+        _mockRepository.Setup(r => r.NameExistsAsync(userName))
+            .ReturnsAsync(false);
+        _mockRepository.Setup(r => r.AddAsync(It.IsAny<User>()))
+            .ReturnsAsync((User user) => user);
+        _mockRepository.Setup(r => r.SaveChangesAsync())
+            .ThrowsAsync(new InvalidOperationException("Save failed"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.CreateUserAsync(userName));
+    }
+
+    [Test]
+    public void UpdateUserLastSeenAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userId = 1;
+        _mockRepository.Setup(r => r.GetByIdAsync(userId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.UpdateUserLastSeenAsync(userId));
+    }
+
+    [Test]
+    public void UpdateUserLastSeenAsync_WhenSaveChangesThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userId = 1;
+        var user = new User("testuser");
+        _mockRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        _mockRepository.Setup(r => r.SaveChangesAsync())
+            .ThrowsAsync(new InvalidOperationException("Save failed"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.UpdateUserLastSeenAsync(userId));
+    }
+
+    [Test]
+    public void DeactivateUserAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userId = 1;
+        _mockRepository.Setup(r => r.GetByIdAsync(userId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.DeactivateUserAsync(userId));
+    }
+
+    [Test]
+    public void DeactivateUserAsync_WhenSaveChangesThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userId = 1;
+        var user = new User("testuser");
+        _mockRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync(user);
+        _mockRepository.Setup(r => r.SaveChangesAsync())
+            .ThrowsAsync(new InvalidOperationException("Save failed"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.DeactivateUserAsync(userId));
+    }
+
+    [Test]
+    public void UserNameExistsAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userName = "testuser";
+        _mockRepository.Setup(r => r.NameExistsAsync(userName))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.UserNameExistsAsync(userName));
+    }
+
+    [Test]
+    public void GetUserByIdAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        var userId = 1;
+        _mockRepository.Setup(r => r.GetByIdAsync(userId))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.GetUserByIdAsync(userId));
+    }
+
+    [Test]
+    public void GetActiveUsersAsync_WhenRepositoryThrowsException_ShouldPropagateException()
+    {
+        // Arrange
+        _mockRepository.Setup(r => r.GetActiveAsync())
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(() => _userService.GetActiveUsersAsync());
+    }
+
+    #endregion
+
+    #region Boundary Conditions Tests
+
+    [Test]
+    public async Task CreateUserAsync_WithVeryLongName_ShouldCreateUser()
+    {
+        // Arrange
+        var longName = new string('A', 200);
+        _mockRepository.Setup(r => r.NameExistsAsync(longName))
+            .ReturnsAsync(false);
+        _mockRepository.Setup(r => r.AddAsync(It.IsAny<User>()))
+            .ReturnsAsync((User user) => user);
+        _mockRepository.Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _userService.CreateUserAsync(longName);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Name, Is.EqualTo(longName));
+    }
+
+    [Test]
+    public async Task CreateUserAsync_WithZeroUserIdInExistingUser_ShouldCreateUser()
+    {
+        // Arrange
+        var userName = "testuser";
+        _mockRepository.Setup(r => r.NameExistsAsync(userName))
+            .ReturnsAsync(false);
+        _mockRepository.Setup(r => r.AddAsync(It.IsAny<User>()))
+            .ReturnsAsync((User user) => user);
+        _mockRepository.Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _userService.CreateUserAsync(userName);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Name, Is.EqualTo(userName));
+    }
+
+    [Test]
+    public async Task GetUserByIdAsync_WithZeroId_ShouldCallRepository()
+    {
+        // Arrange
+        var userId = 0;
+        _mockRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync((User?)null);
+
+        // Act
+        var result = await _userService.GetUserByIdAsync(userId);
+
+        // Assert
+        Assert.That(result, Is.Null);
+        _mockRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
+    }
+
+    [Test]
+    public async Task GetUserByIdAsync_WithNegativeId_ShouldCallRepository()
+    {
+        // Arrange
+        var userId = -1;
+        _mockRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync((User?)null);
+
+        // Act
+        var result = await _userService.GetUserByIdAsync(userId);
+
+        // Assert
+        Assert.That(result, Is.Null);
+        _mockRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
+    }
+
+    [Test]
+    public async Task GetUserByIdAsync_WithMaxIntId_ShouldCallRepository()
+    {
+        // Arrange
+        var userId = int.MaxValue;
+        _mockRepository.Setup(r => r.GetByIdAsync(userId))
+            .ReturnsAsync((User?)null);
+
+        // Act
+        var result = await _userService.GetUserByIdAsync(userId);
+
+        // Assert
+        Assert.That(result, Is.Null);
+        _mockRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
+    }
+
+    #endregion
 }
