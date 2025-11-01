@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
+using EasterEggHunterApi.Abstractions.Models.User;
 
 namespace EasterEggHunt.Web.Services.ApiHelpers;
 
@@ -42,12 +43,12 @@ internal class UserApiHelper
     {
         try
         {
-            _logger.LogDebug("API-Aufruf: POST /api/users/register");
+            _logger.LogDebug("API-Aufruf: POST /api/users");
             var request = new { Name = name };
             var json = JsonSerializer.Serialize(request, _jsonOptions);
             using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(new Uri("/api/users/register", UriKind.Relative), content);
+            var response = await _httpClient.PostAsync(new Uri("/api/users", UriKind.Relative), content);
             response.EnsureSuccessStatusCode();
 
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -64,12 +65,17 @@ internal class UserApiHelper
     {
         try
         {
-            _logger.LogDebug("API-Aufruf: GET /api/users/exists/{Name}", name);
-            var response = await _httpClient.GetAsync(new Uri($"/api/users/exists/{Uri.EscapeDataString(name)}", UriKind.Relative));
+            _logger.LogDebug("API-Aufruf: POST /api/users/check-name");
+            var request = new { Name = name };
+            var json = JsonSerializer.Serialize(request, _jsonOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(new Uri("/api/users/check-name", UriKind.Relative), content);
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<bool>(content, _jsonOptions);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var responseObj = JsonSerializer.Deserialize<CheckUserNameResponse>(responseContent, _jsonOptions);
+            return responseObj?.Exists ?? false;
         }
         catch (Exception ex)
         {

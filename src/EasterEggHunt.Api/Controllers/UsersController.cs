@@ -24,32 +24,37 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Prüft, ob ein Benutzername bereits existiert
     /// </summary>
-    /// <param name="name">Benutzername zum Prüfen</param>
+    /// <param name="request">Request mit dem zu prüfenden Namen</param>
     /// <returns>Objekt mit exists-Flag und Name</returns>
-    [HttpGet("check-name/{name}")]
+    [HttpPost("check-name")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<CheckUserNameResponse>> CheckUserName(string name)
+    public async Task<ActionResult<CheckUserNameResponse>> CheckUserName([FromBody] CheckUserNameRequest request)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(name))
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Name))
             {
                 return BadRequest("Benutzername darf nicht leer sein");
             }
 
-            var exists = await _userService.UserNameExistsAsync(name);
-            return Ok(new CheckUserNameResponse { Exists = exists, Name = name });
+            var exists = await _userService.UserNameExistsAsync(request.Name);
+            return Ok(new CheckUserNameResponse { Exists = exists, Name = request.Name });
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Ungültiger Benutzername: {UserName}", name);
+            _logger.LogWarning(ex, "Ungültiger Benutzername: {UserName}", request.Name);
             return BadRequest(ex.Message);
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Fehler beim Prüfen des Benutzernamens {UserName}", name);
+            _logger.LogError(ex, "Fehler beim Prüfen des Benutzernamens {UserName}", request.Name);
             return StatusCode(500, "Interner Serverfehler");
         }
     }

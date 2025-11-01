@@ -100,6 +100,13 @@ internal class FindApiHelper
 
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
+
+            // Prüfen ob Content leer oder null ist
+            if (string.IsNullOrWhiteSpace(content) || content.Trim() == "null")
+            {
+                return null;
+            }
+
             return JsonSerializer.Deserialize<Find>(content, _jsonOptions);
         }
         catch (Exception ex)
@@ -131,10 +138,10 @@ internal class FindApiHelper
     {
         try
         {
-            var url = $"/api/finds/user/{userId}/campaign/{campaignId}";
+            var url = $"/api/finds/user/{userId}/by-campaign?campaignId={campaignId}";
             if (take.HasValue)
             {
-                url += $"?take={take.Value}";
+                url += $"&take={take.Value}";
             }
 
             _logger.LogDebug("API-Aufruf: GET {Url}", url);
@@ -155,8 +162,8 @@ internal class FindApiHelper
     {
         try
         {
-            _logger.LogDebug("API-Aufruf: GET /api/finds/user/{UserId}/statistics", userId);
-            var response = await _httpClient.GetAsync(new Uri($"/api/finds/user/{userId}/statistics", UriKind.Relative));
+            _logger.LogDebug("API-Aufruf: GET /api/statistics/user/{UserId}", userId);
+            var response = await _httpClient.GetAsync(new Uri($"/api/statistics/user/{userId}", UriKind.Relative));
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();

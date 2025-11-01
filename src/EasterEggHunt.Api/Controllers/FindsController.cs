@@ -90,8 +90,13 @@ public class FindsController : ControllerBase
     /// <summary>
     /// Ruft Funde eines Benutzers für eine Kampagne ab, optional limitiert
     /// </summary>
+    /// <param name="userId">Benutzer-ID</param>
+    /// <param name="campaignId">Kampagnen-ID (Query-Parameter)</param>
+    /// <param name="take">Maximale Anzahl der zurückzugebenden Funde (optional, Query-Parameter)</param>
+    /// <returns>Liste der Funde des Benutzers für die angegebene Kampagne</returns>
     [HttpGet("user/{userId}/by-campaign")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Find>>> GetFindsByUserAndCampaign(int userId, [FromQuery] int campaignId, [FromQuery] int? take)
     {
@@ -153,8 +158,8 @@ public class FindsController : ControllerBase
     /// <summary>
     /// Prüft, ob ein Benutzer bereits einen QR-Code gefunden hat
     /// </summary>
-    /// <param name="qrCodeId">QR-Code-ID</param>
-    /// <param name="userId">Benutzer-ID</param>
+    /// <param name="qrCodeId">QR-Code-ID (Query-Parameter)</param>
+    /// <param name="userId">Benutzer-ID (Query-Parameter)</param>
     /// <returns>Erster Fund oder null wenn nicht gefunden</returns>
     [HttpGet("check")]
     [ProducesResponseType(StatusCodes.Status200OK)]

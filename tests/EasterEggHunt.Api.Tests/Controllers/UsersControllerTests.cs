@@ -226,11 +226,12 @@ public class UsersControllerTests
     {
         // Arrange
         var userName = "existinguser";
+        var request = new CheckUserNameRequest { Name = userName };
         _mockUserService.Setup(x => x.UserNameExistsAsync(userName))
             .ReturnsAsync(true);
 
         // Act
-        var result = await _controller.CheckUserName(userName);
+        var result = await _controller.CheckUserName(request);
 
         // Assert
         Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
@@ -246,11 +247,12 @@ public class UsersControllerTests
     {
         // Arrange
         var userName = "newuser";
+        var request = new CheckUserNameRequest { Name = userName };
         _mockUserService.Setup(x => x.UserNameExistsAsync(userName))
             .ReturnsAsync(false);
 
         // Act
-        var result = await _controller.CheckUserName(userName);
+        var result = await _controller.CheckUserName(request);
 
         // Assert
         Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
@@ -264,20 +266,25 @@ public class UsersControllerTests
     [Test]
     public async Task CheckUserName_ReturnsBadRequest_WhenNameIsEmpty()
     {
+        // Arrange
+        var request = new CheckUserNameRequest { Name = "" };
+        _controller.ModelState.AddModelError("Name", "Name ist erforderlich");
+
         // Act
-        var result = await _controller.CheckUserName("");
+        var result = await _controller.CheckUserName(request);
 
         // Assert
         Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
-        var badRequestResult = result.Result as BadRequestObjectResult;
-        Assert.That(badRequestResult!.Value, Is.EqualTo("Benutzername darf nicht leer sein"));
     }
 
     [Test]
     public async Task CheckUserName_ReturnsBadRequest_WhenNameIsWhitespace()
     {
+        // Arrange
+        var request = new CheckUserNameRequest { Name = "   " };
+
         // Act
-        var result = await _controller.CheckUserName("   ");
+        var result = await _controller.CheckUserName(request);
 
         // Assert
         Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
@@ -290,11 +297,12 @@ public class UsersControllerTests
     {
         // Arrange
         var userName = "testuser";
+        var request = new CheckUserNameRequest { Name = userName };
         _mockUserService.Setup(x => x.UserNameExistsAsync(userName))
             .ThrowsAsync(new InvalidOperationException("Test exception"));
 
         // Act
-        var result = await _controller.CheckUserName(userName);
+        var result = await _controller.CheckUserName(request);
 
         // Assert
         Assert.That(result.Result, Is.InstanceOf<ObjectResult>());
