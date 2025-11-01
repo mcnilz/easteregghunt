@@ -275,14 +275,14 @@ public class StatisticsDisplayService : IStatisticsDisplayService
                     var statistics = await _apiClient.GetQrCodeStatisticsAsync(qrCode.Id);
                     qrCodeStatistics.Add(statistics);
 
-                    // Ungerundene QR-Codes sammeln
+                    // Ungefundene QR-Codes sammeln
                     if (statistics.FindCount == 0)
                     {
                         unfoundInCampaign.Add(statistics);
                     }
                 }
 
-                // Ungerundene QR-Codes nach Kampagne gruppieren
+                // Ungefundene QR-Codes nach Kampagne gruppieren
                 if (unfoundInCampaign.Any())
                 {
                     unfoundQrCodesByCampaign[campaign.Name] = unfoundInCampaign;

@@ -172,7 +172,7 @@ public class StatisticsViewModel
     public IReadOnlyList<QrCodeStatisticsViewModel> TopFoundQrCodes { get; set; } = new List<QrCodeStatisticsViewModel>();
 
     /// <summary>
-    /// Ungerundene QR-Codes (gruppiert nach Kampagne)
+    /// Ungefundene QR-Codes (gruppiert nach Kampagne)
     /// </summary>
     public IReadOnlyDictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>> UnfoundQrCodesByCampaign { get; set; } = new Dictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>>();
 }
