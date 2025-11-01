@@ -429,7 +429,6 @@ Vollständige Statistiken und System-Verfeinerung
 - [x] Teilnehmer-Rangliste ✅
 - [x] Zeitbasierte Statistiken ✅
 - [ ] Fund-Historie mit Filter
-- [ ] Export-Funktionen (CSV, PDF)
 - [ ] Diagramme und Visualisierungen
 - [ ] Performance-Metriken
 - [ ] 100% Test Coverage
