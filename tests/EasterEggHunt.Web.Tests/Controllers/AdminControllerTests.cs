@@ -639,6 +639,88 @@ public sealed class AdminControllerTests : IDisposable
         Assert.That(model.TopFoundQrCodes, Is.Empty);
     }
 
+    /// <summary>
+    /// Testet, dass Statistics Performance-Metriken im ViewModel enthält.
+    /// Wichtig, da Performance-Metriken in der View angezeigt werden.
+    /// Stellt sicher, dass Performance-Daten korrekt übergeben werden.
+    /// </summary>
+    [Test]
+    public async Task Statistics_WithPerformanceMetrics_ReturnsViewWithPerformanceData()
+    {
+        // Arrange
+        var statistics = new StatisticsViewModel
+        {
+            TotalCampaigns = 2,
+            ActiveCampaigns = 1,
+            TotalUsers = 5,
+            ActiveUsers = 4,
+            TotalQrCodes = 10,
+            TotalFinds = 15,
+            TopFoundQrCodes = new List<QrCodeStatisticsViewModel>(),
+            UnfoundQrCodesByCampaign = new Dictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>>(),
+            PerformanceMetrics = new PerformanceMetricsViewModel
+            {
+                AverageResponseTimeMs = 125.5,
+                ApiCallsLastMinute = 5,
+                SlowestResponseTimeMs = 250,
+                FastestResponseTimeMs = 50,
+                SlowRequestsCount = 0,
+                LastUpdated = DateTime.UtcNow
+            }
+        };
+
+        _mockStatisticsService.Setup(x => x.GetStatisticsAsync())
+            .ReturnsAsync(statistics);
+
+        // Act
+        var result = await _controller.Statistics();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        var model = viewResult!.Model as StatisticsViewModel;
+        Assert.That(model!.PerformanceMetrics, Is.Not.Null);
+        Assert.That(model.PerformanceMetrics!.AverageResponseTimeMs, Is.EqualTo(125.5));
+        Assert.That(model.PerformanceMetrics.ApiCallsLastMinute, Is.EqualTo(5));
+        Assert.That(model.PerformanceMetrics.SlowestResponseTimeMs, Is.EqualTo(250));
+        Assert.That(model.PerformanceMetrics.FastestResponseTimeMs, Is.EqualTo(50));
+    }
+
+    /// <summary>
+    /// Testet, dass Statistics auch ohne Performance-Metriken funktioniert.
+    /// Wichtig, um Rückwärtskompatibilität sicherzustellen und sicherzustellen,
+    /// dass die View auch ohne Performance-Daten funktioniert.
+    /// </summary>
+    [Test]
+    public async Task Statistics_WithoutPerformanceMetrics_ReturnsViewWithNullMetrics()
+    {
+        // Arrange
+        var statistics = new StatisticsViewModel
+        {
+            TotalCampaigns = 2,
+            ActiveCampaigns = 1,
+            TotalUsers = 5,
+            ActiveUsers = 4,
+            TotalQrCodes = 10,
+            TotalFinds = 15,
+            TopFoundQrCodes = new List<QrCodeStatisticsViewModel>(),
+            UnfoundQrCodesByCampaign = new Dictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>>(),
+            PerformanceMetrics = null
+        };
+
+        _mockStatisticsService.Setup(x => x.GetStatisticsAsync())
+            .ReturnsAsync(statistics);
+
+        // Act
+        var result = await _controller.Statistics();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        var model = viewResult!.Model as StatisticsViewModel;
+        Assert.That(model!.PerformanceMetrics, Is.Null);
+    }
+
     #region FindHistory Tests
 
     /// <summary>

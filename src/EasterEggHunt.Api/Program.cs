@@ -1,4 +1,5 @@
 using EasterEggHunt.Api.Configuration;
+using EasterEggHunt.Api.Middleware;
 using EasterEggHunt.Application;
 using EasterEggHunt.Infrastructure;
 using EasterEggHunt.Infrastructure.Configuration;
@@ -67,6 +68,9 @@ if (app.Environment.IsDevelopment())
 
 // Configure EasterEggHunt environment-specific settings
 app.ConfigureEasterEggHuntEnvironment();
+
+// Performance-Tracking Middleware
+app.UseMiddleware<PerformanceMiddleware>();
 
 app.UseCors();
 

@@ -175,6 +175,11 @@ public class StatisticsViewModel
     /// Ungefundene QR-Codes (gruppiert nach Kampagne)
     /// </summary>
     public IReadOnlyDictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>> UnfoundQrCodesByCampaign { get; set; } = new Dictionary<string, IReadOnlyList<QrCodeStatisticsViewModel>>();
+
+    /// <summary>
+    /// Performance-Metriken (optional)
+    /// </summary>
+    public PerformanceMetricsViewModel? PerformanceMetrics { get; set; }
 }
 
 /// <summary>

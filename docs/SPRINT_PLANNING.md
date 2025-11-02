@@ -19,10 +19,10 @@
 ## 🎯 Aktueller Projekt-Status
 
 **Aktueller Sprint:** Sprint 4 - Admin-Statistiken & Polish  
-**Fortschritt:** Story 4.1 in Arbeit (3/5 Akzeptanzkriterien erfüllt)  
+**Fortschritt:** Story 4.1 fast abgeschlossen (4/5 Akzeptanzkriterien erfüllt)  
 **Tests:** 810+ Tests erfolgreich mit exzellenter Code Coverage  
-**Letzte Commits:** Fund-Historie mit Filter implementiert, 18 neue Tests gemäß Testpyramide  
-**✅ ABGESCHLOSSEN:** Teilnehmer-Rangliste, Zeitbasierte Statistiken, Fund-Historie mit Filter
+**Letzte Commits:** Diagramme, Performance-Metriken und Fund-Historie implementiert  
+**✅ ABGESCHLOSSEN:** Teilnehmer-Rangliste, Zeitbasierte Statistiken, Fund-Historie mit Filter, Diagramme und Visualisierungen, Performance-Metriken
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
@@ -46,6 +46,8 @@
 - ✅ **Test-Pyramide: 73% Unit, 22% Integration, 5% E2E** ✅
 - ✅ **Test-Geschwindigkeit: ~7-8s für 810 Tests** ✅
 - ✅ **Fund-Historie mit Filter: Repository, Service, API, Web-View, 18 Tests** ✅
+- ✅ **Diagramme und Visualisierungen: Pie Chart, Doughnut Chart, Bar Chart mit Chart.js** ✅
+- ✅ **Performance-Metriken: Response-Zeit-Tracking, Performance-Dashboard** ✅
 - ✅ **ReportGenerator für Coverage-Visualisierung**
 - ✅ **Vereinfachte Coverage-Checks mit dotnet test Thresholds**
 - ✅ **Client-side QR-Code-Generierung mit QRCode.js (MIT-Lizenz)**
@@ -430,8 +432,8 @@ Vollständige Statistiken und System-Verfeinerung
 - [x] Teilnehmer-Rangliste ✅
 - [x] Zeitbasierte Statistiken ✅
 - [x] Fund-Historie mit Filter ✅
-- [ ] Diagramme und Visualisierungen
-- [ ] Performance-Metriken
+- [x] Diagramme und Visualisierungen ✅
+- [x] Performance-Metriken ✅
 - [ ] 100% Test Coverage
 
 **Gherkin:** `features/admin_statistics.feature`  

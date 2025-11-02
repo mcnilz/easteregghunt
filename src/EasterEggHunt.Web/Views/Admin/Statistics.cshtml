@@ -53,29 +53,33 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Kampagnen-Übersicht</h5>
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie"></i> Kampagnen-Verteilung
+                </h5>
             </div>
             <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6">
-                        <h3 class="text-primary">@Model.TotalCampaigns</h3>
-                        <p class="text-muted">Gesamt</p>
-                    </div>
-                    <div class="col-6">
-                        <h3 class="text-success">@Model.ActiveCampaigns</h3>
-                        <p class="text-muted">Aktiv</p>
-                    </div>
-                </div>
                 @if (Model.TotalCampaigns > 0)
                 {
-                    <div class="progress mb-2">
-                        <div class="progress-bar bg-success" role="progressbar"
-                             style="width: @((Model.ActiveCampaigns / (double)Model.TotalCampaigns) * 100)%">
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <h3 class="text-primary">@Model.TotalCampaigns</h3>
+                            <p class="text-muted">Gesamt</p>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-success">@Model.ActiveCampaigns</h3>
+                            <p class="text-muted">Aktiv</p>
                         </div>
                     </div>
-                    <small class="text-muted">
+                    <canvas id="campaignsChart" style="max-height: 250px;"></canvas>
+                    <small class="text-muted d-block text-center mt-2">
                         @(((Model.ActiveCampaigns / (double)Model.TotalCampaigns) * 100).ToString("F1"))% der Kampagnen sind aktiv
                     </small>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Noch keine Kampagnen vorhanden.
+                    </div>
                 }
             </div>
         </div>
@@ -117,29 +121,35 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">QR-Code Aktivität</h5>
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie"></i> QR-Code Status
+                </h5>
             </div>
             <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6">
-                        <h3 class="text-info">@Model.TotalQrCodes</h3>
-                        <p class="text-muted">QR-Codes</p>
-                    </div>
-                    <div class="col-6">
-                        <h3 class="text-warning">@Model.TotalFinds</h3>
-                        <p class="text-muted">Funde</p>
-                    </div>
-                </div>
                 @if (Model.TotalQrCodes > 0)
                 {
-                    <div class="progress mb-2">
-                        <div class="progress-bar bg-warning" role="progressbar"
-                             style="width: @((Model.TotalFinds / (double)Model.TotalQrCodes) * 100)%">
+                    var unfoundCount = Model.UnfoundQrCodesByCampaign.Values.SelectMany(v => v).Count();
+                    var foundQrCodes = Model.TotalQrCodes - unfoundCount;
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <h3 class="text-success">@foundQrCodes</h3>
+                            <p class="text-muted">Gefunden</p>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-danger">@unfoundCount</h3>
+                            <p class="text-muted">Ungefunden</p>
                         </div>
                     </div>
-                    <small class="text-muted">
-                        @(((Model.TotalFinds / (double)Model.TotalQrCodes) * 100).ToString("F1"))% der QR-Codes wurden gefunden
+                    <canvas id="qrCodeStatusChart" style="max-height: 250px;"></canvas>
+                    <small class="text-muted d-block text-center mt-2">
+                        @Model.TotalQrCodes QR-Codes gesamt
                     </small>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Noch keine QR-Codes vorhanden.
+                    </div>
                 }
             </div>
         </div>
@@ -181,14 +191,17 @@
 </div>
 
 <div class="row mt-4">
-    <div class="col-12">
+    <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Top 10 Meist Gefundene QR-Codes</h5>
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar"></i> Top 10 Meist Gefundene QR-Codes
+                </h5>
             </div>
             <div class="card-body">
                 @if (Model.TopFoundQrCodes.Any())
                 {
+                    <canvas id="topQrCodesChart" style="max-height: 300px; margin-bottom: 20px;"></canvas>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
@@ -231,6 +244,36 @@
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle"></i> Noch keine QR-Codes gefunden.
                     </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i> QR-Code Aktivität
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h3 class="text-info">@Model.TotalQrCodes</h3>
+                    <p class="text-muted">QR-Codes gesamt</p>
+                </div>
+                <div class="text-center mb-3">
+                    <h3 class="text-warning">@Model.TotalFinds</h3>
+                    <p class="text-muted">Funde gesamt</p>
+                </div>
+                @if (Model.TotalQrCodes > 0)
+                {
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-warning" role="progressbar"
+                             style="width: @((Model.TotalFinds / (double)Model.TotalQrCodes) * 100)%">
+                        </div>
+                    </div>
+                    <small class="text-muted d-block text-center">
+                        @(((Model.TotalFinds / (double)Model.TotalQrCodes) * 100).ToString("F1"))% der QR-Codes wurden gefunden
+                    </small>
                 }
             </div>
         </div>
@@ -294,6 +337,71 @@
 </div>
 
 <div class="row mt-4">
+    @if (Model.PerformanceMetrics != null)
+    {
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tachometer-alt"></i> Performance-Metriken
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Durchschnittliche Response-Zeit</h6>
+                                    <h3 class="@(Model.PerformanceMetrics.AverageResponseTimeMs > 500 ? "text-danger" : Model.PerformanceMetrics.AverageResponseTimeMs > 200 ? "text-warning" : "text-success")">
+                                        @Model.PerformanceMetrics.AverageResponseTimeMs.ToString("F0") ms
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">API-Calls (letzte Minute)</h6>
+                                    <h3 class="text-info">@Model.PerformanceMetrics.ApiCallsLastMinute</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Langsamste Response</h6>
+                                    <h3 class="@(Model.PerformanceMetrics.SlowestResponseTimeMs > 1000 ? "text-danger" : "text-warning")">
+                                        @Model.PerformanceMetrics.SlowestResponseTimeMs ms
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Schnellste Response</h6>
+                                    <h3 class="text-success">@Model.PerformanceMetrics.FastestResponseTimeMs ms</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if (Model.PerformanceMetrics.SlowRequestsCount > 0)
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>@Model.PerformanceMetrics.SlowRequestsCount</strong> langsame Anfragen (> 1s) erkannt.
+                        </div>
+                    }
+                    <small class="text-muted d-block text-center mt-2">
+                        Letzte Aktualisierung: @Model.PerformanceMetrics.LastUpdated.ToString("dd.MM.yyyy HH:mm:ss") UTC
+                    </small>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row mt-4">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
@@ -338,7 +446,170 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
+        // Chart.js Konfiguration
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.plugins.legend.display = true;
+        Chart.defaults.plugins.legend.position = 'top';
+
+        // Kampagnen-Verteilung (Pie Chart)
+        @if (Model.TotalCampaigns > 0)
+        {
+            var inactiveCampaigns = Model.TotalCampaigns - Model.ActiveCampaigns;
+            <text>
+            const campaignsCtx = document.getElementById('campaignsChart');
+            new Chart(campaignsCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Aktive Kampagnen', 'Inaktive Kampagnen'],
+                    datasets: [{
+                        data: [@Model.ActiveCampaigns, @inactiveCampaigns],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.8)',
+                            'rgba(108, 117, 125, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(108, 117, 125, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    const value = context.parsed || 0;
+                                    const total = @Model.TotalCampaigns;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    label += value + ' (' + percentage + '%)';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+
+        // QR-Code Status (Doughnut Chart)
+        @if (Model.TotalQrCodes > 0)
+        {
+            var unfoundCount = Model.UnfoundQrCodesByCampaign.Values.SelectMany(v => v).Count();
+            var foundQrCodes = Model.TotalQrCodes - unfoundCount;
+            <text>
+            const qrCodeStatusCtx = document.getElementById('qrCodeStatusChart');
+            new Chart(qrCodeStatusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Gefundene QR-Codes', 'Ungefundene QR-Codes'],
+                    datasets: [{
+                        data: [@foundQrCodes, @unfoundCount],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.8)',
+                            'rgba(220, 53, 69, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(220, 53, 69, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    const value = context.parsed || 0;
+                                    const total = @Model.TotalQrCodes;
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    label += value + ' (' + percentage + '%)';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+
+        // Top QR-Codes (Bar Chart)
+        @if (Model.TopFoundQrCodes.Any())
+        {
+            var topTen = Model.TopFoundQrCodes.Take(10).ToList();
+            <text>
+            const topQrCodesCtx = document.getElementById('topQrCodesChart');
+            const topQrCodesData = {
+                labels: [
+                    @foreach (var qrCode in topTen)
+                    {
+                        @:"@Html.Raw(qrCode.Title.Length > 20 ? qrCode.Title.Substring(0, 20) + "..." : qrCode.Title)",
+                    }
+                ],
+                datasets: [{
+                    label: 'Anzahl Funde',
+                    data: [@string.Join(",", topTen.Select(q => q.FindCount))],
+                    backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    borderWidth: 2
+                }]
+            };
+
+            new Chart(topQrCodesCtx, {
+                type: 'bar',
+                data: topQrCodesData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.x + ' Funde';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+
         function refreshStatistics() {
             location.reload();
         }

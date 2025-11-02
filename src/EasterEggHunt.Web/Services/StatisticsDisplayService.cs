@@ -251,12 +251,23 @@ public class StatisticsDisplayService : IStatisticsDisplayService
     /// <returns>System-Statistiken mit Top Found QR-Codes und Unfound QR-Codes</returns>
     public async Task<StatisticsViewModel> GetStatisticsAsync()
     {
+        var overallStopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var responseTimes = new List<long>();
+
         try
         {
             _logger.LogInformation("Lade System-Statistiken");
 
+            // Performance-Tracking für API-Calls
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var campaigns = await _apiClient.GetActiveCampaignsAsync();
+            stopwatch.Stop();
+            responseTimes.Add(stopwatch.ElapsedMilliseconds);
+
+            stopwatch.Restart();
             var users = await _apiClient.GetActiveUsersAsync();
+            stopwatch.Stop();
+            responseTimes.Add(stopwatch.ElapsedMilliseconds);
 
             var allQrCodes = new List<QrCode>();
             var qrCodeStatistics = new List<QrCodeStatisticsViewModel>();
@@ -265,14 +276,20 @@ public class StatisticsDisplayService : IStatisticsDisplayService
             // Alle QR-Codes und deren Statistiken sammeln
             foreach (var campaign in campaigns)
             {
+                stopwatch.Restart();
                 var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign.Id);
+                stopwatch.Stop();
+                responseTimes.Add(stopwatch.ElapsedMilliseconds);
                 allQrCodes.AddRange(qrCodes);
 
                 var unfoundInCampaign = new List<QrCodeStatisticsViewModel>();
 
                 foreach (var qrCode in qrCodes)
                 {
+                    stopwatch.Restart();
                     var statistics = await _apiClient.GetQrCodeStatisticsAsync(qrCode.Id);
+                    stopwatch.Stop();
+                    responseTimes.Add(stopwatch.ElapsedMilliseconds);
                     qrCodeStatistics.Add(statistics);
 
                     // Ungefundene QR-Codes sammeln
@@ -298,6 +315,19 @@ public class StatisticsDisplayService : IStatisticsDisplayService
             // Grundlegende Statistiken berechnen
             var totalFinds = qrCodeStatistics.Sum(s => s.FindCount);
 
+            overallStopwatch.Stop();
+
+            // Performance-Metriken berechnen
+            var performanceMetrics = new PerformanceMetricsViewModel
+            {
+                AverageResponseTimeMs = responseTimes.Any() ? responseTimes.Average() : 0,
+                ApiCallsLastMinute = responseTimes.Count,
+                SlowestResponseTimeMs = responseTimes.Any() ? responseTimes.Max() : 0,
+                FastestResponseTimeMs = responseTimes.Any() ? responseTimes.Min() : 0,
+                SlowRequestsCount = responseTimes.Count(r => r > 1000), // > 1s
+                LastUpdated = DateTime.UtcNow
+            };
+
             return new StatisticsViewModel
             {
                 TotalCampaigns = campaigns.Count(),
@@ -307,7 +337,8 @@ public class StatisticsDisplayService : IStatisticsDisplayService
                 TotalQrCodes = allQrCodes.Count,
                 TotalFinds = totalFinds,
                 TopFoundQrCodes = topFoundQrCodes,
-                UnfoundQrCodesByCampaign = unfoundQrCodesByCampaign
+                UnfoundQrCodesByCampaign = unfoundQrCodesByCampaign,
+                PerformanceMetrics = performanceMetrics
             };
         }
         catch (HttpRequestException ex)
