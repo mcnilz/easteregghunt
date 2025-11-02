@@ -1,3 +1,4 @@
+using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Models;
 
 namespace EasterEggHunt.Application.Services;
@@ -54,4 +55,28 @@ public interface IStatisticsService
     /// <param name="endDate">Enddatum (optional)</param>
     /// <returns>Zeitbasierte Statistiken gruppiert nach Tag, Woche und Monat</returns>
     Task<TimeBasedStatistics> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+
+    /// <summary>
+    /// Ruft Fund-Historie mit Filtern ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <param name="userId">Benutzer-ID (optional)</param>
+    /// <param name="qrCodeId">QR-Code-ID (optional)</param>
+    /// <param name="campaignId">Kampagnen-ID (optional)</param>
+    /// <param name="skip">Anzahl zu überspringender Einträge (optional, Standard: 0)</param>
+    /// <param name="take">Anzahl abzurufender Einträge (optional, Standard: 50)</param>
+    /// <param name="sortBy">Sortierungsfeld (optional, Standard: "FoundAt")</param>
+    /// <param name="sortDirection">Sortierungsrichtung (optional, Standard: "desc")</param>
+    /// <returns>Gefilterte und paginierte Liste von Funden mit Gesamtanzahl</returns>
+    Task<(IEnumerable<Find> Finds, int TotalCount)> GetFindHistoryAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc");
 }

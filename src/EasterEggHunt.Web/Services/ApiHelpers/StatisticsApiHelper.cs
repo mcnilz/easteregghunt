@@ -73,4 +73,68 @@ internal class StatisticsApiHelper
         var content = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<Models.TimeBasedStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine zeitbasierten Statistiken zurück");
     }
+
+    internal async Task<Models.FindHistoryResponseViewModel> GetFindHistoryAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc")
+    {
+        var url = "/api/statistics/find-history";
+        var queryParams = new List<string>();
+
+        if (startDate.HasValue)
+        {
+            queryParams.Add($"startDate={startDate.Value:yyyy-MM-dd}");
+        }
+        if (endDate.HasValue)
+        {
+            queryParams.Add($"endDate={endDate.Value:yyyy-MM-dd}");
+        }
+        if (userId.HasValue)
+        {
+            queryParams.Add($"userId={userId.Value}");
+        }
+        if (qrCodeId.HasValue)
+        {
+            queryParams.Add($"qrCodeId={qrCodeId.Value}");
+        }
+        if (campaignId.HasValue)
+        {
+            queryParams.Add($"campaignId={campaignId.Value}");
+        }
+        if (skip > 0)
+        {
+            queryParams.Add($"skip={skip}");
+        }
+        if (take != 50)
+        {
+            queryParams.Add($"take={take}");
+        }
+        if (sortBy != "FoundAt")
+        {
+            queryParams.Add($"sortBy={Uri.EscapeDataString(sortBy)}");
+        }
+        if (sortDirection != "desc")
+        {
+            queryParams.Add($"sortDirection={Uri.EscapeDataString(sortDirection)}");
+        }
+
+        if (queryParams.Any())
+        {
+            url += "?" + string.Join("&", queryParams);
+        }
+
+        _logger.LogDebug("API-Aufruf: GET {Url}", url);
+        var response = await _httpClient.GetAsync(new Uri(url, UriKind.Relative));
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<Models.FindHistoryResponseViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Fund-Historie zurück");
+    }
 }

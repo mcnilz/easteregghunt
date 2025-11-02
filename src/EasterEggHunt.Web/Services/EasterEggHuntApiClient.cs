@@ -53,6 +53,16 @@ public interface IEasterEggHuntApiClient
     Task<CampaignQrCodeStatisticsViewModel> GetCampaignQrCodeStatisticsAsync(int campaignId);
     Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync();
     Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null);
+    Task<Models.FindHistoryResponseViewModel> GetFindHistoryAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc");
 }
 
 /// <summary>
@@ -185,6 +195,18 @@ public class EasterEggHuntApiClient : IEasterEggHuntApiClient
 
     public async Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
         => await _statisticsHelper.GetTimeBasedStatisticsAsync(startDate, endDate);
+
+    public async Task<Models.FindHistoryResponseViewModel> GetFindHistoryAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc")
+        => await _statisticsHelper.GetFindHistoryAsync(startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
 
     #endregion
 }

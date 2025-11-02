@@ -1,0 +1,198 @@
+@model EasterEggHunt.Web.Models.FindHistoryViewModel
+@{
+    ViewData["Title"] = "Fund-Historie";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1>Fund-Historie</h1>
+        <p class="lead text-muted">Detaillierte Auflistung aller Funde mit Filter- und Sortierungsoptionen</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-filter"></i> Filter
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="get" asp-action="FindHistory">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label asp-for="StartDate" class="form-label"></label>
+                            <input type="date" asp-for="StartDate" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="EndDate" class="form-label"></label>
+                            <input type="date" asp-for="EndDate" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                            <label asp-for="UserId" class="form-label"></label>
+                            <select asp-for="UserId" class="form-select">
+                                <option value="">Alle Benutzer</option>
+                                @foreach (var user in Model.AllUsers)
+                                {
+                                    <option value="@user.Id">@user.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label asp-for="QrCodeId" class="form-label"></label>
+                            <select asp-for="QrCodeId" class="form-select">
+                                <option value="">Alle QR-Codes</option>
+                                @foreach (var qrCode in Model.AllQrCodes)
+                                {
+                                    <option value="@qrCode.Id">@qrCode.Title</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label asp-for="CampaignId" class="form-label"></label>
+                            <select asp-for="CampaignId" class="form-select">
+                                <option value="">Alle Kampagnen</option>
+                                @foreach (var campaign in Model.AllCampaigns)
+                                {
+                                    <option value="@campaign.Id">@campaign.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-2">
+                            <label asp-for="SortBy" class="form-label">Sortieren nach</label>
+                            <select asp-for="SortBy" class="form-select">
+                                <option value="FoundAt">Datum</option>
+                                <option value="UserId">Benutzer</option>
+                                <option value="QrCodeId">QR-Code</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label asp-for="SortDirection" class="form-label">Richtung</label>
+                            <select asp-for="SortDirection" class="form-select">
+                                <option value="desc">Absteigend</option>
+                                <option value="asc">Aufsteigend</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filtern
+                            </button>
+                            <a asp-action="FindHistory" class="btn btn-secondary ms-2">
+                                <i class="fas fa-times"></i> Zurücksetzen
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list"></i> Funde (@Model.TotalCount insgesamt)
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Finds.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Datum</th>
+                                    <th>Benutzer</th>
+                                    <th>QR-Code</th>
+                                    <th>Kampagne</th>
+                                    <th>IP-Adresse</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var find in Model.Finds)
+                                {
+                                    <tr>
+                                        <td>@find.Id</td>
+                                        <td>@find.FoundAt.ToString("dd.MM.yyyy HH:mm:ss")</td>
+                                        <td>@(find.User?.Name ?? "Unbekannt")</td>
+                                        <td>@(find.QrCode?.Title ?? "Unbekannt")</td>
+                                        <td>@(find.QrCode?.Campaign?.Name ?? "Unbekannt")</td>
+                                        <td>@find.IpAddress</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (Model.TotalPages > 1)
+                    {
+                        <nav aria-label="Seiten-Navigation">
+                            <ul class="pagination justify-content-center">
+                                @if (Model.CurrentPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" asp-action="FindHistory" 
+                                           asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-userId="@Model.UserId"
+                                           asp-route-qrCodeId="@Model.QrCodeId"
+                                           asp-route-campaignId="@Model.CampaignId"
+                                           asp-route-sortBy="@Model.SortBy"
+                                           asp-route-sortDirection="@Model.SortDirection"
+                                           asp-route-skip="@((Model.CurrentPage - 2) * Model.Take)"
+                                           asp-route-take="@Model.Take">Zurück</a>
+                                    </li>
+                                }
+
+                                @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                                {
+                                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                        <a class="page-link" asp-action="FindHistory"
+                                           asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-userId="@Model.UserId"
+                                           asp-route-qrCodeId="@Model.QrCodeId"
+                                           asp-route-campaignId="@Model.CampaignId"
+                                           asp-route-sortBy="@Model.SortBy"
+                                           asp-route-sortDirection="@Model.SortDirection"
+                                           asp-route-skip="@((i - 1) * Model.Take)"
+                                           asp-route-take="@Model.Take">@i</a>
+                                    </li>
+                                }
+
+                                @if (Model.CurrentPage < Model.TotalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" asp-action="FindHistory"
+                                           asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                                           asp-route-userId="@Model.UserId"
+                                           asp-route-qrCodeId="@Model.QrCodeId"
+                                           asp-route-campaignId="@Model.CampaignId"
+                                           asp-route-sortBy="@Model.SortBy"
+                                           asp-route-sortDirection="@Model.SortDirection"
+                                           asp-route-skip="@(Model.CurrentPage * Model.Take)"
+                                           asp-route-take="@Model.Take">Weiter</a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Keine Funde gefunden, die den Filterkriterien entsprechen.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

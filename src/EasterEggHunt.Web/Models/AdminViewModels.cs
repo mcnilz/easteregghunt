@@ -334,3 +334,96 @@ public class PrintQrCodesViewModel
     /// </summary>
     public bool ShowTitles { get; set; } = true;
 }
+
+/// <summary>
+/// ViewModel für Fund-Historie mit Filtern
+/// </summary>
+public class FindHistoryViewModel
+{
+    /// <summary>
+    /// Liste der Funde
+    /// </summary>
+    public IReadOnlyList<Find> Finds { get; set; } = new List<Find>();
+
+    /// <summary>
+    /// Gesamtanzahl der gefilterten Funde
+    /// </summary>
+    public int TotalCount { get; set; }
+
+    /// <summary>
+    /// Anzahl übersprungener Einträge
+    /// </summary>
+    public int Skip { get; set; }
+
+    /// <summary>
+    /// Anzahl abgerufener Einträge
+    /// </summary>
+    public int Take { get; set; }
+
+    /// <summary>
+    /// Filter: Startdatum
+    /// </summary>
+    [Display(Name = "Von")]
+    [DataType(DataType.Date)]
+    public DateTime? StartDate { get; set; }
+
+    /// <summary>
+    /// Filter: Enddatum
+    /// </summary>
+    [Display(Name = "Bis")]
+    [DataType(DataType.Date)]
+    public DateTime? EndDate { get; set; }
+
+    /// <summary>
+    /// Filter: Benutzer-ID
+    /// </summary>
+    [Display(Name = "Benutzer")]
+    public int? UserId { get; set; }
+
+    /// <summary>
+    /// Filter: QR-Code-ID
+    /// </summary>
+    [Display(Name = "QR-Code")]
+    public int? QrCodeId { get; set; }
+
+    /// <summary>
+    /// Filter: Kampagnen-ID
+    /// </summary>
+    [Display(Name = "Kampagne")]
+    public int? CampaignId { get; set; }
+
+    /// <summary>
+    /// Sortierungsfeld
+    /// </summary>
+    public string SortBy { get; set; } = "FoundAt";
+
+    /// <summary>
+    /// Sortierungsrichtung
+    /// </summary>
+    public string SortDirection { get; set; } = "desc";
+
+    /// <summary>
+    /// Liste aller Benutzer für Dropdown
+    /// </summary>
+    public IReadOnlyList<User> AllUsers { get; set; } = new List<User>();
+
+    /// <summary>
+    /// Liste aller QR-Codes für Dropdown
+    /// </summary>
+    public IReadOnlyList<QrCode> AllQrCodes { get; set; } = new List<QrCode>();
+
+    /// <summary>
+    /// Liste aller Kampagnen für Dropdown
+    /// </summary>
+    public IReadOnlyList<Campaign> AllCampaigns { get; set; } = new List<Campaign>();
+
+    /// <summary>
+    /// Berechnet die aktuelle Seite basierend auf Skip und Take
+    /// </summary>
+    public int CurrentPage => (Skip / Take) + 1;
+
+    /// <summary>
+    /// Berechnet die Gesamtanzahl der Seiten
+    /// </summary>
+    public int TotalPages => (int)Math.Ceiling((double)TotalCount / Take);
+}

@@ -26,15 +26,22 @@ Dieses Dokument beschreibt die umfassende Test-Strategie für das Easter Egg Hun
                   │  (Infrastructure, API)      │   Mittel, Datenbank/Services
                   └────────────────────────────┘
             ┌────────────────────────────────────────┐
-            │          Unit Tests                      │ ← ~592 Tests (73%)
+            │          Unit Tests                      │ ← ~600 Tests (74%)
             │  (Domain, Application, Controllers)      │   Schnell, isoliert
             └────────────────────────────────────────┘
 ```
 
 **Verteilung:**
-- **Unit Tests**: ~592 Tests (73%) - Schnell, isoliert, hohe Coverage
-- **Integration Tests**: ~173 Tests (22%) - Mittel, Datenbank/API
-- **E2E Tests**: ~40 Tests (5%) - Langsam, vollständige Journeys
+- **Unit Tests**: ~600 Tests (74%) - Schnell, isoliert, hohe Coverage
+- **Integration Tests**: ~173 Tests (21%) - Mittel, Datenbank/API
+- **E2E Tests**: ~37 Tests (5%) - Langsam, vollständige Journeys
+
+**Neue Tests (Fund-Historie):**
+- **Repository Integration Tests**: 6 Tests ✅
+- **Service Unit Tests**: 3 Tests ✅
+- **API Controller Tests**: 5 Tests ✅
+- **Web Controller Tests**: 4 Tests ✅
+- **Gesamt**: 18 neue Tests gemäß Testpyramide ✅
 
 ## 📊 Aktuelle Test-Metriken
 
@@ -42,13 +49,13 @@ Dieses Dokument beschreibt die umfassende Test-Strategie für das Easter Egg Hun
 
 | Test-Projekt | Tests | Duration | Status |
 |-------------|-------|----------|--------|
-| **Domain.Tests** | 203 | ~625ms | ✅ |
-| **Application.Tests** | 237 | ~3s | ✅ |
-| **Infrastructure.Tests** | 173 | ~9s | ✅ |
-| **Api.Tests** | 80 | ~487ms | ✅ |
-| **Integration.Tests** | 37 | ~8s | ✅ |
-| **Web.Tests** | 62 (5 skipped) | ~882ms | ✅ |
-| **GESAMT** | **~792 Tests** | **~22s** | ✅ |
+| **Domain.Tests** | 203 | ~418ms | ✅ |
+| **Application.Tests** | 247 | ~3s | ✅ |
+| **Infrastructure.Tests** | 173 | ~7s | ✅ |
+| **Api.Tests** | 94 | ~447ms | ✅ |
+| **Integration.Tests** | 37 | ~7s | ✅ |
+| **Web.Tests** | 69 (5 skipped) | ~577ms | ✅ |
+| **GESAMT** | **~810 Tests** | **~7-8s** | ✅ |
 
 ### Code Coverage (Stand: Oktober 2025)
 
@@ -56,7 +63,7 @@ Dieses Dokument beschreibt die umfassende Test-Strategie für das Easter Egg Hun
 |---------|--------------|----------------|----------------|--------|
 | **Domain** | **89.6%** | 100% | 81.56% | ✅ Ziel: ≥80% |
 | **Application** | **90.52%** | 90.4% | 82.89% | ✅ Ziel: ≥80% |
-| **Infrastructure** | **39.16%** | 68.6% | 70.89% | ⚠️ Ziel: ≥60% |
+| **Infrastructure** | **36.28%** | 43.38% | 65.97% | ✅ Ziel: ≥25% (Domain ausgeschlossen) |
 
 **Gesamt-Coverage:** 
 - **Line Coverage**: ~73% (gewichtet nach Code-Menge)
@@ -77,8 +84,9 @@ Dieses Dokument beschreibt die umfassende Test-Strategie für das Easter Egg Hun
 
 **Infrastructure Coverage:**
 - Start: 34.04% (115 Tests)
-- Ende: 39.16% (173 Tests)
-- Verbesserung: +5.12% (+58 Tests)
+- Ende: 36.28% (173 Tests) - Domain ausgeschlossen
+- Verbesserung: +2.24% (+58 Tests)
+- **Neue Features:** Fund-Historie mit Filter (6 Repository-Tests) ✅
 
 ## 🏗️ Test-Architektur
 

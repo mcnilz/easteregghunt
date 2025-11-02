@@ -195,3 +195,29 @@ public class TimeBasedStatisticsViewModel
     /// </summary>
     public DateTime GeneratedAt { get; set; }
 }
+
+/// <summary>
+/// API DTO für Fund-Historie Response
+/// </summary>
+public class FindHistoryResponseViewModel
+{
+    /// <summary>
+    /// Liste der Funde
+    /// </summary>
+    public IReadOnlyList<Domain.Entities.Find> Finds { get; set; } = new List<Domain.Entities.Find>();
+
+    /// <summary>
+    /// Gesamtanzahl der gefilterten Funde
+    /// </summary>
+    public int TotalCount { get; set; }
+
+    /// <summary>
+    /// Anzahl übersprungener Einträge
+    /// </summary>
+    public int Skip { get; set; }
+
+    /// <summary>
+    /// Anzahl abgerufener Einträge
+    /// </summary>
+    public int Take { get; set; }
+}

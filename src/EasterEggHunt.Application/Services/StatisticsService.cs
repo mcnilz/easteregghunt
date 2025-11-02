@@ -1,3 +1,4 @@
+using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Models;
 using Microsoft.Extensions.Logging;
 
@@ -273,5 +274,26 @@ public class StatisticsService : IStatisticsService
             _logger.LogError(ex, "Stack Trace: {StackTrace}", ex.StackTrace);
             throw new InvalidOperationException($"Fehler beim Abrufen der zeitbasierten Statistiken: {ex.Message}", ex);
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<(IEnumerable<Find> Finds, int TotalCount)> GetFindHistoryAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc")
+    {
+        _logger.LogInformation("Abrufen der Fund-Historie (StartDate={StartDate}, EndDate={EndDate}, UserId={UserId}, QrCodeId={QrCodeId}, CampaignId={CampaignId}, Skip={Skip}, Take={Take}, SortBy={SortBy}, SortDirection={SortDirection})",
+            startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+
+        var finds = await _findService.GetFindHistoryAsync(startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+        var totalCount = await _findService.GetFindHistoryCountAsync(startDate, endDate, userId, qrCodeId, campaignId);
+
+        return (finds, totalCount);
     }
 }

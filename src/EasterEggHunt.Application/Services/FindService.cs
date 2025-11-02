@@ -157,4 +157,34 @@ public class FindService : IFindService
         _logger.LogInformation("Abrufen der monatlichen Statistiken (StartDate={StartDate}, EndDate={EndDate})", startDate, endDate);
         return await _findRepository.GetMonthlyStatisticsAsync(startDate, endDate);
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Find>> GetFindHistoryAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc")
+    {
+        _logger.LogInformation("Abrufen der Fund-Historie (StartDate={StartDate}, EndDate={EndDate}, UserId={UserId}, QrCodeId={QrCodeId}, CampaignId={CampaignId}, Skip={Skip}, Take={Take}, SortBy={SortBy}, SortDirection={SortDirection})",
+            startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+        return await _findRepository.GetFindHistoryAsync(startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> GetFindHistoryCountAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null)
+    {
+        _logger.LogInformation("Abrufen der Fund-Historie-Anzahl (StartDate={StartDate}, EndDate={EndDate}, UserId={UserId}, QrCodeId={QrCodeId}, CampaignId={CampaignId})",
+            startDate, endDate, userId, qrCodeId, campaignId);
+        return await _findRepository.GetFindHistoryCountAsync(startDate, endDate, userId, qrCodeId, campaignId);
+    }
 }

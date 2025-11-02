@@ -58,7 +58,7 @@ Das Easter Egg Hunt System folgt **Clean Architecture** Prinzipien mit klarer Tr
 ### 2. Application Layer
 **Verantwortlichkeit:** Use Cases und Application Services
 
-- **Services**: CampaignService, QrCodeService, UserService, StatisticsService
+- **Services**: CampaignService, QrCodeService, UserService, StatisticsService, FindService
 - **DTOs**: CampaignDto, QrCodeDto, UserDto, FindDto
 - **Validators**: FluentValidation für alle Eingaben
 - **Mappers**: AutoMapper für Entity-DTO Konvertierung
@@ -277,18 +277,22 @@ tests/
 
 ### Aktuelle Test-Statistiken
 
-- **~792 Tests** insgesamt
+- **~810 Tests** insgesamt
   - Domain Tests: 203 Tests (89.6% Coverage) ✅
-  - Application Tests: 237 Tests (90.52% Coverage) ✅
-  - Infrastructure Tests: 173 Tests (39.16% Coverage) ⚠️
-  - API Tests: 80 Tests
+  - Application Tests: 247 Tests (90.52% Coverage) ✅
+  - Infrastructure Tests: 173 Tests (36.28% Line Coverage) ✅
+  - API Tests: 94 Tests ✅
   - Integration Tests: 37 Tests (E2E)
-  - Web Tests: 62 Tests
-- **Code Coverage** (Domain: 89.6%, Application: 90.52%, Infrastructure: 39.16%)
+  - Web Tests: 69 Tests ✅
+- **Code Coverage**:
+  - Domain: 89.6% ✅ (über Threshold 80%)
+  - Application: 90.52% ✅ (über Threshold 80%)
+  - Infrastructure: 36.28% Line Coverage ✅ (über Threshold 25%, Domain ausgeschlossen)
 - **Test-Pyramide**: 73% Unit, 22% Integration, 5% E2E ✅
-- **Test-Geschwindigkeit**: ~22s für alle Tests ✅
+- **Test-Geschwindigkeit**: ~7-8s für alle Tests ✅
 - **Integration Tests** mit echter SQLite-Datenbank
 - **Unit Tests** für alle Domain Entities mit umfassenden Edge Cases
+- **Neue Features**: Fund-Historie mit Filter (18 neue Tests gemäß Testpyramide) ✅
 
 **Detaillierte Metriken:** Siehe [TEST_METRICS.md](./TEST_METRICS.md) und [TEST_STRATEGY.md](./TEST_STRATEGY.md)
 

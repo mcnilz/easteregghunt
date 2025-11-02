@@ -364,4 +364,115 @@ public class FindRepository : IFindRepository
             .OrderBy(t => t.Item1)
             .ToList();
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Find>> GetFindHistoryAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc")
+    {
+        var query = _context.Finds.AsQueryable();
+
+        // Filter anwenden
+        if (startDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt >= startDate.Value.Date);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt < endDate.Value.Date.AddDays(1));
+        }
+
+        if (userId.HasValue)
+        {
+            query = query.Where(f => f.UserId == userId.Value);
+        }
+
+        if (qrCodeId.HasValue)
+        {
+            query = query.Where(f => f.QrCodeId == qrCodeId.Value);
+        }
+
+        if (campaignId.HasValue)
+        {
+            query = query.Where(f => f.QrCode!.CampaignId == campaignId.Value);
+        }
+
+        // Includes für Navigation Properties
+        query = query
+            .Include(f => f.QrCode)
+            .ThenInclude(q => q!.Campaign)
+            .Include(f => f.User);
+
+        // Sortierung anwenden
+        var sortByUpper = sortBy.ToUpperInvariant();
+        var sortDirectionUpper = sortDirection.ToUpperInvariant();
+        var isAscending = sortDirectionUpper == "ASC";
+
+        query = sortByUpper switch
+        {
+            "FOUNDAT" => isAscending
+                ? query.OrderBy(f => f.FoundAt)
+                : query.OrderByDescending(f => f.FoundAt),
+            "USERID" => isAscending
+                ? query.OrderBy(f => f.UserId)
+                : query.OrderByDescending(f => f.UserId),
+            "QRCODEID" => isAscending
+                ? query.OrderBy(f => f.QrCodeId)
+                : query.OrderByDescending(f => f.QrCodeId),
+            _ => query.OrderByDescending(f => f.FoundAt) // Default
+        };
+
+        // Pagination anwenden
+        return await query
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<int> GetFindHistoryCountAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null)
+    {
+        var query = _context.Finds.AsQueryable();
+
+        // Gleiche Filter wie GetFindHistoryAsync
+        if (startDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt >= startDate.Value.Date);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(f => f.FoundAt < endDate.Value.Date.AddDays(1));
+        }
+
+        if (userId.HasValue)
+        {
+            query = query.Where(f => f.UserId == userId.Value);
+        }
+
+        if (qrCodeId.HasValue)
+        {
+            query = query.Where(f => f.QrCodeId == qrCodeId.Value);
+        }
+
+        if (campaignId.HasValue)
+        {
+            query = query.Where(f => f.QrCode!.CampaignId == campaignId.Value);
+        }
+
+        return await query.CountAsync();
+    }
 }

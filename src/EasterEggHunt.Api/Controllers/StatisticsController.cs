@@ -1,3 +1,4 @@
+using EasterEggHunt.Api.Models;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -207,6 +208,69 @@ public class StatisticsController : ControllerBase
         {
             _logger.LogError(ex, "Fehler beim Abrufen der zeitbasierten Statistiken: {Message}", ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, "Fehler beim Abrufen der Statistiken");
+        }
+    }
+
+    /// <summary>
+    /// Ruft Fund-Historie mit Filtern ab
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional, Format: yyyy-MM-dd)</param>
+    /// <param name="endDate">Enddatum (optional, Format: yyyy-MM-dd)</param>
+    /// <param name="userId">Benutzer-ID (optional)</param>
+    /// <param name="qrCodeId">QR-Code-ID (optional)</param>
+    /// <param name="campaignId">Kampagnen-ID (optional)</param>
+    /// <param name="skip">Anzahl zu überspringender Einträge (optional, Standard: 0)</param>
+    /// <param name="take">Anzahl abzurufender Einträge (optional, Standard: 50)</param>
+    /// <param name="sortBy">Sortierungsfeld (optional, Standard: "FoundAt")</param>
+    /// <param name="sortDirection">Sortierungsrichtung (optional, Standard: "desc")</param>
+    /// <returns>Gefilterte und paginierte Fund-Historie mit Gesamtanzahl</returns>
+    [HttpGet("find-history")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<FindHistoryResponse>> GetFindHistory(
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] int? userId = null,
+        [FromQuery] int? qrCodeId = null,
+        [FromQuery] int? campaignId = null,
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 50,
+        [FromQuery] string sortBy = "FoundAt",
+        [FromQuery] string sortDirection = "desc")
+    {
+        try
+        {
+            if (startDate.HasValue && endDate.HasValue && startDate.Value > endDate.Value)
+            {
+                return BadRequest("Startdatum darf nicht nach Enddatum liegen");
+            }
+
+            if (skip < 0)
+            {
+                return BadRequest("Skip darf nicht negativ sein");
+            }
+
+            if (take < 1 || take > 100)
+            {
+                return BadRequest("Take muss zwischen 1 und 100 liegen");
+            }
+
+            var (finds, totalCount) = await _statisticsService.GetFindHistoryAsync(
+                startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+
+            return Ok(new FindHistoryResponse
+            {
+                Finds = finds.ToList(),
+                TotalCount = totalCount,
+                Skip = skip,
+                Take = take
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der Fund-Historie: {Message}", ex.Message);
+            return StatusCode(StatusCodes.Status500InternalServerError, "Fehler beim Abrufen der Fund-Historie");
         }
     }
 }

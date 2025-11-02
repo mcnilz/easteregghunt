@@ -276,5 +276,195 @@ public class FindRepositoryStatisticsTests : IntegrationTestBase
         Assert.That(resultAll, Has.Count.GreaterThanOrEqualTo(0));
         Assert.That(resultFiltered, Has.Count.GreaterThanOrEqualTo(0));
     }
+
+    #region GetFindHistoryAsync Tests
+
+    /// <summary>
+    /// Testet GetFindHistoryAsync mit leeren Filtern.
+    /// Wichtig, um sicherzustellen, dass die Methode bei leeren Filtern alle Funde zurückgibt.
+    /// Verhindert Fehler bei fehlenden Filtern.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryAsync_WithNoFilters_ShouldReturnAllFinds()
+    {
+        // Arrange
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(_testQrCode.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var result = await FindRepository.GetFindHistoryAsync();
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.GreaterThanOrEqualTo(2));
+        Assert.That(result.Select(f => f.Id), Contains.Item(find1.Id));
+        Assert.That(result.Select(f => f.Id), Contains.Item(find2.Id));
+    }
+
+    /// <summary>
+    /// Testet GetFindHistoryAsync mit Datums-Filter.
+    /// Wichtig, um sicherzustellen, dass die Datumsfilterung korrekt funktioniert.
+    /// Verhindert fehlerhafte Ergebnisse bei Datumsabfragen.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryAsync_WithDateFilter_ShouldReturnFilteredFinds()
+    {
+        // Arrange
+        var now = DateTime.UtcNow;
+        var yesterday = now.AddDays(-1);
+        var tomorrow = now.AddDays(1);
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        find1.FoundAt = yesterday;
+        await FindRepository.AddAsync(find1);
+
+        var find2 = new Find(_testQrCode.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        find2.FoundAt = now;
+        await FindRepository.AddAsync(find2);
+
+        var find3 = new Find(_testQrCode.Id, _testUser.Id, "10.0.0.1", "User Agent 3");
+        find3.FoundAt = tomorrow;
+        await FindRepository.AddAsync(find3);
+        await FindRepository.SaveChangesAsync();
+
+        // Act - Filter nach heute
+        var result = await FindRepository.GetFindHistoryAsync(
+            startDate: now.Date,
+            endDate: now.Date.AddDays(1));
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.GreaterThanOrEqualTo(1));
+        Assert.That(result.Select(f => f.Id), Contains.Item(find2.Id));
+        Assert.That(result.Select(f => f.Id), Does.Not.Contain(find1.Id));
+    }
+
+    /// <summary>
+    /// Testet GetFindHistoryAsync mit User-Filter.
+    /// Wichtig, um sicherzustellen, dass die Benutzerfilterung korrekt funktioniert.
+    /// Verhindert falsche Zuordnungen von Funden zu Benutzern.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryAsync_WithUserFilter_ShouldReturnFindsForUser()
+    {
+        // Arrange
+        var user2 = new User("Test User 2");
+        await UserRepository.AddAsync(user2);
+        await UserRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(_testQrCode.Id, user2.Id, "192.168.1.1", "User Agent 2");
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var result = await FindRepository.GetFindHistoryAsync(userId: _testUser.Id);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.All(f => f.UserId == _testUser.Id), Is.True);
+        Assert.That(result.Select(f => f.Id), Contains.Item(find1.Id));
+        Assert.That(result.Select(f => f.Id), Does.Not.Contain(find2.Id));
+    }
+
+    /// <summary>
+    /// Testet GetFindHistoryAsync mit Pagination.
+    /// Wichtig, um sicherzustellen, dass Skip und Take korrekt funktionieren.
+    /// Verhindert Performance-Probleme bei großen Datenmengen.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryAsync_WithPagination_ShouldReturnPagedResults()
+    {
+        // Arrange
+        for (int i = 0; i < 10; i++)
+        {
+            var find = new Find(_testQrCode.Id, _testUser.Id, $"127.0.0.{i}", $"User Agent {i}");
+            await FindRepository.AddAsync(find);
+        }
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var page1 = await FindRepository.GetFindHistoryAsync(skip: 0, take: 5);
+        var page2 = await FindRepository.GetFindHistoryAsync(skip: 5, take: 5);
+
+        // Assert
+        Assert.That(page1, Is.Not.Null);
+        Assert.That(page1, Has.Count.EqualTo(5));
+        Assert.That(page2, Is.Not.Null);
+        Assert.That(page2, Has.Count.GreaterThanOrEqualTo(0));
+        Assert.That(page1.Select(f => f.Id).Intersect(page2.Select(f => f.Id)), Is.Empty);
+    }
+
+    /// <summary>
+    /// Testet GetFindHistoryAsync mit Sortierung.
+    /// Wichtig, um sicherzustellen, dass die Sortierung korrekt funktioniert.
+    /// Verhindert falsche Sortierreihenfolgen in der UI.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryAsync_WithSorting_ShouldReturnSortedResults()
+    {
+        // Arrange
+        var now = DateTime.UtcNow;
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        find1.FoundAt = now.AddHours(-2);
+        await FindRepository.AddAsync(find1);
+
+        var find2 = new Find(_testQrCode.Id, _testUser.Id, "192.168.1.1", "User Agent 2");
+        find2.FoundAt = now.AddHours(-1);
+        await FindRepository.AddAsync(find2);
+
+        var find3 = new Find(_testQrCode.Id, _testUser.Id, "10.0.0.1", "User Agent 3");
+        find3.FoundAt = now;
+        await FindRepository.AddAsync(find3);
+        await FindRepository.SaveChangesAsync();
+
+        // Act - Sortierung absteigend
+        var resultDesc = await FindRepository.GetFindHistoryAsync(sortBy: "FoundAt", sortDirection: "desc");
+        var resultAsc = await FindRepository.GetFindHistoryAsync(sortBy: "FoundAt", sortDirection: "asc");
+
+        // Assert
+        Assert.That(resultDesc, Is.Not.Null);
+        Assert.That(resultDesc.Count(), Is.GreaterThanOrEqualTo(3));
+        var descList = resultDesc.ToList();
+        Assert.That(descList[0].FoundAt, Is.GreaterThanOrEqualTo(descList[1].FoundAt));
+
+        Assert.That(resultAsc, Is.Not.Null);
+        var ascList = resultAsc.ToList();
+        Assert.That(ascList[0].FoundAt, Is.LessThanOrEqualTo(ascList[1].FoundAt));
+    }
+
+    /// <summary>
+    /// Testet GetFindHistoryCountAsync mit Filtern.
+    /// Wichtig, um sicherzustellen, dass die Gesamtanzahl korrekt berechnet wird.
+    /// Verhindert fehlerhafte Pagination-Anzeigen.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryCountAsync_WithFilters_ShouldReturnCorrectCount()
+    {
+        // Arrange
+        var user2 = new User("Test User 2");
+        await UserRepository.AddAsync(user2);
+        await UserRepository.SaveChangesAsync();
+
+        var find1 = new Find(_testQrCode.Id, _testUser.Id, "127.0.0.1", "User Agent 1");
+        var find2 = new Find(_testQrCode.Id, user2.Id, "192.168.1.1", "User Agent 2");
+        await FindRepository.AddAsync(find1);
+        await FindRepository.AddAsync(find2);
+        await FindRepository.SaveChangesAsync();
+
+        // Act
+        var totalCount = await FindRepository.GetFindHistoryCountAsync();
+        var userCount = await FindRepository.GetFindHistoryCountAsync(userId: _testUser.Id);
+
+        // Assert
+        Assert.That(totalCount, Is.GreaterThanOrEqualTo(2));
+        Assert.That(userCount, Is.EqualTo(1));
+    }
+
+    #endregion
 }
 

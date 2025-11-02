@@ -764,4 +764,46 @@ public class AdminController : Controller
             return View("Error");
         }
     }
+
+    /// <summary>
+    /// Fund-Historie mit Filtern
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <param name="userId">Benutzer-ID (optional)</param>
+    /// <param name="qrCodeId">QR-Code-ID (optional)</param>
+    /// <param name="campaignId">Kampagnen-ID (optional)</param>
+    /// <param name="skip">Anzahl zu überspringender Einträge (optional, Standard: 0)</param>
+    /// <param name="take">Anzahl abzurufender Einträge (optional, Standard: 50)</param>
+    /// <param name="sortBy">Sortierungsfeld (optional, Standard: "FoundAt")</param>
+    /// <param name="sortDirection">Sortierungsrichtung (optional, Standard: "desc")</param>
+    /// <returns>Fund-Historie-Ansicht</returns>
+    public async Task<IActionResult> FindHistory(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc")
+    {
+        try
+        {
+            var viewModel = await _statisticsService.GetFindHistoryAsync(
+                startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+            return View(viewModel);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Fund-Historie");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Fund-Historie");
+            return View("Error");
+        }
+    }
 }

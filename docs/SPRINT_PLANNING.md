@@ -18,11 +18,11 @@
 
 ## 🎯 Aktueller Projekt-Status
 
-**Aktueller Sprint:** Sprint 2 - QR-Code Management ✅ VOLLSTÄNDIG ABGESCHLOSSEN  
-**Fortschritt:** 100% abgeschlossen (29/29 Story Points) ✅  
-**Tests:** 652+ Tests erfolgreich mit exzellenter Code Coverage  
-**Letzte Commits:** QR-Code Statistiken implementiert, Find-Counts, Finder-Listen, Top-Performer  
-**✅ VOLLSTÄNDIG:** QR-Code Management mit Statistiken und Drucklayout komplett!
+**Aktueller Sprint:** Sprint 4 - Admin-Statistiken & Polish  
+**Fortschritt:** Story 4.1 in Arbeit (3/5 Akzeptanzkriterien erfüllt)  
+**Tests:** 810+ Tests erfolgreich mit exzellenter Code Coverage  
+**Letzte Commits:** Fund-Historie mit Filter implementiert, 18 neue Tests gemäß Testpyramide  
+**✅ ABGESCHLOSSEN:** Teilnehmer-Rangliste, Zeitbasierte Statistiken, Fund-Historie mit Filter
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
@@ -42,9 +42,10 @@
 - ✅ 100% Coding Guidelines Compliance
 - ✅ JSON-Serialisierung mit camelCase-Konvertierung
 - ✅ Vollständige HTTP-Status-Code-Abdeckung (200, 201, 204, 400, 404, 500)
-- ✅ **Code Coverage: Domain 89.6%, Application 90.52%, Infrastructure 39.16%**
+- ✅ **Code Coverage: Domain 89.6%, Application 90.52%, Infrastructure 36.28% (Domain ausgeschlossen)**
 - ✅ **Test-Pyramide: 73% Unit, 22% Integration, 5% E2E** ✅
-- ✅ **Test-Geschwindigkeit: ~27s für 792 Tests** ✅
+- ✅ **Test-Geschwindigkeit: ~7-8s für 810 Tests** ✅
+- ✅ **Fund-Historie mit Filter: Repository, Service, API, Web-View, 18 Tests** ✅
 - ✅ **ReportGenerator für Coverage-Visualisierung**
 - ✅ **Vereinfachte Coverage-Checks mit dotnet test Thresholds**
 - ✅ **Client-side QR-Code-Generierung mit QRCode.js (MIT-Lizenz)**
@@ -428,7 +429,7 @@ Vollständige Statistiken und System-Verfeinerung
 **Akzeptanzkriterien:**
 - [x] Teilnehmer-Rangliste ✅
 - [x] Zeitbasierte Statistiken ✅
-- [ ] Fund-Historie mit Filter
+- [x] Fund-Historie mit Filter ✅
 - [ ] Diagramme und Visualisierungen
 - [ ] Performance-Metriken
 - [ ] 100% Test Coverage

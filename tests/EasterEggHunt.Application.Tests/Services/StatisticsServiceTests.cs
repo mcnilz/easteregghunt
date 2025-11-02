@@ -805,5 +805,145 @@ public class StatisticsServiceTests
     }
 
     #endregion
+
+    #region GetFindHistoryAsync Tests
+
+    /// <summary>
+    /// Testet GetFindHistoryAsync mit gültigen Filtern.
+    /// Wichtig, da diese Methode die zentrale Orchestrierung für die Fund-Historie ist.
+    /// Stellt sicher, dass beide Methoden (GetFindHistoryAsync und GetFindHistoryCountAsync) korrekt aufgerufen werden.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryAsync_WithValidFilters_ShouldReturnFindsAndCount()
+    {
+        // Arrange
+        var testFinds = new List<Find>
+        {
+            new Find(1, 1, "127.0.0.1", "User Agent 1"),
+            new Find(2, 1, "192.168.1.1", "User Agent 2")
+        };
+
+        _mockFindService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ReturnsAsync(testFinds);
+
+        _mockFindService.Setup(x => x.GetFindHistoryCountAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>()))
+            .ReturnsAsync(2);
+
+        // Act
+        var (finds, totalCount) = await _statisticsService.GetFindHistoryAsync();
+
+        // Assert
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds.Count(), Is.EqualTo(2));
+        Assert.That(totalCount, Is.EqualTo(2));
+        _mockFindService.Verify(x => x.GetFindHistoryAsync(
+            null, null, null, null, null, 0, 50, "FoundAt", "desc"), Times.Once);
+        _mockFindService.Verify(x => x.GetFindHistoryCountAsync(
+            null, null, null, null, null), Times.Once);
+    }
+
+    /// <summary>
+    /// Testet GetFindHistoryAsync mit verschiedenen Filter-Parametern.
+    /// Wichtig, um sicherzustellen, dass alle Filter-Parameter korrekt weitergegeben werden.
+    /// Verhindert fehlerhafte Filterung in der UI.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryAsync_WithAllFilters_ShouldPassFiltersToService()
+    {
+        // Arrange
+        var startDate = DateTime.UtcNow.AddDays(-7);
+        var endDate = DateTime.UtcNow;
+        var userId = 1;
+        var qrCodeId = 2;
+        var campaignId = 3;
+        var skip = 10;
+        var take = 25;
+        var sortBy = "UserId";
+        var sortDirection = "asc";
+
+        _mockFindService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ReturnsAsync(new List<Find>());
+
+        _mockFindService.Setup(x => x.GetFindHistoryCountAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>()))
+            .ReturnsAsync(0);
+
+        // Act
+        await _statisticsService.GetFindHistoryAsync(
+            startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+
+        // Assert
+        _mockFindService.Verify(x => x.GetFindHistoryAsync(
+            startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection), Times.Once);
+        _mockFindService.Verify(x => x.GetFindHistoryCountAsync(
+            startDate, endDate, userId, qrCodeId, campaignId), Times.Once);
+    }
+
+    /// <summary>
+    /// Testet GetFindHistoryAsync mit leeren Ergebnissen.
+    /// Wichtig, um sicherzustellen, dass die Methode auch bei leeren Ergebnissen korrekt funktioniert.
+    /// Verhindert NullReferenceExceptions in der UI.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistoryAsync_WithEmptyResults_ShouldReturnEmptyList()
+    {
+        // Arrange
+        _mockFindService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ReturnsAsync(new List<Find>());
+
+        _mockFindService.Setup(x => x.GetFindHistoryCountAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>()))
+            .ReturnsAsync(0);
+
+        // Act
+        var (finds, totalCount) = await _statisticsService.GetFindHistoryAsync();
+
+        // Assert
+        Assert.That(finds, Is.Not.Null);
+        Assert.That(finds, Is.Empty);
+        Assert.That(totalCount, Is.EqualTo(0));
+    }
+
+    #endregion
 }
 

@@ -639,6 +639,163 @@ public sealed class AdminControllerTests : IDisposable
         Assert.That(model.TopFoundQrCodes, Is.Empty);
     }
 
+    #region FindHistory Tests
+
+    /// <summary>
+    /// Testet FindHistory mit gültigen Filtern.
+    /// Wichtig, da diese Action die Fund-Historie-Seite rendert.
+    /// Stellt sicher, dass die View mit korrektem ViewModel zurückgegeben wird.
+    /// </summary>
+    [Test]
+    public async Task FindHistory_ReturnsViewWithFindHistoryViewModel()
+    {
+        // Arrange
+        var findHistoryViewModel = new FindHistoryViewModel
+        {
+            Finds = new List<Find>
+            {
+                new Find(1, 1, "127.0.0.1", "User Agent 1"),
+                new Find(2, 1, "192.168.1.1", "User Agent 2")
+            },
+            TotalCount = 2,
+            Skip = 0,
+            Take = 50,
+            AllUsers = new List<User>(),
+            AllQrCodes = new List<QrCode>(),
+            AllCampaigns = new List<Campaign>()
+        };
+
+        _mockStatisticsService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ReturnsAsync(findHistoryViewModel);
+
+        // Act
+        var result = await _controller.FindHistory();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.Model, Is.EqualTo(findHistoryViewModel));
+    }
+
+    /// <summary>
+    /// Testet FindHistory mit Filter-Parametern.
+    /// Wichtig, um sicherzustellen, dass alle Filter-Parameter korrekt weitergegeben werden.
+    /// Verhindert, dass Filter ignoriert werden.
+    /// </summary>
+    [Test]
+    public async Task FindHistory_WithFilters_ShouldPassFiltersToService()
+    {
+        // Arrange
+        var startDate = DateTime.UtcNow.AddDays(-7);
+        var endDate = DateTime.UtcNow;
+        var userId = 1;
+        var qrCodeId = 2;
+        var campaignId = 3;
+        var skip = 10;
+        var take = 25;
+        var sortBy = "UserId";
+        var sortDirection = "asc";
+
+        _mockStatisticsService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ReturnsAsync(new FindHistoryViewModel
+            {
+                Finds = new List<Find>(),
+                TotalCount = 0,
+                Skip = skip,
+                Take = take,
+                AllUsers = new List<User>(),
+                AllQrCodes = new List<QrCode>(),
+                AllCampaigns = new List<Campaign>()
+            });
+
+        // Act
+        await _controller.FindHistory(startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+
+        // Assert
+        _mockStatisticsService.Verify(x => x.GetFindHistoryAsync(
+            startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection), Times.Once);
+    }
+
+    /// <summary>
+    /// Testet FindHistory mit HttpRequestException.
+    /// Wichtig, um sicherzustellen, dass API-Fehler korrekt behandelt werden.
+    /// Verhindert ungehandelte Exceptions in Production.
+    /// </summary>
+    [Test]
+    public async Task FindHistory_ReturnsErrorView_WhenHttpRequestExceptionOccurs()
+    {
+        // Arrange
+        _mockStatisticsService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ThrowsAsync(new HttpRequestException("API Error"));
+
+        // Act
+        var result = await _controller.FindHistory();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
+    }
+
+    /// <summary>
+    /// Testet FindHistory mit unerwarteter Exception.
+    /// Wichtig, um sicherzustellen, dass alle Exceptions korrekt behandelt werden.
+    /// Verhindert ungehandelte Exceptions in Production.
+    /// </summary>
+    [Test]
+    public async Task FindHistory_ReturnsErrorView_WhenUnexpectedExceptionOccurs()
+    {
+        // Arrange
+        _mockStatisticsService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("Unexpected error"));
+
+        // Act
+        var result = await _controller.FindHistory();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult!.ViewName, Is.EqualTo("Error"));
+    }
+
+    #endregion
+
     public void Dispose()
     {
         _controller?.Dispose();

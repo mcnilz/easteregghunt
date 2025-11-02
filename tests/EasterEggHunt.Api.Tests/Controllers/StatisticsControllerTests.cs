@@ -1,4 +1,5 @@
 using EasterEggHunt.Api.Controllers;
+using EasterEggHunt.Api.Models;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Models;
 using Microsoft.AspNetCore.Http;
@@ -379,4 +380,171 @@ public class StatisticsControllerTests
         Assert.That(statusResult, Is.Not.Null);
         Assert.That(statusResult!.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
     }
+
+    #region GetFindHistory Tests
+
+    /// <summary>
+    /// Testet den erfolgreichen Happy-Path für den Fund-Historie-Endpoint.
+    /// Wichtig, da dieser Endpoint von der Web-Anwendung aufgerufen wird.
+    /// Stellt sicher, dass die korrekten HTTP-Status-Codes (200 OK) zurückgegeben werden
+    /// und die Datenstruktur korrekt serialisiert werden kann (JSON).
+    /// </summary>
+    [Test]
+    public async Task GetFindHistory_ReturnsOkResult_WithFindHistory()
+    {
+        // Arrange
+        var testFinds = new List<Domain.Entities.Find>
+        {
+            new Domain.Entities.Find(1, 1, "127.0.0.1", "User Agent 1"),
+            new Domain.Entities.Find(2, 1, "192.168.1.1", "User Agent 2")
+        };
+
+        _mockStatisticsService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ReturnsAsync((testFinds, 2));
+
+        // Act
+        var result = await _controller.GetFindHistory();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<Models.FindHistoryResponse>>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        var response = okResult!.Value as Models.FindHistoryResponse;
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.Finds, Has.Count.EqualTo(2));
+        Assert.That(response.TotalCount, Is.EqualTo(2));
+    }
+
+    /// <summary>
+    /// Testet, dass alle Filter-Parameter korrekt an den Service weitergegeben werden.
+    /// Wichtig, da die Web-Anwendung verschiedene Filter verwendet.
+    /// Verhindert, dass Filter ignoriert werden und stellt sicher, dass alle Parameter korrekt verarbeitet werden.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistory_WithAllFilters_ShouldPassFiltersToService()
+    {
+        // Arrange
+        var startDate = DateTime.UtcNow.AddDays(-7);
+        var endDate = DateTime.UtcNow;
+        var userId = 1;
+        var qrCodeId = 2;
+        var campaignId = 3;
+        var skip = 10;
+        var take = 25;
+        var sortBy = "UserId";
+        var sortDirection = "asc";
+
+        _mockStatisticsService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ReturnsAsync((new List<Domain.Entities.Find>(), 0));
+
+        // Act
+        await _controller.GetFindHistory(startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+
+        // Assert
+        _mockStatisticsService.Verify(x => x.GetFindHistoryAsync(
+            startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection), Times.Once);
+    }
+
+    /// <summary>
+    /// Testet die Validierung von ungültigen Datumsbereichen.
+    /// Wichtig, um sicherzustellen, dass ungültige Eingaben (z.B. StartDate > EndDate)
+    /// nicht zu fehlerhaften Datenbank-Queries führen. Verhindert potenzielle Performance-Probleme
+    /// und stellt benutzerfreundliche Fehlermeldungen sicher (400 Bad Request statt 500).
+    /// </summary>
+    [Test]
+    public async Task GetFindHistory_WithInvalidDateRange_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var startDate = DateTime.UtcNow;
+        var endDate = DateTime.UtcNow.AddDays(-1); // StartDate nach EndDate
+
+        // Act
+        var result = await _controller.GetFindHistory(startDate, endDate);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<Models.FindHistoryResponse>>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.Value, Is.EqualTo("Startdatum darf nicht nach Enddatum liegen"));
+    }
+
+    /// <summary>
+    /// Testet die Validierung von ungültigen Pagination-Parametern.
+    /// Wichtig, um sicherzustellen, dass ungültige Eingaben (z.B. negativer Skip oder Take > 100)
+    /// nicht zu fehlerhaften Datenbank-Queries führen. Verhindert potenzielle Performance-Probleme.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistory_WithInvalidPagination_ShouldReturnBadRequest()
+    {
+        // Arrange
+        // Test mit negativem Skip
+        var result1 = await _controller.GetFindHistory(skip: -1);
+        var badRequest1 = result1.Result as BadRequestObjectResult;
+        Assert.That(badRequest1, Is.Not.Null);
+        Assert.That(badRequest1!.Value, Is.EqualTo("Skip darf nicht negativ sein"));
+
+        // Test mit Take > 100
+        var result2 = await _controller.GetFindHistory(take: 101);
+        var badRequest2 = result2.Result as BadRequestObjectResult;
+        Assert.That(badRequest2, Is.Not.Null);
+        Assert.That(badRequest2!.Value, Is.EqualTo("Take muss zwischen 1 und 100 liegen"));
+
+        // Test mit Take < 1
+        var result3 = await _controller.GetFindHistory(take: 0);
+        var badRequest3 = result3.Result as BadRequestObjectResult;
+        Assert.That(badRequest3, Is.Not.Null);
+        Assert.That(badRequest3!.Value, Is.EqualTo("Take muss zwischen 1 und 100 liegen"));
+    }
+
+    /// <summary>
+    /// Testet die Fehlerbehandlung bei Service-Exceptions.
+    /// Wichtig, da dieser Endpoint mehrere Repository-Calls ausführt.
+    /// Stellt sicher, dass Fehler korrekt abgefangen werden und als 500 Internal Server Error
+    /// zurückgegeben werden, nicht als ungehandelte Exceptions.
+    /// </summary>
+    [Test]
+    public async Task GetFindHistory_WhenServiceThrowsException_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        _mockStatisticsService.Setup(x => x.GetFindHistoryAsync(
+            It.IsAny<DateTime?>(),
+            It.IsAny<DateTime?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act
+        var result = await _controller.GetFindHistory();
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<Models.FindHistoryResponse>>());
+        var statusResult = result.Result as ObjectResult;
+        Assert.That(statusResult, Is.Not.Null);
+        Assert.That(statusResult!.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
+    }
+
+    #endregion
 }

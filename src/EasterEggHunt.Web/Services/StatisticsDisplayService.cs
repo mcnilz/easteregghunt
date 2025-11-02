@@ -316,4 +316,77 @@ public class StatisticsDisplayService : IStatisticsDisplayService
             throw;
         }
     }
+
+    /// <summary>
+    /// Lädt Fund-Historie mit Filtern
+    /// </summary>
+    /// <param name="startDate">Startdatum (optional)</param>
+    /// <param name="endDate">Enddatum (optional)</param>
+    /// <param name="userId">Benutzer-ID (optional)</param>
+    /// <param name="qrCodeId">QR-Code-ID (optional)</param>
+    /// <param name="campaignId">Kampagnen-ID (optional)</param>
+    /// <param name="skip">Anzahl zu überspringender Einträge (optional, Standard: 0)</param>
+    /// <param name="take">Anzahl abzurufender Einträge (optional, Standard: 50)</param>
+    /// <param name="sortBy">Sortierungsfeld (optional, Standard: "FoundAt")</param>
+    /// <param name="sortDirection">Sortierungsrichtung (optional, Standard: "desc")</param>
+    /// <returns>Fund-Historie ViewModel</returns>
+    public async Task<FindHistoryViewModel> GetFindHistoryAsync(
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int? userId = null,
+        int? qrCodeId = null,
+        int? campaignId = null,
+        int skip = 0,
+        int take = 50,
+        string sortBy = "FoundAt",
+        string sortDirection = "desc")
+    {
+        try
+        {
+            _logger.LogInformation("Lade Fund-Historie (StartDate={StartDate}, EndDate={EndDate}, UserId={UserId}, QrCodeId={QrCodeId}, CampaignId={CampaignId}, Skip={Skip}, Take={Take}, SortBy={SortBy}, SortDirection={SortDirection})",
+                startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+
+            // Lade Fund-Historie von API
+            var response = await _apiClient.GetFindHistoryAsync(startDate, endDate, userId, qrCodeId, campaignId, skip, take, sortBy, sortDirection);
+
+            // Lade Dropdown-Daten parallel
+            var campaignsTask = _apiClient.GetActiveCampaignsAsync();
+            var usersTask = _apiClient.GetActiveUsersAsync();
+
+            // Warte auf alle Tasks
+            var campaigns = await campaignsTask;
+            var users = await usersTask;
+
+            // Sammle alle QR-Codes
+            var allQrCodes = new List<QrCode>();
+            foreach (var campaign in campaigns)
+            {
+                var qrCodes = await _apiClient.GetQrCodesByCampaignIdAsync(campaign.Id);
+                allQrCodes.AddRange(qrCodes);
+            }
+
+            return new FindHistoryViewModel
+            {
+                Finds = response.Finds,
+                TotalCount = response.TotalCount,
+                Skip = response.Skip,
+                Take = response.Take,
+                StartDate = startDate,
+                EndDate = endDate,
+                UserId = userId,
+                QrCodeId = qrCodeId,
+                CampaignId = campaignId,
+                SortBy = sortBy,
+                SortDirection = sortDirection,
+                AllUsers = users.ToList(),
+                AllQrCodes = allQrCodes,
+                AllCampaigns = campaigns.ToList()
+            };
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Fund-Historie");
+            throw;
+        }
+    }
 }
