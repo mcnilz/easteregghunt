@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Text.Json;
 using EasterEggHunt.Web.Models;
 
@@ -22,31 +23,25 @@ internal class StatisticsApiHelper
     internal async Task<QrCodeStatisticsViewModel> GetQrCodeStatisticsAsync(int qrCodeId)
     {
         _logger.LogDebug("API-Aufruf: GET /api/statistics/qrcode/{QrCodeId}", qrCodeId);
-        var response = await _httpClient.GetAsync(new Uri($"/api/statistics/qrcode/{qrCodeId}", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<QrCodeStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine QR-Code-Statistiken zurück");
+        var result = await _httpClient.GetFromJsonAsync<QrCodeStatisticsViewModel>(
+            new Uri($"/api/statistics/qrcode/{qrCodeId}", UriKind.Relative), _jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keine QR-Code-Statistiken zurück");
     }
 
     internal async Task<CampaignQrCodeStatisticsViewModel> GetCampaignQrCodeStatisticsAsync(int campaignId)
     {
         _logger.LogDebug("API-Aufruf: GET /api/statistics/campaign/{CampaignId}", campaignId);
-        var response = await _httpClient.GetAsync(new Uri($"/api/statistics/campaign/{campaignId}", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<CampaignQrCodeStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Kampagnen-Statistiken zurück");
+        var result = await _httpClient.GetFromJsonAsync<CampaignQrCodeStatisticsViewModel>(
+            new Uri($"/api/statistics/campaign/{campaignId}", UriKind.Relative), _jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keine Kampagnen-Statistiken zurück");
     }
 
     internal async Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync()
     {
         _logger.LogDebug("API-Aufruf: GET /api/statistics/top-performers");
-        var response = await _httpClient.GetAsync(new Uri("/api/statistics/top-performers", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<Models.TopPerformersStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Top-Performer-Statistiken zurück");
+        var result = await _httpClient.GetFromJsonAsync<Models.TopPerformersStatisticsViewModel>(
+            new Uri("/api/statistics/top-performers", UriKind.Relative), _jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keine Top-Performer-Statistiken zurück");
     }
 
     internal async Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
@@ -67,11 +62,9 @@ internal class StatisticsApiHelper
         }
 
         _logger.LogDebug("API-Aufruf: GET {Url}", url);
-        var response = await _httpClient.GetAsync(new Uri(url, UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<Models.TimeBasedStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine zeitbasierten Statistiken zurück");
+        var result = await _httpClient.GetFromJsonAsync<Models.TimeBasedStatisticsViewModel>(
+            new Uri(url, UriKind.Relative), _jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keine zeitbasierten Statistiken zurück");
     }
 
     internal async Task<Models.FindHistoryResponseViewModel> GetFindHistoryAsync(
@@ -131,10 +124,8 @@ internal class StatisticsApiHelper
         }
 
         _logger.LogDebug("API-Aufruf: GET {Url}", url);
-        var response = await _httpClient.GetAsync(new Uri(url, UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<Models.FindHistoryResponseViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Fund-Historie zurück");
+        var result = await _httpClient.GetFromJsonAsync<Models.FindHistoryResponseViewModel>(
+            new Uri(url, UriKind.Relative), _jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keine Fund-Historie zurück");
     }
 }

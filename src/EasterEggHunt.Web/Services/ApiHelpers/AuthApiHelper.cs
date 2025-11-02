@@ -1,4 +1,4 @@
-using System.Text;
+using System.Net.Http.Json;
 using System.Text.Json;
 using EasterEggHunterApi.Abstractions.Models.Auth;
 using LoginRequest = EasterEggHunterApi.Abstractions.Models.Auth.LoginRequest;
@@ -28,10 +28,8 @@ internal class AuthApiHelper
             _logger.LogDebug("API-Aufruf: POST /api/auth/login");
             var request = new LoginRequest() { Username = username, Password = password, RememberMe = rememberMe };
 
-            var json = JsonSerializer.Serialize(request, _jsonOptions);
-            using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(new Uri("/api/auth/login", UriKind.Relative), content);
+            var response = await _httpClient.PostAsJsonAsync(
+                new Uri("/api/auth/login", UriKind.Relative), request, _jsonOptions);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
@@ -39,8 +37,8 @@ internal class AuthApiHelper
             }
 
             response.EnsureSuccessStatusCode();
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<LoginResponse>(responseContent, _jsonOptions);
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>(_jsonOptions);
+            return result;
         }
         catch (Exception ex)
         {

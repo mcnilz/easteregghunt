@@ -1,4 +1,4 @@
-using System.Text;
+using System.Net.Http.Json;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunterApi.Abstractions.Models.User;
@@ -24,39 +24,32 @@ internal class UserApiHelper
     internal async Task<IEnumerable<User>> GetActiveUsersAsync()
     {
         _logger.LogDebug("API-Aufruf: GET /api/users/active");
-        var response = await _httpClient.GetAsync(new Uri("/api/users/active", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<IEnumerable<User>>(content, _jsonOptions) ?? Enumerable.Empty<User>();
+        var result = await _httpClient.GetFromJsonAsync<IEnumerable<User>>(
+            new Uri("/api/users/active", UriKind.Relative), _jsonOptions);
+        return result ?? Enumerable.Empty<User>();
     }
 
     internal async Task<User> RegisterEmployeeAsync(string name)
     {
         _logger.LogDebug("API-Aufruf: POST /api/users");
         var request = new { Name = name };
-        var json = JsonSerializer.Serialize(request, _jsonOptions);
-        using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(new Uri("/api/users", UriKind.Relative), content);
+        var response = await _httpClient.PostAsJsonAsync(
+            new Uri("/api/users", UriKind.Relative), request, _jsonOptions);
         response.EnsureSuccessStatusCode();
 
-        var responseContent = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<User>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keinen Benutzer zurück");
+        var result = await response.Content.ReadFromJsonAsync<User>(_jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keinen Benutzer zurück");
     }
 
     internal async Task<bool> CheckUserNameExistsAsync(string name)
     {
         _logger.LogDebug("API-Aufruf: POST /api/users/check-name");
         var request = new { Name = name };
-        var json = JsonSerializer.Serialize(request, _jsonOptions);
-        using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(new Uri("/api/users/check-name", UriKind.Relative), content);
+        var response = await _httpClient.PostAsJsonAsync(
+            new Uri("/api/users/check-name", UriKind.Relative), request, _jsonOptions);
         response.EnsureSuccessStatusCode();
 
-        var responseContent = await response.Content.ReadAsStringAsync();
-        var responseObj = JsonSerializer.Deserialize<CheckUserNameResponse>(responseContent, _jsonOptions);
-        return responseObj?.Exists ?? false;
+        var result = await response.Content.ReadFromJsonAsync<CheckUserNameResponse>(_jsonOptions);
+        return result?.Exists ?? false;
     }
 }

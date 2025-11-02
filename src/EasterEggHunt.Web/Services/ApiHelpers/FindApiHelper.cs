@@ -1,4 +1,4 @@
-using System.Text;
+using System.Net.Http.Json;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Models;
@@ -24,21 +24,17 @@ internal class FindApiHelper
     internal async Task<IEnumerable<Find>> GetFindsByQrCodeIdAsync(int qrCodeId)
     {
         _logger.LogDebug("API-Aufruf: GET /api/finds/qrcode/{QrCodeId}", qrCodeId);
-        var response = await _httpClient.GetAsync(new Uri($"/api/finds/qrcode/{qrCodeId}", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<IEnumerable<Find>>(content, _jsonOptions) ?? Enumerable.Empty<Find>();
+        var result = await _httpClient.GetFromJsonAsync<IEnumerable<Find>>(
+            new Uri($"/api/finds/qrcode/{qrCodeId}", UriKind.Relative), _jsonOptions);
+        return result ?? Enumerable.Empty<Find>();
     }
 
     internal async Task<int> GetFindCountByUserIdAsync(int userId)
     {
         _logger.LogDebug("API-Aufruf: GET /api/finds/user/{UserId}/count", userId);
-        var response = await _httpClient.GetAsync(new Uri($"/api/finds/user/{userId}/count", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<int>(content, _jsonOptions);
+        var result = await _httpClient.GetFromJsonAsync<int>(
+            new Uri($"/api/finds/user/{userId}/count", UriKind.Relative), _jsonOptions);
+        return result;
     }
 
     internal async Task<Find> RegisterFindAsync(int qrCodeId, int userId, string ipAddress, string userAgent)
@@ -52,14 +48,12 @@ internal class FindApiHelper
             UserAgent = userAgent
         };
 
-        var json = JsonSerializer.Serialize(request, _jsonOptions);
-        using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(new Uri("/api/finds", UriKind.Relative), content);
+        var response = await _httpClient.PostAsJsonAsync(
+            new Uri("/api/finds", UriKind.Relative), request, _jsonOptions);
         response.EnsureSuccessStatusCode();
 
-        var responseContent = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<Find>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keinen Fund zurück");
+        var result = await response.Content.ReadFromJsonAsync<Find>(_jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keinen Fund zurück");
     }
 
     internal async Task<Find?> GetExistingFindAsync(int qrCodeId, int userId)
@@ -73,25 +67,25 @@ internal class FindApiHelper
         }
 
         response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
 
         // Prüfen ob Content leer oder null ist
+        var content = await response.Content.ReadAsStringAsync();
         if (string.IsNullOrWhiteSpace(content) || content.Trim() == "null")
         {
             return null;
         }
 
-        return JsonSerializer.Deserialize<Find>(content, _jsonOptions);
+        // Da der Stream bereits gelesen wurde, müssen wir JsonSerializer.Deserialize verwenden
+        var result = JsonSerializer.Deserialize<Find>(content, _jsonOptions);
+        return result;
     }
 
     internal async Task<IEnumerable<Find>> GetFindsByUserIdAsync(int userId)
     {
         _logger.LogDebug("API-Aufruf: GET /api/finds/user/{UserId}", userId);
-        var response = await _httpClient.GetAsync(new Uri($"/api/finds/user/{userId}", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<IEnumerable<Find>>(content, _jsonOptions) ?? Enumerable.Empty<Find>();
+        var result = await _httpClient.GetFromJsonAsync<IEnumerable<Find>>(
+            new Uri($"/api/finds/user/{userId}", UriKind.Relative), _jsonOptions);
+        return result ?? Enumerable.Empty<Find>();
     }
 
     internal async Task<IEnumerable<Find>> GetFindsByUserAndCampaignAsync(int userId, int campaignId, int? take = null)
@@ -103,20 +97,16 @@ internal class FindApiHelper
         }
 
         _logger.LogDebug("API-Aufruf: GET {Url}", url);
-        var response = await _httpClient.GetAsync(new Uri(url, UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<IEnumerable<Find>>(content, _jsonOptions) ?? Enumerable.Empty<Find>();
+        var result = await _httpClient.GetFromJsonAsync<IEnumerable<Find>>(
+            new Uri(url, UriKind.Relative), _jsonOptions);
+        return result ?? Enumerable.Empty<Find>();
     }
 
     internal async Task<UserStatistics> GetUserStatisticsAsync(int userId)
     {
         _logger.LogDebug("API-Aufruf: GET /api/statistics/user/{UserId}", userId);
-        var response = await _httpClient.GetAsync(new Uri($"/api/statistics/user/{userId}", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<UserStatistics>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Benutzer-Statistiken zurück");
+        var result = await _httpClient.GetFromJsonAsync<UserStatistics>(
+            new Uri($"/api/statistics/user/{userId}", UriKind.Relative), _jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keine Benutzer-Statistiken zurück");
     }
 }

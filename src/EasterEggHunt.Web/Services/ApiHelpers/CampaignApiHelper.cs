@@ -1,4 +1,4 @@
-using System.Text;
+using System.Net.Http.Json;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunterApi.Abstractions.Models.Campaign;
@@ -24,11 +24,9 @@ internal class CampaignApiHelper
     internal async Task<IEnumerable<Campaign>> GetActiveCampaignsAsync()
     {
         _logger.LogDebug("API-Aufruf: GET /api/campaigns/active");
-        var response = await _httpClient.GetAsync(new Uri("/api/campaigns/active", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<IEnumerable<Campaign>>(content, _jsonOptions) ?? Enumerable.Empty<Campaign>();
+        var result = await _httpClient.GetFromJsonAsync<IEnumerable<Campaign>>(
+            new Uri("/api/campaigns/active", UriKind.Relative), _jsonOptions);
+        return result ?? Enumerable.Empty<Campaign>();
     }
 
     internal async Task<Campaign?> GetCampaignByIdAsync(int id)
@@ -42,8 +40,8 @@ internal class CampaignApiHelper
         }
 
         response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<Campaign>(content, _jsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<Campaign>(_jsonOptions);
+        return result;
     }
 
     internal async Task<Campaign> CreateCampaignAsync(string name, string description, string createdBy)
@@ -56,23 +54,19 @@ internal class CampaignApiHelper
             CreatedBy = createdBy
         };
 
-        var json = JsonSerializer.Serialize(request, _jsonOptions);
-        using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(new Uri("/api/campaigns", UriKind.Relative), content);
+        var response = await _httpClient.PostAsJsonAsync(
+            new Uri("/api/campaigns", UriKind.Relative), request, _jsonOptions);
         response.EnsureSuccessStatusCode();
 
-        var responseContent = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<Campaign>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Kampagne zurück");
+        var result = await response.Content.ReadFromJsonAsync<Campaign>(_jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keine Kampagne zurück");
     }
 
     internal async Task UpdateCampaignAsync(int id, UpdateCampaignRequest request)
     {
         _logger.LogDebug("API-Aufruf: PUT /api/campaigns/{CampaignId}", id);
-        var json = JsonSerializer.Serialize(request, _jsonOptions);
-        using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PutAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative), content);
+        var response = await _httpClient.PutAsJsonAsync(
+            new Uri($"/api/campaigns/{id}", UriKind.Relative), request, _jsonOptions);
         response.EnsureSuccessStatusCode();
     }
 

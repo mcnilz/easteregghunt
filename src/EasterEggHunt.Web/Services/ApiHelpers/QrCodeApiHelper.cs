@@ -1,4 +1,4 @@
-using System.Text;
+using System.Net.Http.Json;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunterApi.Abstractions.Models.QrCode;
@@ -24,11 +24,9 @@ internal class QrCodeApiHelper
     internal async Task<IEnumerable<QrCode>> GetQrCodesByCampaignIdAsync(int campaignId)
     {
         _logger.LogDebug("API-Aufruf: GET /api/qrcodes/campaign/{CampaignId}", campaignId);
-        var response = await _httpClient.GetAsync(new Uri($"/api/qrcodes/campaign/{campaignId}", UriKind.Relative));
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<IEnumerable<QrCode>>(content, _jsonOptions) ?? Enumerable.Empty<QrCode>();
+        var result = await _httpClient.GetFromJsonAsync<IEnumerable<QrCode>>(
+            new Uri($"/api/qrcodes/campaign/{campaignId}", UriKind.Relative), _jsonOptions);
+        return result ?? Enumerable.Empty<QrCode>();
     }
 
     internal async Task<QrCode?> GetQrCodeByIdAsync(int id)
@@ -42,8 +40,8 @@ internal class QrCodeApiHelper
         }
 
         response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<QrCode>(content, _jsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<QrCode>(_jsonOptions);
+        return result;
     }
 
     internal async Task<QrCode?> GetQrCodeByCodeAsync(string code)
@@ -57,30 +55,26 @@ internal class QrCodeApiHelper
         }
 
         response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<QrCode>(content, _jsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<QrCode>(_jsonOptions);
+        return result;
     }
 
     internal async Task<QrCode> CreateQrCodeAsync(CreateQrCodeRequest request)
     {
         _logger.LogDebug("API-Aufruf: POST /api/qrcodes");
-        var json = JsonSerializer.Serialize(request, _jsonOptions);
-        using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(new Uri("/api/qrcodes", UriKind.Relative), content);
+        var response = await _httpClient.PostAsJsonAsync(
+            new Uri("/api/qrcodes", UriKind.Relative), request, _jsonOptions);
         response.EnsureSuccessStatusCode();
 
-        var responseContent = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<QrCode>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keinen QR-Code zurück");
+        var result = await response.Content.ReadFromJsonAsync<QrCode>(_jsonOptions);
+        return result ?? throw new InvalidOperationException("API gab keinen QR-Code zurück");
     }
 
     internal async Task UpdateQrCodeAsync(int id, UpdateQrCodeRequest request)
     {
         _logger.LogDebug("API-Aufruf: PUT /api/qrcodes/{QrCodeId}", id);
-        var json = JsonSerializer.Serialize(request, _jsonOptions);
-        using var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PutAsync(new Uri($"/api/qrcodes/{id}", UriKind.Relative), content);
+        var response = await _httpClient.PutAsJsonAsync(
+            new Uri($"/api/qrcodes/{id}", UriKind.Relative), request, _jsonOptions);
         response.EnsureSuccessStatusCode();
     }
 
