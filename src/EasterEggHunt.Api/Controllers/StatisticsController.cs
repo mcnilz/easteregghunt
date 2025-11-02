@@ -1,6 +1,6 @@
-using EasterEggHunt.Api.Models;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Models;
+using EasterEggHunterApi.Abstractions.Models.Statistics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasterEggHunt.Api.Controllers;

@@ -1,6 +1,6 @@
 using EasterEggHunt.Domain.Entities;
 
-namespace EasterEggHunt.Api.Models;
+namespace EasterEggHunterApi.Abstractions.Models.Statistics;
 
 /// <summary>
 /// Response-Modell für Fund-Historie

@@ -78,6 +78,19 @@ Das Easter Egg Hunt System folgt **Clean Architecture** Prinzipien mit klarer Tr
 - **MVC Controllers**: Admin-Interface und Employee-Interface
 - **Razor Pages**: Server-side gerenderte UI
 - **Swagger**: API-Dokumentation
+- **API Abstractions**: Request/Response Models im separaten Abstractions-Projekt
+  - **Projekt**: `EasterEggHunt.Api.Abstractions`
+  - **Namespace**: `EasterEggHunterApi.Abstractions.Models`
+  - **Struktur**: `Models/`
+    - `Auth/` - LoginRequest, LoginResponse
+    - `Campaign/` - CreateCampaignRequest, UpdateCampaignRequest
+    - `QrCode/` - CreateQrCodeRequest, UpdateQrCodeRequest, SetSortOrderRequest
+    - `Statistics/` - FindHistoryResponse
+    - `User/` - CreateUserRequest, CheckUserNameRequest, CheckUserNameResponse
+    - `RegisterFindRequest.cs`
+  - **Zweck**: Trennung von API-Kontrakten und Implementierung
+  - **Vorteile**: Wiederverwendbarkeit, klare API-Schnittstellen, bessere Testbarkeit
+  - **Regel**: **ALLE API Request/Response Models müssen im Abstractions-Projekt sein**, nicht im Api-Projekt
 
 ## 🗄️ Datenbank-Schema
 

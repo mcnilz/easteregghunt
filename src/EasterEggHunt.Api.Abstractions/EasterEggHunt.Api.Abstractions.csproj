@@ -7,4 +7,8 @@
         <RootNamespace>EasterEggHunterApi.Abstractions</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\EasterEggHunt.Domain\EasterEggHunt.Domain.csproj" />
+    </ItemGroup>
+
 </Project>

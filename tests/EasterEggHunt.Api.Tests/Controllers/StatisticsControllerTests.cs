@@ -1,7 +1,7 @@
 using EasterEggHunt.Api.Controllers;
-using EasterEggHunt.Api.Models;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Models;
+using EasterEggHunterApi.Abstractions.Models.Statistics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -415,10 +415,10 @@ public class StatisticsControllerTests
         var result = await _controller.GetFindHistory();
 
         // Assert
-        Assert.That(result, Is.InstanceOf<ActionResult<Models.FindHistoryResponse>>());
+        Assert.That(result, Is.InstanceOf<ActionResult<FindHistoryResponse>>());
         var okResult = result.Result as OkObjectResult;
         Assert.That(okResult, Is.Not.Null);
-        var response = okResult!.Value as Models.FindHistoryResponse;
+        var response = okResult!.Value as FindHistoryResponse;
         Assert.That(response, Is.Not.Null);
         Assert.That(response!.Finds, Has.Count.EqualTo(2));
         Assert.That(response.TotalCount, Is.EqualTo(2));
@@ -480,7 +480,7 @@ public class StatisticsControllerTests
         var result = await _controller.GetFindHistory(startDate, endDate);
 
         // Assert
-        Assert.That(result, Is.InstanceOf<ActionResult<Models.FindHistoryResponse>>());
+        Assert.That(result, Is.InstanceOf<ActionResult<FindHistoryResponse>>());
         var badRequestResult = result.Result as BadRequestObjectResult;
         Assert.That(badRequestResult, Is.Not.Null);
         Assert.That(badRequestResult!.Value, Is.EqualTo("Startdatum darf nicht nach Enddatum liegen"));
@@ -540,7 +540,7 @@ public class StatisticsControllerTests
         var result = await _controller.GetFindHistory();
 
         // Assert
-        Assert.That(result, Is.InstanceOf<ActionResult<Models.FindHistoryResponse>>());
+        Assert.That(result, Is.InstanceOf<ActionResult<FindHistoryResponse>>());
         var statusResult = result.Result as ObjectResult;
         Assert.That(statusResult, Is.Not.Null);
         Assert.That(statusResult!.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
