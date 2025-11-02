@@ -235,34 +235,43 @@ public class StatisticsService : IStatisticsService
     {
         _logger.LogInformation("Abrufen der zeitbasierten Statistiken (StartDate={StartDate}, EndDate={EndDate})", startDate, endDate);
 
-        var dailyStats = await _findService.GetDailyStatisticsAsync(startDate, endDate);
-        var weeklyStats = await _findService.GetWeeklyStatisticsAsync(startDate, endDate);
-        var monthlyStats = await _findService.GetMonthlyStatisticsAsync(startDate, endDate);
-
-        return new TimeBasedStatistics
+        try
         {
-            DailyStatistics = dailyStats.Select(s => new TimeSeriesStatistics
+            var dailyStats = await _findService.GetDailyStatisticsAsync(startDate, endDate);
+            var weeklyStats = await _findService.GetWeeklyStatisticsAsync(startDate, endDate);
+            var monthlyStats = await _findService.GetMonthlyStatisticsAsync(startDate, endDate);
+
+            return new TimeBasedStatistics
             {
-                Date = s.Date,
-                Count = s.Count,
-                UniqueFinders = s.UniqueFinders,
-                UniqueQrCodes = s.UniqueQrCodes
-            }).ToList(),
-            WeeklyStatistics = weeklyStats.Select(s => new TimeSeriesStatistics
-            {
-                Date = s.WeekStart,
-                Count = s.Count,
-                UniqueFinders = s.UniqueFinders,
-                UniqueQrCodes = s.UniqueQrCodes
-            }).ToList(),
-            MonthlyStatistics = monthlyStats.Select(s => new TimeSeriesStatistics
-            {
-                Date = s.MonthStart,
-                Count = s.Count,
-                UniqueFinders = s.UniqueFinders,
-                UniqueQrCodes = s.UniqueQrCodes
-            }).ToList(),
-            GeneratedAt = DateTime.UtcNow
-        };
+                DailyStatistics = dailyStats.Select(s => new TimeSeriesStatistics
+                {
+                    Date = s.Date,
+                    Count = s.Count,
+                    UniqueFinders = s.UniqueFinders,
+                    UniqueQrCodes = s.UniqueQrCodes
+                }).ToList(),
+                WeeklyStatistics = weeklyStats.Select(s => new TimeSeriesStatistics
+                {
+                    Date = s.WeekStart,
+                    Count = s.Count,
+                    UniqueFinders = s.UniqueFinders,
+                    UniqueQrCodes = s.UniqueQrCodes
+                }).ToList(),
+                MonthlyStatistics = monthlyStats.Select(s => new TimeSeriesStatistics
+                {
+                    Date = s.MonthStart,
+                    Count = s.Count,
+                    UniqueFinders = s.UniqueFinders,
+                    UniqueQrCodes = s.UniqueQrCodes
+                }).ToList(),
+                GeneratedAt = DateTime.UtcNow
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Fehler beim Abrufen der zeitbasierten Statistiken: {Message}", ex.Message);
+            _logger.LogError(ex, "Stack Trace: {StackTrace}", ex.StackTrace);
+            throw new InvalidOperationException($"Fehler beim Abrufen der zeitbasierten Statistiken: {ex.Message}", ex);
+        }
     }
 }

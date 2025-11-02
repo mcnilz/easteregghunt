@@ -1,6 +1,7 @@
 using EasterEggHunt.Api.Controllers;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -260,5 +261,122 @@ public class StatisticsControllerTests
         var okResult = result.Result as OkObjectResult;
         Assert.That(okResult, Is.Not.Null);
         Assert.That(okResult!.Value, Is.EqualTo(expectedStatistics));
+    }
+
+    /// <summary>
+    /// Testet den erfolgreichen Happy-Path für den API-Endpoint.
+    /// Wichtig, da dieser Endpoint von der Web-Anwendung aufgerufen wird.
+    /// Stellt sicher, dass die korrekten HTTP-Status-Codes (200 OK) zurückgegeben werden
+    /// und die Datenstruktur korrekt serialisiert werden kann (JSON).
+    /// </summary>
+    [Test]
+    public async Task GetTimeBasedStatistics_ReturnsOkResult_WithStatistics()
+    {
+        // Arrange
+        var expectedStatistics = new TimeBasedStatistics
+        {
+            DailyStatistics = new List<TimeSeriesStatistics>
+            {
+                new TimeSeriesStatistics { Date = DateTime.UtcNow.Date, Count = 5, UniqueFinders = 3, UniqueQrCodes = 2 }
+            },
+            WeeklyStatistics = new List<TimeSeriesStatistics>
+            {
+                new TimeSeriesStatistics { Date = DateTime.UtcNow.Date, Count = 10, UniqueFinders = 5, UniqueQrCodes = 4 }
+            },
+            MonthlyStatistics = new List<TimeSeriesStatistics>
+            {
+                new TimeSeriesStatistics { Date = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1), Count = 20, UniqueFinders = 8, UniqueQrCodes = 6 }
+            },
+            GeneratedAt = DateTime.UtcNow
+        };
+
+        _mockStatisticsService.Setup(x => x.GetTimeBasedStatisticsAsync(null, null))
+            .ReturnsAsync(expectedStatistics);
+
+        // Act
+        var result = await _controller.GetTimeBasedStatistics(null, null);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<TimeBasedStatistics>>());
+        var okResult = result.Result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult!.Value, Is.EqualTo(expectedStatistics));
+    }
+
+    /// <summary>
+    /// Testet, dass Query-Parameter korrekt an den Service weitergegeben werden.
+    /// Wichtig, da die Web-Anwendung Datumsfilter verwendet. Verhindert, dass Filter ignoriert werden
+    /// und stellt sicher, dass alle drei Zeitreihen (täglich, wöchentlich, monatlich) gefiltert werden.
+    /// </summary>
+    [Test]
+    public async Task GetTimeBasedStatistics_WithDateFilters_ShouldPassFiltersToService()
+    {
+        // Arrange
+        var startDate = DateTime.UtcNow.AddDays(-30);
+        var endDate = DateTime.UtcNow;
+        var expectedStatistics = new TimeBasedStatistics
+        {
+            DailyStatistics = new List<TimeSeriesStatistics>(),
+            WeeklyStatistics = new List<TimeSeriesStatistics>(),
+            MonthlyStatistics = new List<TimeSeriesStatistics>(),
+            GeneratedAt = DateTime.UtcNow
+        };
+
+        _mockStatisticsService.Setup(x => x.GetTimeBasedStatisticsAsync(startDate, endDate))
+            .ReturnsAsync(expectedStatistics);
+
+        // Act
+        var result = await _controller.GetTimeBasedStatistics(startDate, endDate);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<TimeBasedStatistics>>());
+        _mockStatisticsService.Verify(x => x.GetTimeBasedStatisticsAsync(startDate, endDate), Times.Once);
+    }
+
+    /// <summary>
+    /// Testet die Validierung von ungültigen Datumsbereichen.
+    /// Wichtig, um sicherzustellen, dass ungültige Eingaben (z.B. StartDate > EndDate)
+    /// nicht zu fehlerhaften Datenbank-Queries führen. Verhindert potenzielle Performance-Probleme
+    /// und stellt benutzerfreundliche Fehlermeldungen sicher (400 Bad Request statt 500).
+    /// </summary>
+    [Test]
+    public async Task GetTimeBasedStatistics_WithInvalidDateRange_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var startDate = DateTime.UtcNow;
+        var endDate = DateTime.UtcNow.AddDays(-1); // StartDate nach EndDate
+
+        // Act
+        var result = await _controller.GetTimeBasedStatistics(startDate, endDate);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<TimeBasedStatistics>>());
+        var badRequestResult = result.Result as BadRequestObjectResult;
+        Assert.That(badRequestResult, Is.Not.Null);
+        Assert.That(badRequestResult!.Value, Is.EqualTo("Startdatum darf nicht nach Enddatum liegen"));
+    }
+
+    /// <summary>
+    /// Testet die Fehlerbehandlung bei Service-Exceptions.
+    /// Wichtig, da dieser Endpoint mehrere Repository-Calls ausführt (täglich, wöchentlich, monatlich).
+    /// Stellt sicher, dass Fehler korrekt abgefangen werden und als 500 Internal Server Error
+    /// zurückgegeben werden, nicht als ungehandelte Exceptions. Die verbesserte Exception-Behandlung
+    /// ermöglicht detailliertes Logging für besseres Debugging in Production.
+    /// </summary>
+    [Test]
+    public async Task GetTimeBasedStatistics_WhenServiceThrowsException_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        _mockStatisticsService.Setup(x => x.GetTimeBasedStatisticsAsync(null, null))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act
+        var result = await _controller.GetTimeBasedStatistics(null, null);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ActionResult<TimeBasedStatistics>>());
+        var statusResult = result.Result as ObjectResult;
+        Assert.That(statusResult, Is.Not.Null);
+        Assert.That(statusResult!.StatusCode, Is.EqualTo(StatusCodes.Status500InternalServerError));
     }
 }

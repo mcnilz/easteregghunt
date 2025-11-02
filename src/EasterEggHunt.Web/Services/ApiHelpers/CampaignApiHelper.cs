@@ -23,103 +23,63 @@ internal class CampaignApiHelper
 
     internal async Task<IEnumerable<Campaign>> GetActiveCampaignsAsync()
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: GET /api/campaigns/active");
-            var response = await _httpClient.GetAsync(new Uri("/api/campaigns/active", UriKind.Relative));
-            response.EnsureSuccessStatusCode();
+        _logger.LogDebug("API-Aufruf: GET /api/campaigns/active");
+        var response = await _httpClient.GetAsync(new Uri("/api/campaigns/active", UriKind.Relative));
+        response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<IEnumerable<Campaign>>(content, _jsonOptions) ?? Enumerable.Empty<Campaign>();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Abrufen der aktiven Kampagnen");
-            throw;
-        }
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<IEnumerable<Campaign>>(content, _jsonOptions) ?? Enumerable.Empty<Campaign>();
     }
 
     internal async Task<Campaign?> GetCampaignByIdAsync(int id)
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: GET /api/campaigns/{CampaignId}", id);
-            var response = await _httpClient.GetAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative));
+        _logger.LogDebug("API-Aufruf: GET /api/campaigns/{CampaignId}", id);
+        var response = await _httpClient.GetAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative));
 
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<Campaign>(content, _jsonOptions);
-        }
-        catch (Exception ex)
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen der Kampagne mit ID {CampaignId}", id);
-            throw;
+            return null;
         }
+
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<Campaign>(content, _jsonOptions);
     }
 
     internal async Task<Campaign> CreateCampaignAsync(string name, string description, string createdBy)
     {
-        try
+        _logger.LogDebug("API-Aufruf: POST /api/campaigns");
+        var request = new CreateCampaignRequest
         {
-            _logger.LogDebug("API-Aufruf: POST /api/campaigns");
-            var request = new CreateCampaignRequest
-            {
-                Name = name,
-                Description = description,
-                CreatedBy = createdBy
-            };
+            Name = name,
+            Description = description,
+            CreatedBy = createdBy
+        };
 
-            var json = JsonSerializer.Serialize(request, _jsonOptions);
-            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var json = JsonSerializer.Serialize(request, _jsonOptions);
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(new Uri("/api/campaigns", UriKind.Relative), content);
-            response.EnsureSuccessStatusCode();
+        var response = await _httpClient.PostAsync(new Uri("/api/campaigns", UriKind.Relative), content);
+        response.EnsureSuccessStatusCode();
 
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<Campaign>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Kampagne zurück");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Erstellen der Kampagne {CampaignName}", name);
-            throw;
-        }
+        var responseContent = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<Campaign>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Kampagne zurück");
     }
 
     internal async Task UpdateCampaignAsync(int id, UpdateCampaignRequest request)
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: PUT /api/campaigns/{CampaignId}", id);
-            var json = JsonSerializer.Serialize(request, _jsonOptions);
-            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        _logger.LogDebug("API-Aufruf: PUT /api/campaigns/{CampaignId}", id);
+        var json = JsonSerializer.Serialize(request, _jsonOptions);
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative), content);
-            response.EnsureSuccessStatusCode();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Aktualisieren der Kampagne {CampaignId}", id);
-            throw;
-        }
+        var response = await _httpClient.PutAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative), content);
+        response.EnsureSuccessStatusCode();
     }
 
     internal async Task DeleteCampaignAsync(int id)
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: DELETE /api/campaigns/{CampaignId}", id);
-            var response = await _httpClient.DeleteAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative));
-            response.EnsureSuccessStatusCode();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Löschen der Kampagne {CampaignId}", id);
-            throw;
-        }
+        _logger.LogDebug("API-Aufruf: DELETE /api/campaigns/{CampaignId}", id);
+        var response = await _httpClient.DeleteAsync(new Uri($"/api/campaigns/{id}", UriKind.Relative));
+        response.EnsureSuccessStatusCode();
     }
 }

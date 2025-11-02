@@ -23,64 +23,40 @@ internal class UserApiHelper
 
     internal async Task<IEnumerable<User>> GetActiveUsersAsync()
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: GET /api/users/active");
-            var response = await _httpClient.GetAsync(new Uri("/api/users/active", UriKind.Relative));
-            response.EnsureSuccessStatusCode();
+        _logger.LogDebug("API-Aufruf: GET /api/users/active");
+        var response = await _httpClient.GetAsync(new Uri("/api/users/active", UriKind.Relative));
+        response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<IEnumerable<User>>(content, _jsonOptions) ?? Enumerable.Empty<User>();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Abrufen der aktiven Benutzer");
-            throw;
-        }
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<IEnumerable<User>>(content, _jsonOptions) ?? Enumerable.Empty<User>();
     }
 
     internal async Task<User> RegisterEmployeeAsync(string name)
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: POST /api/users");
-            var request = new { Name = name };
-            var json = JsonSerializer.Serialize(request, _jsonOptions);
-            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        _logger.LogDebug("API-Aufruf: POST /api/users");
+        var request = new { Name = name };
+        var json = JsonSerializer.Serialize(request, _jsonOptions);
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(new Uri("/api/users", UriKind.Relative), content);
-            response.EnsureSuccessStatusCode();
+        var response = await _httpClient.PostAsync(new Uri("/api/users", UriKind.Relative), content);
+        response.EnsureSuccessStatusCode();
 
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<User>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keinen Benutzer zurück");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Registrieren des Mitarbeiters {EmployeeName}", name);
-            throw;
-        }
+        var responseContent = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<User>(responseContent, _jsonOptions) ?? throw new InvalidOperationException("API gab keinen Benutzer zurück");
     }
 
     internal async Task<bool> CheckUserNameExistsAsync(string name)
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: POST /api/users/check-name");
-            var request = new { Name = name };
-            var json = JsonSerializer.Serialize(request, _jsonOptions);
-            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        _logger.LogDebug("API-Aufruf: POST /api/users/check-name");
+        var request = new { Name = name };
+        var json = JsonSerializer.Serialize(request, _jsonOptions);
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(new Uri("/api/users/check-name", UriKind.Relative), content);
-            response.EnsureSuccessStatusCode();
+        var response = await _httpClient.PostAsync(new Uri("/api/users/check-name", UriKind.Relative), content);
+        response.EnsureSuccessStatusCode();
 
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var responseObj = JsonSerializer.Deserialize<CheckUserNameResponse>(responseContent, _jsonOptions);
-            return responseObj?.Exists ?? false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Prüfen des Benutzernamens {UserName}", name);
-            throw;
-        }
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var responseObj = JsonSerializer.Deserialize<CheckUserNameResponse>(responseContent, _jsonOptions);
+        return responseObj?.Exists ?? false;
     }
 }

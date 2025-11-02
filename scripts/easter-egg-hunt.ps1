@@ -193,20 +193,26 @@ function Start-BothProjects {
     
     Write-Info "Starte beide Projekte..."
     
-    # API im Hintergrund starten
-    Write-Info "Starte API-Projekt im Hintergrund..."
-    $apiJob = Start-Job -ScriptBlock {
-        Set-Location $using:ProjectRoot
-        $env:ASPNETCORE_ENVIRONMENT = $using:Environment
-        if ($using:Hot) {
-            dotnet watch run --project $using:ApiProject --urls "https://localhost:7001;http://localhost:5001"
-        } else {
-            dotnet run --project $using:ApiProject --urls "https://localhost:7001;http://localhost:5001"
-        }
-    }
+    # API in separatem PowerShell-Fenster starten, damit Logs sichtbar sind
+    Write-Info "Starte API-Projekt in separatem Fenster..."
+    $apiWindowTitle = "EasterEggHunt API"
     
-    # Kurz warten
-    Start-Sleep -Seconds 3
+    $hotFlag = if ($Hot) { "true" } else { "false" }
+    $apiScript = @"
+Set-Location '$ProjectRoot'
+`$env:ASPNETCORE_ENVIRONMENT = '$Environment'
+if ($hotFlag -eq 'true') {
+    dotnet watch run --project '$ApiProject' --urls 'https://localhost:7001;http://localhost:5001'
+} else {
+    dotnet run --project '$ApiProject' --urls 'https://localhost:7001;http://localhost:5001'
+}
+"@
+    
+    # API in separatem Fenster starten
+    $apiProcess = Start-Process pwsh -ArgumentList "-NoExit", "-Command", $apiScript -PassThru
+    
+    # Kurz warten bis API startet
+    Start-Sleep -Seconds 5
     
     # URLs anzeigen
     Write-Host ""
@@ -216,6 +222,8 @@ function Start-BothProjects {
     if ($Environment -eq "Development") {
         Write-Host "   - Swagger UI: https://localhost:7001/swagger" -ForegroundColor $Colors.Detail
     }
+    Write-Host ""
+    Write-Host "ℹ️  API-Logs werden im separaten PowerShell-Fenster angezeigt" -ForegroundColor $Colors.Info
     Write-Host ""
     
     if ($Hot) {
@@ -235,11 +243,29 @@ function Start-BothProjects {
         }
     }
     finally {
-        # API-Job stoppen
+        # API-Prozess stoppen
         Write-Host ""
         Write-Info "Stoppe API-Projekt..."
-        Stop-Job $apiJob -ErrorAction SilentlyContinue
-        Remove-Job $apiJob -ErrorAction SilentlyContinue
+        if ($apiProcess -and !$apiProcess.HasExited) {
+            Stop-Process -Id $apiProcess.Id -Force -ErrorAction SilentlyContinue
+        }
+        # Auch eventuell noch laufende dotnet watch Prozesse für API beenden
+        $apiDotnetProcesses = Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | Where-Object {
+            # Prüfe über WMI, ob der Prozess die API ausführt
+            try {
+                $processInfo = Get-CimInstance Win32_Process -Filter "ProcessId = $($_.Id)" -ErrorAction SilentlyContinue
+                if ($processInfo -and $processInfo.CommandLine -like "*EasterEggHunt.Api*") {
+                    $true
+                } else {
+                    $false
+                }
+            } catch {
+                $false
+            }
+        }
+        if ($apiDotnetProcesses) {
+            $apiDotnetProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 

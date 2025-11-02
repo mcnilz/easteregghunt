@@ -205,7 +205,7 @@ public class StatisticsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen der zeitbasierten Statistiken");
+            _logger.LogError(ex, "Fehler beim Abrufen der zeitbasierten Statistiken: {Message}", ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, "Fehler beim Abrufen der Statistiken");
         }
     }

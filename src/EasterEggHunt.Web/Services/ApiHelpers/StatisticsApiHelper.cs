@@ -21,88 +21,56 @@ internal class StatisticsApiHelper
 
     internal async Task<QrCodeStatisticsViewModel> GetQrCodeStatisticsAsync(int qrCodeId)
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: GET /api/statistics/qrcode/{QrCodeId}", qrCodeId);
-            var response = await _httpClient.GetAsync(new Uri($"/api/statistics/qrcode/{qrCodeId}", UriKind.Relative));
-            response.EnsureSuccessStatusCode();
+        _logger.LogDebug("API-Aufruf: GET /api/statistics/qrcode/{QrCodeId}", qrCodeId);
+        var response = await _httpClient.GetAsync(new Uri($"/api/statistics/qrcode/{qrCodeId}", UriKind.Relative));
+        response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<QrCodeStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine QR-Code-Statistiken zurück");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Abrufen der QR-Code-Statistiken für {QrCodeId}", qrCodeId);
-            throw;
-        }
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<QrCodeStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine QR-Code-Statistiken zurück");
     }
 
     internal async Task<CampaignQrCodeStatisticsViewModel> GetCampaignQrCodeStatisticsAsync(int campaignId)
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: GET /api/statistics/campaign/{CampaignId}", campaignId);
-            var response = await _httpClient.GetAsync(new Uri($"/api/statistics/campaign/{campaignId}", UriKind.Relative));
-            response.EnsureSuccessStatusCode();
+        _logger.LogDebug("API-Aufruf: GET /api/statistics/campaign/{CampaignId}", campaignId);
+        var response = await _httpClient.GetAsync(new Uri($"/api/statistics/campaign/{campaignId}", UriKind.Relative));
+        response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<CampaignQrCodeStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Kampagnen-Statistiken zurück");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Abrufen der Kampagnen-Statistiken für {CampaignId}", campaignId);
-            throw;
-        }
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CampaignQrCodeStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Kampagnen-Statistiken zurück");
     }
 
     internal async Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync()
     {
-        try
-        {
-            _logger.LogDebug("API-Aufruf: GET /api/statistics/top-performers");
-            var response = await _httpClient.GetAsync(new Uri("/api/statistics/top-performers", UriKind.Relative));
-            response.EnsureSuccessStatusCode();
+        _logger.LogDebug("API-Aufruf: GET /api/statistics/top-performers");
+        var response = await _httpClient.GetAsync(new Uri("/api/statistics/top-performers", UriKind.Relative));
+        response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<Models.TopPerformersStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Top-Performer-Statistiken zurück");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Abrufen der Top-Performer-Statistiken");
-            throw;
-        }
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<Models.TopPerformersStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine Top-Performer-Statistiken zurück");
     }
 
     internal async Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
-        try
+        var url = "/api/statistics/time-based";
+        var queryParams = new List<string>();
+        if (startDate.HasValue)
         {
-            var url = "/api/statistics/time-based";
-            var queryParams = new List<string>();
-            if (startDate.HasValue)
-            {
-                queryParams.Add($"startDate={startDate.Value:yyyy-MM-dd}");
-            }
-            if (endDate.HasValue)
-            {
-                queryParams.Add($"endDate={endDate.Value:yyyy-MM-dd}");
-            }
-            if (queryParams.Any())
-            {
-                url += "?" + string.Join("&", queryParams);
-            }
-
-            _logger.LogDebug("API-Aufruf: GET {Url}", url);
-            var response = await _httpClient.GetAsync(new Uri(url, UriKind.Relative));
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<Models.TimeBasedStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine zeitbasierten Statistiken zurück");
+            queryParams.Add($"startDate={startDate.Value:yyyy-MM-dd}");
         }
-        catch (Exception ex)
+        if (endDate.HasValue)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen der zeitbasierten Statistiken");
-            throw;
+            queryParams.Add($"endDate={endDate.Value:yyyy-MM-dd}");
         }
+        if (queryParams.Any())
+        {
+            url += "?" + string.Join("&", queryParams);
+        }
+
+        _logger.LogDebug("API-Aufruf: GET {Url}", url);
+        var response = await _httpClient.GetAsync(new Uri(url, UriKind.Relative));
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<Models.TimeBasedStatisticsViewModel>(content, _jsonOptions) ?? throw new InvalidOperationException("API gab keine zeitbasierten Statistiken zurück");
     }
 }

@@ -670,5 +670,140 @@ public class StatisticsServiceTests
     }
 
     #endregion
+
+    #region GetTimeBasedStatisticsAsync Tests
+
+    /// <summary>
+    /// Testet die korrekte Aggregation von täglichen, wöchentlichen und monatlichen Statistiken.
+    /// Wichtig, da diese Methode die zentrale Orchestrierung für die Admin-Statistik-Seite ist.
+    /// Stellt sicher, dass alle drei Zeitreihen korrekt kombiniert und gemappt werden.
+    /// Verhindert fehlerhafte Daten in Chart.js-Visualisierungen.
+    /// </summary>
+    [Test]
+    public async Task GetTimeBasedStatisticsAsync_WithValidData_ShouldReturnStatistics()
+    {
+        // Arrange
+        var now = DateTime.UtcNow;
+        var dailyStats = new List<(DateTime Date, int Count, int UniqueFinders, int UniqueQrCodes)>
+        {
+            (now.Date, 5, 3, 2)
+        };
+        var weeklyStats = new List<(DateTime WeekStart, int Count, int UniqueFinders, int UniqueQrCodes)>
+        {
+            (now.Date, 10, 5, 4)
+        };
+        var monthlyStats = new List<(DateTime MonthStart, int Count, int UniqueFinders, int UniqueQrCodes)>
+        {
+            (new DateTime(now.Year, now.Month, 1), 20, 8, 6)
+        };
+
+        _mockFindService.Setup(s => s.GetDailyStatisticsAsync(null, null))
+            .ReturnsAsync(dailyStats);
+        _mockFindService.Setup(s => s.GetWeeklyStatisticsAsync(null, null))
+            .ReturnsAsync(weeklyStats);
+        _mockFindService.Setup(s => s.GetMonthlyStatisticsAsync(null, null))
+            .ReturnsAsync(monthlyStats);
+
+        // Act
+        var result = await _statisticsService.GetTimeBasedStatisticsAsync();
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.DailyStatistics, Has.Count.EqualTo(1));
+        Assert.That(result.WeeklyStatistics, Has.Count.EqualTo(1));
+        Assert.That(result.MonthlyStatistics, Has.Count.EqualTo(1));
+        Assert.That(result.GeneratedAt, Is.Not.EqualTo(default(DateTime)));
+
+        Assert.That(result.DailyStatistics.First().Date, Is.EqualTo(now.Date));
+        Assert.That(result.DailyStatistics.First().Count, Is.EqualTo(5));
+        Assert.That(result.DailyStatistics.First().UniqueFinders, Is.EqualTo(3));
+        Assert.That(result.DailyStatistics.First().UniqueQrCodes, Is.EqualTo(2));
+
+        Assert.That(result.WeeklyStatistics.First().Date, Is.EqualTo(now.Date));
+        Assert.That(result.WeeklyStatistics.First().Count, Is.EqualTo(10));
+        Assert.That(result.WeeklyStatistics.First().UniqueFinders, Is.EqualTo(5));
+        Assert.That(result.WeeklyStatistics.First().UniqueQrCodes, Is.EqualTo(4));
+
+        Assert.That(result.MonthlyStatistics.First().Date, Is.EqualTo(new DateTime(now.Year, now.Month, 1)));
+        Assert.That(result.MonthlyStatistics.First().Count, Is.EqualTo(20));
+        Assert.That(result.MonthlyStatistics.First().UniqueFinders, Is.EqualTo(8));
+        Assert.That(result.MonthlyStatistics.First().UniqueQrCodes, Is.EqualTo(6));
+    }
+
+    /// <summary>
+    /// Testet, dass Datumsfilter korrekt an die untergeordneten Services weitergegeben werden.
+    /// Wichtig, um sicherzustellen, dass Benutzer-spezifische Filter in allen drei Zeitreihen angewendet werden.
+    /// Verhindert Inkonsistenzen zwischen gefilterten und ungefilterten Statistiken.
+    /// </summary>
+    [Test]
+    public async Task GetTimeBasedStatisticsAsync_WithDateFilters_ShouldPassFiltersToServices()
+    {
+        // Arrange
+        var startDate = DateTime.UtcNow.AddDays(-30);
+        var endDate = DateTime.UtcNow;
+
+        _mockFindService.Setup(s => s.GetDailyStatisticsAsync(startDate, endDate))
+            .ReturnsAsync(Enumerable.Empty<(DateTime Date, int Count, int UniqueFinders, int UniqueQrCodes)>());
+        _mockFindService.Setup(s => s.GetWeeklyStatisticsAsync(startDate, endDate))
+            .ReturnsAsync(Enumerable.Empty<(DateTime WeekStart, int Count, int UniqueFinders, int UniqueQrCodes)>());
+        _mockFindService.Setup(s => s.GetMonthlyStatisticsAsync(startDate, endDate))
+            .ReturnsAsync(Enumerable.Empty<(DateTime MonthStart, int Count, int UniqueFinders, int UniqueQrCodes)>());
+
+        // Act
+        var result = await _statisticsService.GetTimeBasedStatisticsAsync(startDate, endDate);
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        _mockFindService.Verify(s => s.GetDailyStatisticsAsync(startDate, endDate), Times.Once);
+        _mockFindService.Verify(s => s.GetWeeklyStatisticsAsync(startDate, endDate), Times.Once);
+        _mockFindService.Verify(s => s.GetMonthlyStatisticsAsync(startDate, endDate), Times.Once);
+    }
+
+    /// <summary>
+    /// Testet das Verhalten bei leerer Datenbank (keine Funde).
+    /// Wichtig, um sicherzustellen, dass die Methode keine NullReferenceException wirft
+    /// und korrekt leere Listen zurückgibt. Dies verhindert 500-Fehler auf der Admin-Statistik-Seite.
+    /// </summary>
+    [Test]
+    public async Task GetTimeBasedStatisticsAsync_WithEmptyData_ShouldReturnEmptyStatistics()
+    {
+        // Arrange
+        _mockFindService.Setup(s => s.GetDailyStatisticsAsync(null, null))
+            .ReturnsAsync(Enumerable.Empty<(DateTime Date, int Count, int UniqueFinders, int UniqueQrCodes)>());
+        _mockFindService.Setup(s => s.GetWeeklyStatisticsAsync(null, null))
+            .ReturnsAsync(Enumerable.Empty<(DateTime WeekStart, int Count, int UniqueFinders, int UniqueQrCodes)>());
+        _mockFindService.Setup(s => s.GetMonthlyStatisticsAsync(null, null))
+            .ReturnsAsync(Enumerable.Empty<(DateTime MonthStart, int Count, int UniqueFinders, int UniqueQrCodes)>());
+
+        // Act
+        var result = await _statisticsService.GetTimeBasedStatisticsAsync();
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.DailyStatistics, Is.Empty);
+        Assert.That(result.WeeklyStatistics, Is.Empty);
+        Assert.That(result.MonthlyStatistics, Is.Empty);
+        Assert.That(result.GeneratedAt, Is.Not.EqualTo(default(DateTime)));
+    }
+
+    /// <summary>
+    /// Testet die Fehlerbehandlung bei Datenbank-Fehlern.
+    /// Wichtig, da die Methode mehrere Repository-Calls ausführt. Stellt sicher, dass Fehler
+    /// korrekt weitergegeben werden und nicht verschluckt werden. Die verbesserte Exception-Behandlung
+    /// loggt detaillierte Fehler für besseres Debugging.
+    /// </summary>
+    [Test]
+    public void GetTimeBasedStatisticsAsync_WhenExceptionOccurs_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        _mockFindService.Setup(s => s.GetDailyStatisticsAsync(null, null))
+            .ThrowsAsync(new InvalidOperationException("Database error"));
+
+        // Act & Assert
+        Assert.ThrowsAsync<InvalidOperationException>(
+            () => _statisticsService.GetTimeBasedStatisticsAsync());
+    }
+
+    #endregion
 }
 

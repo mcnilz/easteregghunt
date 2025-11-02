@@ -243,22 +243,71 @@ public class FindRepository : IFindRepository
             query = query.Where(f => f.FoundAt < endDate.Value.Date.AddDays(1));
         }
 
-        return await query
-            .GroupBy(f => new
+        // Daten in Memory laden, da ISOWeek Methoden nicht von EF Core übersetzt werden können
+        var finds = await query.ToListAsync();
+
+        if (finds.Count == 0)
+        {
+            return new List<(DateTime WeekStart, int Count, int UniqueFinders, int UniqueQrCodes)>();
+        }
+
+        var result = new List<(DateTime WeekStart, int Count, int UniqueFinders, int UniqueQrCodes)>();
+
+        var grouped = finds
+            .GroupBy(f =>
             {
-                Year = f.FoundAt.Year,
-                Week = System.Globalization.ISOWeek.GetWeekOfYear(f.FoundAt)
+                var date = f.FoundAt;
+                var year = date.Year;
+                int week;
+                try
+                {
+                    week = System.Globalization.ISOWeek.GetWeekOfYear(date);
+                }
+#pragma warning disable CA1031 // Do not catch general exception types - needed for defensive programming
+                catch (Exception)
+                {
+                    // Fallback: Berechne Woche manuell falls ISOWeek fehlschlägt
+                    var jan1 = new DateTime(year, 1, 1);
+                    var daysOffset = (int)jan1.DayOfWeek;
+                    var firstMonday = jan1.AddDays(-((daysOffset + 6) % 7));
+                    var diff = (date - firstMonday).Days;
+                    week = (diff / 7) + 1;
+                }
+#pragma warning restore CA1031
+
+                return new { Year = year, Week = week };
             })
             .Select(g => new
             {
-                WeekStart = System.Globalization.ISOWeek.ToDateTime(g.Key.Year, g.Key.Week, DayOfWeek.Monday),
+                Year = g.Key.Year,
+                Week = g.Key.Week,
                 Count = g.Count(),
                 UniqueFinders = g.Select(f => f.UserId).Distinct().Count(),
                 UniqueQrCodes = g.Select(f => f.QrCodeId).Distinct().Count()
             })
-            .OrderBy(g => g.WeekStart)
-            .Select(g => new ValueTuple<DateTime, int, int, int>(g.WeekStart, g.Count, g.UniqueFinders, g.UniqueQrCodes))
-            .ToListAsync();
+            .ToList();
+
+        foreach (var g in grouped)
+        {
+            DateTime weekStart;
+            try
+            {
+                weekStart = System.Globalization.ISOWeek.ToDateTime(g.Year, g.Week, DayOfWeek.Monday);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Fallback für ungültige ISO-Wochen (z.B. Woche 53 in Jahren mit 52 Wochen)
+                // Berechne den Montag der Woche manuell
+                var jan1 = new DateTime(g.Year, 1, 1);
+                var daysOffset = (int)jan1.DayOfWeek;
+                var firstMonday = jan1.AddDays(-((daysOffset + 6) % 7));
+                weekStart = firstMonday.AddDays((g.Week - 1) * 7);
+            }
+
+            result.Add((weekStart, g.Count, g.UniqueFinders, g.UniqueQrCodes));
+        }
+
+        return result.OrderBy(t => t.WeekStart).ToList();
     }
 
     /// <summary>
@@ -281,7 +330,15 @@ public class FindRepository : IFindRepository
             query = query.Where(f => f.FoundAt < endDate.Value.Date.AddDays(1));
         }
 
-        return await query
+        // Daten in Memory laden, da DateTime-Konstruktor nicht von EF Core übersetzt werden kann
+        var finds = await query.ToListAsync();
+
+        if (finds.Count == 0)
+        {
+            return new List<(DateTime MonthStart, int Count, int UniqueFinders, int UniqueQrCodes)>();
+        }
+
+        var grouped = finds
             .GroupBy(f => new
             {
                 Year = f.FoundAt.Year,
@@ -289,13 +346,22 @@ public class FindRepository : IFindRepository
             })
             .Select(g => new
             {
-                MonthStart = new DateTime(g.Key.Year, g.Key.Month, 1),
+                Year = g.Key.Year,
+                Month = g.Key.Month,
                 Count = g.Count(),
                 UniqueFinders = g.Select(f => f.UserId).Distinct().Count(),
                 UniqueQrCodes = g.Select(f => f.QrCodeId).Distinct().Count()
             })
-            .OrderBy(g => g.MonthStart)
-            .Select(g => new ValueTuple<DateTime, int, int, int>(g.MonthStart, g.Count, g.UniqueFinders, g.UniqueQrCodes))
-            .ToListAsync();
+            .ToList();
+
+        return grouped
+            .Select(g => new ValueTuple<DateTime, int, int, int>(
+                new DateTime(g.Year, g.Month, 1), // DateTime-Konstruktor in Memory
+                g.Count,
+                g.UniqueFinders,
+                g.UniqueQrCodes
+            ))
+            .OrderBy(t => t.Item1)
+            .ToList();
     }
 }
