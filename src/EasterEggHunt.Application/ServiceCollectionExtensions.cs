@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFindService, FindService>();
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IStatisticsService, StatisticsService>();
+        services.AddScoped<IGdprService, GdprService>();
 
         return services;
     }

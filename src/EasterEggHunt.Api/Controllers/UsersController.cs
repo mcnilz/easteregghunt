@@ -13,11 +13,16 @@ namespace EasterEggHunt.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IGdprService _gdprService;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService, ILogger<UsersController> logger)
+    public UsersController(
+        IUserService userService,
+        IGdprService gdprService,
+        ILogger<UsersController> logger)
     {
         _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+        _gdprService = gdprService ?? throw new ArgumentNullException(nameof(gdprService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -192,6 +197,77 @@ public class UsersController : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, "Fehler beim Deaktivieren des Benutzers {UserId}", id);
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
+
+    /// <summary>
+    /// Löscht alle Benutzerdaten gemäß GDPR (Recht auf Löschung)
+    /// Löscht alle Sessions des Benutzers und optional alle Funde
+    /// </summary>
+    /// <param name="request">Request mit Benutzer-ID und Optionen</param>
+    /// <returns>Ergebnis der Löschung</returns>
+    [HttpPost("gdpr/delete")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<GdprDeleteResponse>> DeleteUserData([FromBody] GdprDeleteRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _gdprService.DeleteUserDataAsync(request.UserId, request.DeleteFinds);
+
+            return Ok(new GdprDeleteResponse
+            {
+                DeletedSessions = result.DeletedSessions,
+                DeletedFinds = result.DeletedFinds,
+                UserDeleted = result.UserDeleted,
+                TotalDeleted = result.TotalDeleted
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Ungültige Argumente für GDPR-Löschung: UserId {UserId}", request.UserId);
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler bei GDPR-Löschung für Benutzer {UserId}", request.UserId);
+            return StatusCode(500, "Interner Serverfehler");
+        }
+    }
+
+    /// <summary>
+    /// Anonymisiert Benutzerdaten gemäß GDPR
+    /// Löscht alle Sessions und anonymisiert den Benutzernamen
+    /// </summary>
+    /// <param name="id">Benutzer-ID</param>
+    /// <returns>Erfolgsstatus</returns>
+    [HttpPost("{id}/gdpr/anonymize")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> AnonymizeUserData(int id)
+    {
+        try
+        {
+            var success = await _gdprService.AnonymizeUserDataAsync(id);
+            if (!success)
+            {
+                return NotFound($"Benutzer mit ID {id} nicht gefunden");
+            }
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Fehler bei GDPR-Anonymisierung für Benutzer {UserId}", id);
             return StatusCode(500, "Interner Serverfehler");
         }
     }

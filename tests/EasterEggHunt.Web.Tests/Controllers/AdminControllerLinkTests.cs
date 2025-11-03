@@ -18,6 +18,7 @@ public class AdminControllerLinkTests : IDisposable
     private Mock<IQrCodeManagementService> _mockQrCodeService = null!;
     private Mock<IStatisticsDisplayService> _mockStatisticsService = null!;
     private Mock<IPrintLayoutService> _mockPrintService = null!;
+    private Mock<IEasterEggHuntApiClient> _mockApiClient = null!;
     private Mock<ILogger<AdminController>> _mockLogger = null!;
     private AdminController _controller = null!;
 
@@ -28,6 +29,7 @@ public class AdminControllerLinkTests : IDisposable
         _mockQrCodeService = new Mock<IQrCodeManagementService>();
         _mockStatisticsService = new Mock<IStatisticsDisplayService>();
         _mockPrintService = new Mock<IPrintLayoutService>();
+        _mockApiClient = new Mock<IEasterEggHuntApiClient>();
         _mockLogger = new Mock<ILogger<AdminController>>();
 
         _controller = new AdminController(
@@ -35,6 +37,7 @@ public class AdminControllerLinkTests : IDisposable
             _mockQrCodeService.Object,
             _mockStatisticsService.Object,
             _mockPrintService.Object,
+            _mockApiClient.Object,
             _mockLogger.Object);
     }
 

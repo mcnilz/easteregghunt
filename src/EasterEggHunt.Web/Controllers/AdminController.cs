@@ -18,6 +18,7 @@ public class AdminController : Controller
     private readonly IQrCodeManagementService _qrCodeService;
     private readonly IStatisticsDisplayService _statisticsService;
     private readonly IPrintLayoutService _printService;
+    private readonly IEasterEggHuntApiClient _apiClient;
     private readonly ILogger<AdminController> _logger;
 
     public AdminController(
@@ -25,12 +26,14 @@ public class AdminController : Controller
         IQrCodeManagementService qrCodeService,
         IStatisticsDisplayService statisticsService,
         IPrintLayoutService printService,
+        IEasterEggHuntApiClient apiClient,
         ILogger<AdminController> logger)
     {
         _campaignService = campaignService ?? throw new ArgumentNullException(nameof(campaignService));
         _qrCodeService = qrCodeService ?? throw new ArgumentNullException(nameof(qrCodeService));
         _statisticsService = statisticsService ?? throw new ArgumentNullException(nameof(statisticsService));
         _printService = printService ?? throw new ArgumentNullException(nameof(printService));
+        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -803,6 +806,43 @@ public class AdminController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Fund-Historie");
+            return View("Error");
+        }
+    }
+
+    /// <summary>
+    /// Benutzer-Übersicht
+    /// </summary>
+    /// <returns>Benutzer-Liste</returns>
+    public async Task<IActionResult> Users()
+    {
+        try
+        {
+            _logger.LogInformation("Lade Benutzer-Übersicht");
+            var users = await _apiClient.GetActiveUsersAsync();
+
+            // Erstelle ViewModels mit FindCount für jeden Benutzer
+            var userViewModels = new List<UserViewModel>();
+            foreach (var user in users)
+            {
+                var findCount = await _apiClient.GetFindCountByUserIdAsync(user.Id);
+                userViewModels.Add(new UserViewModel
+                {
+                    User = user,
+                    FindCount = findCount
+                });
+            }
+
+            return View(userViewModels);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Fehler beim Laden der Benutzer");
+            return View("Error");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unerwarteter Fehler beim Laden der Benutzer");
             return View("Error");
         }
     }

@@ -15,6 +15,7 @@ namespace EasterEggHunt.Api.Tests.Controllers;
 public class UsersControllerTests
 {
     private Mock<IUserService> _mockUserService = null!;
+    private Mock<IGdprService> _mockGdprService = null!;
     private Mock<ILogger<UsersController>> _mockLogger = null!;
     private UsersController _controller = null!;
 
@@ -22,8 +23,9 @@ public class UsersControllerTests
     public void Setup()
     {
         _mockUserService = new Mock<IUserService>();
+        _mockGdprService = new Mock<IGdprService>();
         _mockLogger = new Mock<ILogger<UsersController>>();
-        _controller = new UsersController(_mockUserService.Object, _mockLogger.Object);
+        _controller = new UsersController(_mockUserService.Object, _mockGdprService.Object, _mockLogger.Object);
     }
 
     [Test]

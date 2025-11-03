@@ -69,6 +69,13 @@ public interface ISessionRepository
     Task<int> DeactivateAllByUserIdAsync(int userId);
 
     /// <summary>
+    /// Löscht alle Sessions eines Benutzers (GDPR-Compliance)
+    /// </summary>
+    /// <param name="userId">Benutzer-ID</param>
+    /// <returns>Anzahl der gelöschten Sessions</returns>
+    Task<int> DeleteAllByUserIdAsync(int userId);
+
+    /// <summary>
     /// Löscht abgelaufene Sessions
     /// </summary>
     /// <returns>Anzahl der gelöschten Sessions</returns>

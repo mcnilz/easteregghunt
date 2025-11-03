@@ -122,6 +122,17 @@ public class SessionRepository : ISessionRepository
     }
 
     /// <inheritdoc />
+    public async Task<int> DeleteAllByUserIdAsync(int userId)
+    {
+        var sessions = await _context.Sessions
+            .Where(s => s.UserId == userId)
+            .ToListAsync();
+
+        _context.Sessions.RemoveRange(sessions);
+        return await _context.SaveChangesAsync();
+    }
+
+    /// <inheritdoc />
     public async Task<int> DeleteExpiredAsync()
     {
         var expiredSessions = await _context.Sessions
