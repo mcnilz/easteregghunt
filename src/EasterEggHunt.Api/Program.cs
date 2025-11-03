@@ -56,6 +56,9 @@ builder.Services.AddApplicationServices();
 // Add Seed Data Service (Development only)
 builder.Services.AddSeedDataService(builder.Environment);
 
+// Add Session Cleanup Service
+builder.Services.AddSessionCleanupService(builder.Configuration);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

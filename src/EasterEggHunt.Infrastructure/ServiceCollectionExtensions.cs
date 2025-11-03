@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace EasterEggHunt.Infrastructure;
 
@@ -88,6 +89,40 @@ public static class ServiceCollectionExtensions
         {
             services.AddHostedService<SeedDataService>();
         }
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registriert den SessionCleanupService für automatische Session-Bereinigung
+    /// </summary>
+    /// <param name="services">Service-Collection</param>
+    /// <param name="configuration">Konfiguration</param>
+    /// <returns>Service-Collection für Method-Chaining</returns>
+    public static IServiceCollection AddSessionCleanupService(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        // Konfiguration aus EasterEggHuntOptions lesen
+        var options = configuration
+            .GetSection(EasterEggHunt.Domain.Configuration.EasterEggHuntOptions.SectionName)
+            .Get<EasterEggHunt.Domain.Configuration.EasterEggHuntOptions>();
+
+        var sessionOptions = options?.Session ?? new EasterEggHunt.Domain.Configuration.SessionOptions();
+        var cleanupInterval = TimeSpan.FromHours(sessionOptions.CleanupIntervalHours);
+        var initialDelay = TimeSpan.FromSeconds(sessionOptions.CleanupInitialDelaySeconds);
+
+        // SessionCleanupService registrieren
+        services.AddHostedService(serviceProvider =>
+        {
+            var logger = serviceProvider.GetRequiredService<ILogger<SessionCleanupService>>();
+            return new SessionCleanupService(
+                serviceProvider,
+                logger,
+                cleanupInterval,
+                initialDelay,
+                sessionOptions.CleanupEnabled);
+        });
 
         return services;
     }

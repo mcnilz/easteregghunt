@@ -19,9 +19,9 @@
 ## 🎯 Aktueller Projekt-Status
 
 **Aktueller Sprint:** Sprint 4 - Admin-Statistiken & Polish  
-**Fortschritt:** Story 4.1 fast abgeschlossen (4/5 Akzeptanzkriterien erfüllt)  
-**Tests:** 810+ Tests erfolgreich mit exzellenter Code Coverage  
-**Letzte Commits:** Diagramme, Performance-Metriken und Fund-Historie implementiert  
+**Fortschritt:** Story 4.1 ✅ ABGESCHLOSSEN, Story 4.2 in Arbeit  
+**Tests:** 825 Tests erfolgreich mit exzellenter Code Coverage  
+**Letzte Commits:** HttpClient JSON Extensions, FindHistoryResponse refactoring  
 **✅ ABGESCHLOSSEN:** Teilnehmer-Rangliste, Zeitbasierte Statistiken, Fund-Historie mit Filter, Diagramme und Visualisierungen, Performance-Metriken
 
 **Technische Highlights:**
@@ -423,7 +423,7 @@ Vollständige Statistiken und System-Verfeinerung
 
 ### 📝 User Stories
 
-#### Story 4.1: Umfassende Admin-Statistiken
+#### Story 4.1: Umfassende Admin-Statistiken ✅ ABGESCHLOSSEN
 **Als** Administrator  
 **Möchte ich** detaillierte Statistiken sehen  
 **Damit** ich den Erfolg der Kampagne bewerten kann  
@@ -434,10 +434,10 @@ Vollständige Statistiken und System-Verfeinerung
 - [x] Fund-Historie mit Filter ✅
 - [x] Diagramme und Visualisierungen ✅
 - [x] Performance-Metriken ✅
-- [ ] 100% Test Coverage
+- [x] 100% Test Coverage ✅ (825 Tests mit exzellenter Coverage)
 
 **Gherkin:** `features/admin_statistics.feature`  
-**Aufwand:** 13 Story Points
+**Aufwand:** 13 Story Points ✅
 
 #### Story 4.2: Session-Management Optimierung
 **Als** System  

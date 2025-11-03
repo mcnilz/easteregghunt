@@ -31,6 +31,11 @@ public class EasterEggHuntOptions
     /// UI-Konfiguration (nur für Web-Projekt)
     /// </summary>
     public UIOptions? UI { get; set; }
+
+    /// <summary>
+    /// Session-Konfiguration
+    /// </summary>
+    public SessionOptions Session { get; set; } = new();
 }
 
 /// <summary>
@@ -136,4 +141,25 @@ public class UIOptions
     /// Support-E-Mail
     /// </summary>
     public string SupportEmail { get; set; } = "support@example.com";
+}
+
+/// <summary>
+/// Session-Konfiguration
+/// </summary>
+public class SessionOptions
+{
+    /// <summary>
+    /// Session-Bereinigung aktivieren
+    /// </summary>
+    public bool CleanupEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Interval für Session-Bereinigung in Stunden (Standard: 24 Stunden)
+    /// </summary>
+    public int CleanupIntervalHours { get; set; } = 24;
+
+    /// <summary>
+    /// Initiales Delay für Session-Bereinigung in Sekunden (Standard: 30 Sekunden)
+    /// </summary>
+    public int CleanupInitialDelaySeconds { get; set; } = 30;
 }
