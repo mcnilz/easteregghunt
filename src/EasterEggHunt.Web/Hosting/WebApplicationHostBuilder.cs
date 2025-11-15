@@ -111,10 +111,24 @@ public static class WebApplicationHostBuilder
             }
             else
             {
-                var configUrl = builder.Configuration["EasterEggHunt:Api:BaseUrl"] ?? "https://localhost:7002";
+                var configUrl = builder.Configuration["EasterEggHunt:Api:BaseUrl"] ?? "http://localhost:5001";
                 client.BaseAddress = new Uri(configUrl);
             }
             client.DefaultRequestHeaders.Add("Accept", "application/json");
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            var handler = new HttpClientHandler();
+
+            // In Development: Deaktiviere SSL-Validierung für selbst-signierte Zertifikate
+            // WARNUNG: Nur für Development! Niemals in Production verwenden!
+            if (builder.Environment.IsDevelopment())
+            {
+                handler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            }
+
+            return handler;
         });
 
         // Add Web-specific Services
