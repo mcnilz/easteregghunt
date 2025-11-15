@@ -432,7 +432,6 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 
 # Project specific
-appsettings.Development.json
 appsettings.Local.json
 *.db
 *.db-shm
