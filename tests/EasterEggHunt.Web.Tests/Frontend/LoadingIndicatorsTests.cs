@@ -10,6 +10,7 @@ namespace EasterEggHunt.Web.Tests.Frontend;
 /// Playwright-Tests für Loading-Indikatoren
 /// </summary>
 [TestFixture]
+[Category("Playwright")]
 [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "Disposed in TearDown method")]
 [SuppressMessage("Design", "CA2213:Disposable fields should be disposed", Justification = "Disposed in TearDown method")]
 public sealed class LoadingIndicatorsTests : PageTest
