@@ -1,0 +1,48 @@
+@{
+    var rows = int.Parse(ViewData["Rows"]?.ToString() ?? "5");
+    var columns = int.Parse(ViewData["Columns"]?.ToString() ?? "4");
+}
+
+<div class="skeleton-screen" role="status" aria-live="polite" aria-label="Daten werden geladen...">
+    <div class="skeleton-header mb-3">
+        <div class="skeleton-line skeleton-title"></div>
+        <div class="skeleton-line skeleton-subtitle"></div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    @for (int col = 0; col < columns; col++)
+                    {
+                        <th>
+                            <div class="skeleton-line skeleton-th"></div>
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for (int row = 0; row < rows; row++)
+                {
+                    <tr>
+                        @for (int col = 0; col < columns; col++)
+                        {
+                            <td>
+                                <div class="skeleton-line skeleton-td"></div>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+

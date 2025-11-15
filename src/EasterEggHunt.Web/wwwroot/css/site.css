@@ -20,3 +20,91 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Loading Overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+.loading-spinner-container {
+  text-align: center;
+  color: white;
+}
+
+.loading-spinner-container .spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
+/* Skeleton Screen */
+.skeleton-screen {
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  height: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.skeleton-subtitle {
+  width: 40%;
+  height: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.skeleton-th {
+  width: 80%;
+  height: 1.2rem;
+}
+
+.skeleton-td {
+  width: 70%;
+  height: 1rem;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Loading Active State */
+.loading-active {
+  position: relative;
+  min-height: 100px;
+}
+
+/* Button Loading State */
+button.disabled,
+a.btn.disabled {
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+button.disabled .spinner-border,
+a.btn.disabled .spinner-border {
+  display: inline-block;
+}

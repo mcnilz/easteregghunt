@@ -15,10 +15,13 @@
     <PackageReference Include="NUnit.Analyzers" Version="3.9.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageReference Include="Microsoft.Playwright.NUnit" Version="1.55.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\EasterEggHunt.Web\EasterEggHunt.Web.csproj" />
+    <ProjectReference Include="..\..\src\EasterEggHunt.Api\EasterEggHunt.Api.csproj" />
     <ProjectReference Include="..\..\src\EasterEggHunt.Application\EasterEggHunt.Application.csproj" />
     <ProjectReference Include="..\..\src\EasterEggHunt.Domain\EasterEggHunt.Domain.csproj" />
   </ItemGroup>

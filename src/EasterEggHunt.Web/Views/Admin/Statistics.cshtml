@@ -435,7 +435,7 @@
                         </a>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-secondary w-100" onclick="refreshStatistics()">
+                        <button class="btn btn-secondary w-100" onclick="refreshStatistics()" data-loading="true" id="refreshButton">
                             <i class="fas fa-sync-alt"></i> Aktualisieren
                         </button>
                     </div>
@@ -611,7 +611,14 @@
         }
 
         function refreshStatistics() {
-            location.reload();
+            const button = document.getElementById('refreshButton');
+            if (button) {
+                disableButton(button, true);
+            }
+            // Simuliere kurze Ladezeit für bessere UX
+            setTimeout(function() {
+                location.reload();
+            }, 300);
         }
     </script>
 }

@@ -19,10 +19,10 @@
 ## 🎯 Aktueller Projekt-Status
 
 **Aktueller Sprint:** Sprint 4 - Admin-Statistiken & Polish  
-**Fortschritt:** Story 4.1 ✅ ABGESCHLOSSEN, Story 4.2 in Arbeit  
-**Tests:** 825 Tests erfolgreich mit exzellenter Code Coverage  
-**Letzte Commits:** HttpClient JSON Extensions, FindHistoryResponse refactoring  
-**✅ ABGESCHLOSSEN:** Teilnehmer-Rangliste, Zeitbasierte Statistiken, Fund-Historie mit Filter, Diagramme und Visualisierungen, Performance-Metriken
+**Fortschritt:** Story 4.1 ✅ ABGESCHLOSSEN, Story 4.2 ✅ ABGESCHLOSSEN  
+**Tests:** 873 Tests erfolgreich mit exzellenter Code Coverage  
+**Letzte Commits:** Story 4.2 Session-Management Optimierung (Phasen 2-5) + Admin/Users Bugfix  
+**✅ ABGESCHLOSSEN:** Teilnehmer-Rangliste, Zeitbasierte Statistiken, Fund-Historie mit Filter, Diagramme und Visualisierungen, Performance-Metriken, Session-Management Optimierung
 
 **Technische Highlights:**
 - ✅ Vollständige Clean Architecture mit 4 Layers
@@ -56,6 +56,7 @@
 - ✅ **Top-Performer QR-Codes und ungerundene QR-Codes Übersicht**
 - ✅ **Vollständige Web-Authentifizierung mit Cookie-basiertem Login**
 - ✅ **Admin-Login-System mit Session-Management und Sicherheitsfeatures**
+- ✅ **Session-Management Optimierung: Cleanup, Cookie-Sicherheit, Timeout, Multi-Device, GDPR**
 
 ---
 
@@ -439,21 +440,36 @@ Vollständige Statistiken und System-Verfeinerung
 **Gherkin:** `features/admin_statistics.feature`  
 **Aufwand:** 13 Story Points ✅
 
-#### Story 4.2: Session-Management Optimierung
+#### Story 4.2: Session-Management Optimierung ✅ ABGESCHLOSSEN
 **Als** System  
 **Möchte ich** Sessions effizient verwalten  
 **Damit** Benutzer eine nahtlose Erfahrung haben  
 
 **Akzeptanzkriterien:**
-- [ ] Session-Bereinigung
-- [ ] Cookie-Sicherheit
-- [ ] Session-Timeout
-- [ ] Geräte-übergreifende Behandlung
-- [ ] GDPR-Compliance
-- [ ] 100% Test Coverage
+- [x] Session-Bereinigung ✅ (Background Service mit konfigurierbarem Interval)
+- [x] Cookie-Sicherheit ✅ (HttpOnly, Secure, SameSite validiert)
+- [x] Session-Timeout ✅ (Admin: 8h, Employee: 30d mit Sliding Expiration)
+- [x] Geräte-übergreifende Behandlung ✅ (Multi-Device-Sessions isoliert)
+- [x] GDPR-Compliance ✅ (Datenlöschung, Anonymisierung, Dokumentation)
+- [x] 100% Test Coverage ✅ (48 neue Tests: 18 Unit + 29 Integration + 1 Infrastructure)
+
+**Implementierte Phasen:**
+- ✅ Phase 1: Session-Bereinigung (SessionCleanupService als Background Service)
+- ✅ Phase 2: Cookie-Sicherheit (Integration Tests für Cookie-Konfiguration)
+- ✅ Phase 3: Session-Timeout (Unit + Integration Tests)
+- ✅ Phase 4: Geräte-übergreifende Behandlung (Multi-Device-Integration-Tests)
+- ✅ Phase 5: GDPR-Compliance (GdprService, API-Endpoints, Tests, Dokumentation)
+
+**Technische Details:**
+- **SessionCleanupService:** IHostedService mit konfigurierbarem Cleanup-Interval
+- **Cookie-Sicherheit:** HttpOnly, Secure (Production), SameSite (Admin: Strict, Employee: Lax)
+- **Session-Timeout:** Admin 8 Stunden, Employee 30 Tage mit Sliding Expiration
+- **GDPR-Service:** DeleteUserDataAsync, AnonymizeUserDataAsync
+- **API-Endpoints:** POST /api/users/gdpr/delete, POST /api/users/{id}/gdpr/anonymize
+- **Dokumentation:** GDPR_PRIVACY_POLICY.md, COOKIE_POLICY.md
 
 **Gherkin:** `features/session_management.feature`  
-**Aufwand:** 8 Story Points
+**Aufwand:** 8 Story Points ✅
 
 #### Story 4.3: UI/UX Polish & Performance
 **Als** Benutzer  
@@ -471,7 +487,7 @@ Vollständige Statistiken und System-Verfeinerung
 
 **Aufwand:** 8 Story Points
 
-**Sprint 4 Gesamt:** 29 Story Points
+**Sprint 4 Gesamt:** 29 Story Points (21/29 abgeschlossen = 72%)
 
 ---
 

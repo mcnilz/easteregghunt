@@ -4,6 +4,7 @@ using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace EasterEggHunt.Web.Controllers;
 
