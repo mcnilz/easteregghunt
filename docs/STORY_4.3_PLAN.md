@@ -6,7 +6,7 @@
 **Möchte ich** eine schnelle und intuitive Benutzeroberfläche  
 **Damit** die Nutzung Spaß macht  
 
-**Aufwand:** 8 Story Points
+**Aufwand:** 11 Story Points (8 ursprünglich + 3 für Phase 0)
 
 ## ✅ Aktuelle Implementierung (Analyse)
 
@@ -74,6 +74,63 @@
    - ❌ Keine Polyfills für ältere Browser
 
 ## 🎯 Implementierungsplan
+
+### Phase 0: Playwright E2E-Tests für kritische Workflows (3 Story Points) 🔒 **PRIORITÄT**
+**Ziel:** Sicherstellen, dass keine Features durch Änderungen kaputt gehen können
+
+**Hintergrund:**
+- Aktuell existieren bereits einige Playwright-Tests (`LoadingIndicatorsTests.cs`)
+- Viele Tests sind mit `[Ignore]` markiert
+- Kritische User-Workflows sind noch nicht abgesichert
+- Ziel: Regressions-Schutz für alle wichtigen Features
+
+**Aufgaben:**
+1. **Admin-Workflows testen**
+   - [ ] Admin Login/Logout Workflow
+   - [ ] Admin Dashboard Zugriff und Navigation
+   - [ ] Campaign Management (Create, Edit, Delete, List)
+   - [ ] QR-Code Management (Create, Edit, Delete, List)
+   - [ ] QR-Code Drucklayout
+   - [ ] Admin Statistics View
+
+2. **Mitarbeiter-Workflows testen**
+   - [ ] Employee Registration beim ersten QR-Code-Scan
+   - [ ] QR-Code Scanning (bereits registrierter Benutzer)
+   - [ ] Employee Progress View
+   - [ ] Session-Management (Cookie-Persistenz)
+
+3. **Fehler-Szenarien testen**
+   - [ ] Falsche Login-Daten
+   - [ ] Ungültige Formular-Eingaben
+   - [ ] API-Fehler-Szenarien (Netzwerkfehler, Timeouts)
+   - [ ] 404-Seiten
+   - [ ] Unauthorized-Zugriffe
+
+4. **Test-Infrastruktur verbessern**
+   - [ ] Test-Helper für häufige Aktionen (Login, Navigation)
+   - [ ] Page-Object-Model für wiederkehrende Komponenten
+   - [ ] Test-Daten-Setup und Cleanup
+   - [ ] CI/CD Integration (Playwright in GitHub Actions installieren)
+
+**Akzeptanzkriterien:**
+- [ ] Alle kritischen Admin-Workflows mit Playwright abgesichert
+- [ ] Alle kritischen Mitarbeiter-Workflows mit Playwright abgesichert
+- [ ] Fehler-Szenarien getestet
+- [ ] Tests laufen stabil und reproduzierbar
+- [ ] Tests können in CI/CD Pipeline ausgeführt werden (optional: mit Playwright-Installation)
+- [ ] Mindestens 80% der kritischen User-Journeys abgedeckt
+
+**Wichtige Workflows (Priorität):**
+1. **Admin Login → Campaign erstellen → QR-Code erstellen → QR-Code scannen**
+2. **QR-Code scannen → Employee Registration → Fund bestätigen**
+3. **Admin Dashboard → Statistics anzeigen**
+4. **QR-Code Drucklayout öffnen und drucken**
+
+**Technische Anforderungen:**
+- Playwright-Tests mit `ApiApplicationTestHost` und `WebApplicationTestHost`
+- Tests sollten unabhängig voneinander laufen können
+- Test-Daten sollten isoliert sein
+- Tests sollten schnell sein (< 30 Sekunden pro Test)
 
 ### Phase 1: Loading-Indikatoren (2 Story Points)
 **Ziel:** Visuelles Feedback bei Ladevorgängen
@@ -252,11 +309,12 @@
 
 ## 🚀 Implementierungs-Reihenfolge
 
-1. **Phase 1:** Loading-Indikatoren
-2. **Phase 2:** Error-Handling verbessern
-3. **Phase 3:** Performance-Optimierung
-4. **Phase 4:** Accessibility (WCAG 2.1 AA)
-5. **Phase 5:** Browser-Kompatibilität & Testing
+1. **Phase 0:** Playwright E2E-Tests für kritische Workflows 🔒 **ZUERST**
+2. **Phase 1:** Loading-Indikatoren
+3. **Phase 2:** Error-Handling verbessern
+4. **Phase 3:** Performance-Optimierung
+5. **Phase 4:** Accessibility (WCAG 2.1 AA)
+6. **Phase 5:** Browser-Kompatibilität & Testing
 
 ## ✅ Definition of Done
 
@@ -268,6 +326,69 @@
 - [ ] Lighthouse-Score > 90 für Performance
 - [ ] WCAG 2.1 AA Compliance erreicht
 - [ ] Browser-Kompatibilitäts-Matrix dokumentiert
+
+## 📊 Aktueller Stand (Stand: November 2025)
+
+### 🔒 Phase 0: Playwright E2E-Tests - **PRIORITÄT** (~20%)
+- ✅ Test-Infrastruktur vorhanden (`ApiApplicationTestHost`, `WebApplicationTestHost`)
+- ✅ Basis-Tests erstellt (`LoadingIndicatorsTests.cs`)
+- ⚠️ Viele Tests mit `[Ignore]` markiert
+- ❌ Kritische Workflows noch nicht abgesichert
+- ❌ Test-Helper und Page-Objects fehlen
+
+### ⚠️ Phase 1: Loading-Indikatoren - **TEILWEISE ABGESCHLOSSEN** (~60%)
+- ✅ Komponenten erstellt (Spinner, Skeleton-Screens)
+- ✅ JavaScript-Funktionen implementiert
+- ✅ CSS-Styles vorhanden
+- ⚠️ Integration in Views fehlt noch
+
+### ⚠️ Phase 2: Error-Handling - **IN ARBEIT** (~30%)
+- ✅ Basis Error-Handling vorhanden
+- ⚠️ Generische Fehlermeldungen
+- ❌ Toast-Benachrichtigungen fehlen
+- ❌ Retry-Mechanismen fehlen
+
+### ❌ Phase 3-5: **NOCH NICHT BEGONNEN**
+
+## 🚀 Nächste Schritte
+
+### 🔒 Priorität 1: Phase 0 - Playwright E2E-Tests (KRITISCH)
+1. **Test-Helper erstellen**
+   - `LoginHelper` für Admin-Login
+   - `NavigationHelper` für häufige Navigationen
+   - `TestDataHelper` für Test-Daten-Setup
+
+2. **Kritische Workflows testen**
+   - Admin Login → Campaign erstellen → QR-Code erstellen
+   - QR-Code scannen → Employee Registration → Fund bestätigen
+   - Admin Dashboard → Statistics anzeigen
+
+3. **Page-Object-Model einführen**
+   - `AdminLoginPage`
+   - `CampaignManagementPage`
+   - `QrCodeManagementPage`
+   - `EmployeeRegistrationPage`
+
+### Priorität 2: Phase 1 abschließen
+1. **Loading-Indikatoren in Views integrieren**
+   - Formulare mit `data-loading="true"` Attribut versehen
+   - AJAX-Requests mit Loading-Indikatoren versehen
+   - Button-Disabling bei Form-Submission aktivieren
+
+2. **Skeleton-Screens verwenden**
+   - In Listen-Views (Campaigns, QR-Codes, Statistics) einbauen
+   - Während Daten geladen werden anzeigen
+
+### Priorität 3: Phase 2 starten
+1. **Toast-Benachrichtigungen implementieren**
+   - Bootstrap Toast-Komponente verwenden
+   - JavaScript-Helper für Toast-Anzeige erstellen
+   - TempData-Messages in Toasts umwandeln
+
+2. **Error-Pages verbessern**
+   - 404-Seite mit Navigation erstellen
+   - 500-Seite mit Support-Informationen
+   - 403-Seite mit Erklärung
 
 
 
