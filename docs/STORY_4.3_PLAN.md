@@ -90,8 +90,8 @@
    - [ ] Admin Dashboard Zugriff und Navigation
    - [ ] Campaign Management (Create, Edit, Delete, List)
    - [x] QR-Code Management (Create, Edit, Delete, List)
-   - [ ] QR-Code Drucklayout
-   - [ ] Admin Statistics View
+   - [x] QR-Code Drucklayout
+   - [x] Admin Statistics View
 
 2. **Mitarbeiter-Workflows testen**
    - [x] Employee Registration beim ersten QR-Code-Scan
@@ -340,6 +340,15 @@
 - ✅ Alle ignorierten Tests behoben (`AdminControllerTests.cs` - alle 5 Tests aktiviert)
 - ✅ TempData-Initialisierung für Controller-Tests implementiert
 - ⚠️ Playwright-Tests sind für CI/CD ausgeschlossen (Category "Playwright"), aber lokal aktiviert
+- ✅ Admin Statistics View – E2E-Test implementiert und grün
+- ✅ QR‑Code Drucklayout – E2E-Test implementiert und grün
+
+❗ Offene Restpunkte für Phase 0 (kurzfristig abschließen):
+- [ ] Admin Logout explizit testen (derzeit nur Login abgedeckt)
+- [ ] Employee: QR-Code Scanning mit bereits registriertem Benutzer
+- [ ] Employee: Progress View nach mindestens einem Scan
+- [ ] Fehler-Szenarien: 404-View und Unauthorized-Redirects explizit testen
+- [ ] Test-Daten-Setup/Cleanup-Helper (Factory) ergänzen
 
 ### ⚠️ Phase 1: Loading-Indikatoren - **TEILWEISE ABGESCHLOSSEN** (~60%)
 - ✅ Komponenten erstellt (Spinner, Skeleton-Screens)
