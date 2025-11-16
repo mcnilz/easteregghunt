@@ -105,6 +105,55 @@ public class QrCodeManagementPage
         await _page.ClickAsync($"text={qrCodeTitle}");
         await _page.WaitForLoadStateAsync();
     }
+
+    /// <summary>
+    /// Klickt in der Tabelle in der Zeile des angegebenen QR-Codes auf den Bearbeiten-Button
+    /// </summary>
+    public async Task ClickEditForAsync(string qrCodeTitle)
+    {
+        // Finde die Tabellenzeile mit dem Titel und klicke dort auf "Bearbeiten"
+        var row = _page.Locator("table tbody tr").Filter(new LocatorFilterOptions { HasText = qrCodeTitle });
+        await row.Locator("text=Bearbeiten").ClickAsync();
+        await _page.WaitForLoadStateAsync();
+    }
+
+    /// <summary>
+    /// Klickt in der Tabelle in der Zeile des angegebenen QR-Codes auf den Löschen-Button
+    /// </summary>
+    public async Task ClickDeleteForAsync(string qrCodeTitle)
+    {
+        var row = _page.Locator("table tbody tr").Filter(new LocatorFilterOptions { HasText = qrCodeTitle });
+        await row.Locator("text=Löschen").ClickAsync();
+        await _page.WaitForLoadStateAsync();
+    }
+
+    /// <summary>
+    /// Füllt das Edit-Formular mit neuen Werten
+    /// </summary>
+    public async Task FillEditFormAsync(string newTitle, string newDescription, string newInternalNotes)
+    {
+        await _page.FillAsync("input[name='Title']", newTitle);
+        await _page.FillAsync("textarea[name='Description']", newDescription);
+        await _page.FillAsync("textarea[name='InternalNotes']", string.IsNullOrWhiteSpace(newInternalNotes) ? "Updated by Automated Test" : newInternalNotes);
+    }
+
+    /// <summary>
+    /// Sendet das Edit-Formular ab und wartet auf Rückkehr zur Liste
+    /// </summary>
+    public async Task SubmitEditAsync(int campaignId)
+    {
+        await _page.ClickAsync("form[data-loading='true'] button[type='submit']");
+        await _page.WaitForURLAsync($"**/Admin/QrCodes/{campaignId}**", new PageWaitForURLOptions { Timeout = 10000 });
+    }
+
+    /// <summary>
+    /// Bestätigt die Löschung in der Bestätigungsansicht und wartet auf Rückkehr zur Liste
+    /// </summary>
+    public async Task ConfirmDeleteAsync(int campaignId)
+    {
+        await _page.ClickAsync("form[action*='DeleteQrCode'] button[type='submit']");
+        await _page.WaitForURLAsync($"**/Admin/QrCodes/{campaignId}**", new PageWaitForURLOptions { Timeout = 10000 });
+    }
 }
 
 

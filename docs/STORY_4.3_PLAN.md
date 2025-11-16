@@ -89,26 +89,26 @@
    - [ ] Admin Login/Logout Workflow
    - [ ] Admin Dashboard Zugriff und Navigation
    - [ ] Campaign Management (Create, Edit, Delete, List)
-   - [ ] QR-Code Management (Create, Edit, Delete, List)
+   - [x] QR-Code Management (Create, Edit, Delete, List)
    - [ ] QR-Code Drucklayout
    - [ ] Admin Statistics View
 
 2. **Mitarbeiter-Workflows testen**
-   - [ ] Employee Registration beim ersten QR-Code-Scan
+   - [x] Employee Registration beim ersten QR-Code-Scan
    - [ ] QR-Code Scanning (bereits registrierter Benutzer)
    - [ ] Employee Progress View
    - [ ] Session-Management (Cookie-Persistenz)
 
 3. **Fehler-Szenarien testen**
-   - [ ] Falsche Login-Daten
+   - [x] Falsche Login-Daten
    - [ ] Ungültige Formular-Eingaben
    - [ ] API-Fehler-Szenarien (Netzwerkfehler, Timeouts)
    - [ ] 404-Seiten
    - [ ] Unauthorized-Zugriffe
 
 4. **Test-Infrastruktur verbessern**
-   - [ ] Test-Helper für häufige Aktionen (Login, Navigation)
-   - [ ] Page-Object-Model für wiederkehrende Komponenten
+   - [x] Test-Helper für häufige Aktionen (Login, Navigation)
+   - [x] Page-Object-Model für wiederkehrende Komponenten
    - [ ] Test-Daten-Setup und Cleanup
    - [ ] CI/CD Integration (Playwright in GitHub Actions installieren)
 
@@ -376,9 +376,9 @@
 
 ### Priorität 2: Phase 1 abschließen
 1. **Loading-Indikatoren in Views integrieren**
-   - Formulare mit `data-loading="true"` Attribut versehen
+   - [x] Formulare mit `data-loading="true"` Attribut versehen (QR-Code Create/Edit/Delete)
    - AJAX-Requests mit Loading-Indikatoren versehen
-   - Button-Disabling bei Form-Submission aktivieren
+   - [x] Button-Disabling bei Form-Submission aktivieren (via bestehendem Script auf `data-loading`-Formularen)
 
 2. **Skeleton-Screens verwenden**
    - In Listen-Views (Campaigns, QR-Codes, Statistics) einbauen

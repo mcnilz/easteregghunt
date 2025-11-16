@@ -31,7 +31,7 @@
             </dd>
         </dl>
 
-        <form asp-action="DeleteQrCode" asp-route-id="@Model.Id" method="post">
+        <form asp-action="DeleteQrCode" asp-route-id="@Model.Id" method="post" data-loading="true">
             @Html.AntiForgeryToken()
             <div class="mb-3">
                 <button type="submit" class="btn btn-danger">
