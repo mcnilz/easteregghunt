@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using EasterEggHunt.Web.Tests.Helpers;
 using Microsoft.Playwright;
-using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
 
 namespace EasterEggHunt.Web.Tests.Frontend;
@@ -13,50 +12,15 @@ namespace EasterEggHunt.Web.Tests.Frontend;
 [Category("Playwright")]
 [SuppressMessage("Design", "CA1001:Types that own disposable fields should be disposable", Justification = "Disposed in TearDown method")]
 [SuppressMessage("Design", "CA2213:Disposable fields should be disposed", Justification = "Disposed in TearDown method")]
-public sealed class LoadingIndicatorsTests : PageTest
+public sealed class LoadingIndicatorsTests : PlaywrightTestBase
 {
-    private ApiApplicationTestHost _apiHost = null!;
-    private WebApplicationTestHost _webHost = null!;
-    private IBrowserContext _browserContext = null!;
-    private string _baseUrl = null!;
-
-    [SetUp]
-    public async Task SetUpAsync()
-    {
-        // Starte zuerst die API
-        _apiHost = new ApiApplicationTestHost();
-        await _apiHost.StartAsync();
-
-        // Starte dann das Web-Projekt mit der API-URL
-        _webHost = new WebApplicationTestHost();
-        await _webHost.StartAsync(_apiHost.ServerUrl);
-
-        // Hole die Web-Server-URL
-        _baseUrl = _webHost.ServerUrl.ToString().TrimEnd('/');
-
-        // Erstelle einen neuen BrowserContext mit der BaseURL
-        var contextOptions = new BrowserNewContextOptions
-        {
-            BaseURL = _baseUrl,
-            ViewportSize = new ViewportSize { Width = 1280, Height = 720 },
-        };
-
-        _browserContext = await Browser.NewContextAsync(contextOptions);
-    }
-
-    [TearDown]
-    public async Task TearDownAsync()
-    {
-        await _browserContext.DisposeAsync();
-        _webHost.Dispose();
-        _apiHost.Dispose();
-    }
+    // Setup/TearDown und Browser-Kontext werden vollständig von PlaywrightTestBase übernommen.
 
     [Test]
     public async Task LoginForm_ShouldShowLoadingSpinner_WhenSubmitted()
     {
         // Arrange
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
         await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Warte auf das Laden des Scripts (maximal 15 Sekunden)
@@ -73,7 +37,7 @@ public sealed class LoadingIndicatorsTests : PageTest
 
         // Robust warten: Entweder disabled+Spinner ODER Redirect auf Admin
         var waitDisabledTask = page.WaitForFunctionAsync("() => document.querySelector(\"button[type='submit']\")?.disabled === true", new PageWaitForFunctionOptions { Timeout = 15000 });
-        var waitUrlTask = page.WaitForURLAsync("**/Admin/**", new PageWaitForURLOptions { Timeout = 20000 });
+        var waitUrlTask = page.WaitForURLAsync("**/Admin", new PageWaitForURLOptions { Timeout = 20000 });
         var completed = await Task.WhenAny(waitDisabledTask, waitUrlTask);
 
         if (completed == waitDisabledTask)
@@ -102,7 +66,7 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task RefreshButton_ShouldShowLoadingSpinner_WhenClicked()
     {
         // Arrange - Login first
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
         await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Warte auf das Laden des Scripts (maximal 15 Sekunden)
@@ -115,7 +79,7 @@ public sealed class LoadingIndicatorsTests : PageTest
 
         // Robust warten: Entweder disabled+Spinner ODER Redirect auf Admin
         var waitDisabledTask = page.WaitForFunctionAsync("() => document.querySelector(\"button[type='submit']\")?.disabled === true", new PageWaitForFunctionOptions { Timeout = 15000 });
-        var waitUrlTask = page.WaitForURLAsync("**/Admin/**", new PageWaitForURLOptions { Timeout = 20000 });
+        var waitUrlTask = page.WaitForURLAsync("**/Admin", new PageWaitForURLOptions { Timeout = 20000 });
         var completed = await Task.WhenAny(waitDisabledTask, waitUrlTask);
 
         if (completed == waitDisabledTask)
@@ -149,7 +113,7 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task FormWithDataLoading_ShouldDisableSubmitButton_WhenSubmitted()
     {
         // Arrange - Login first
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
         await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Warte auf das Laden des Scripts (maximal 15 Sekunden)
@@ -179,7 +143,7 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task Homepage_ShouldBeAccessible()
     {
         // Arrange
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
 
         // Act: Navigiere zur Login-Seite
         var response = await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
@@ -203,14 +167,13 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task StaticFile_ShouldBeAccessible()
     {
         // Arrange
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
 
         // Act: Versuche direkt auf die JavaScript-Datei zuzugreifen
-        var scriptUrl = _baseUrl + "/js/loading-indicators.js";
-        var response = await page.GotoAsync(scriptUrl, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        var response = await page.GotoAsync("/js/loading-indicators.js", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Assert
-        Assert.That(response?.Status, Is.EqualTo(200), $"JavaScript-Datei sollte unter {scriptUrl} erreichbar sein (Status: {response?.Status})");
+        Assert.That(response?.Status, Is.EqualTo(200), $"JavaScript-Datei sollte unter /js/loading-indicators.js erreichbar sein (Status: {response?.Status})");
 
         var content = await response!.TextAsync();
         Assert.That(content, Does.Contain("showLoadingSpinner"), "JavaScript-Datei sollte den Inhalt enthalten");
@@ -220,7 +183,7 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task LoadingIndicatorsScript_ShouldBeLoaded()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
         await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Prüfe, ob das Script-Tag im HTML vorhanden ist
@@ -267,7 +230,7 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task ShowLoadingSpinner_ShouldDisplaySpinner()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
         await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Warte auf das Laden des Scripts (maximal 15 Sekunden)
@@ -294,7 +257,7 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task DisableButton_ShouldDisableButtonAndShowSpinner()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
         await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Warte auf das Laden des Scripts (maximal 15 Sekunden)
@@ -322,7 +285,7 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task EnableButton_ShouldReEnableButton()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
         await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Warte auf das Laden des Scripts (maximal 15 Sekunden)
@@ -351,7 +314,7 @@ public sealed class LoadingIndicatorsTests : PageTest
     public async Task LoadingOverlay_ShouldBlockEntireScreen()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
-        var page = await _browserContext.NewPageAsync();
+        var page = await NewPageAsync();
         await page.GotoAsync("/Auth/Login", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Warte auf das Laden des Scripts (maximal 15 Sekunden)
