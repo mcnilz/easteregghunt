@@ -1,4 +1,5 @@
 using EasterEggHunt.Api.Configuration;
+using EasterEggHunt.Api.Controllers;
 using EasterEggHunt.Api.Middleware;
 using EasterEggHunt.Application;
 using EasterEggHunt.Infrastructure;
@@ -19,6 +20,10 @@ public static class ApiApplicationHostBuilder
     {
         // Add services to the container.
         builder.Services.AddControllers()
+            // WICHTIG: Explizit die API-Assembly als ApplicationPart hinzufügen,
+            // damit Controller auch gefunden werden, wenn die App aus einem Test-Assembly
+            // gehostet wird (EntryAssembly != API-Assembly)
+            .AddApplicationPart(typeof(AuthController).Assembly)
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
@@ -57,7 +62,7 @@ public static class ApiApplicationHostBuilder
 
         // Add Response Compression and Response Caching (if enabled in configuration)
         var options = builder.Configuration
-            .GetSection(EasterEggHunt.Domain.Configuration.EasterEggHuntOptions.SectionName)
+            .GetSection(Domain.Configuration.EasterEggHuntOptions.SectionName)
             .Get<EasterEggHunt.Domain.Configuration.EasterEggHuntOptions>();
         if (options?.Performance.EnableResponseCompression == true)
         {
@@ -104,6 +109,8 @@ public static class ApiApplicationHostBuilder
 
         // Performance-Tracking Middleware
         app.UseMiddleware<PerformanceMiddleware>();
+
+        app.UseRouting();
 
         app.UseCors();
 

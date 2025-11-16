@@ -1,0 +1,55 @@
+﻿@model IEnumerable<EasterEggHunt.Domain.Entities.Campaign>
+@{
+    ViewData["Title"] = "Kampagnen";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">Kampagnen</h2>
+            <a asp-action="CreateCampaign" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Neue Kampagne
+            </a>
+        </div>
+
+        @if (TempData["SuccessMessage"] is string success && !string.IsNullOrWhiteSpace(success))
+        {
+            <div class="alert alert-success" role="alert">@success</div>
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info">
+                Es sind derzeit keine Kampagnen vorhanden.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Beschreibung</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var campaign in Model)
+                    {
+                        <tr>
+                            <td>
+                                @* Name als Text ausgeben, damit Tests ihn finden *@
+                                <span>@campaign.Name</span>
+                            </td>
+                            <td>
+                                <span class="text-muted">@campaign.Description</span>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+</div>

@@ -53,7 +53,6 @@ public sealed class LoadingIndicatorsTests : PageTest
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle Effekte werden aktuell nicht getestet.")]
     public async Task LoginForm_ShouldShowLoadingSpinner_WhenSubmitted()
     {
         // Arrange
@@ -87,7 +86,7 @@ public sealed class LoadingIndicatorsTests : PageTest
         else if (completed == waitUrlTask)
         {
             // Wir sind schon navigiert – das ist ebenso gültig für den Testzweck
-            Assert.That(page.Url, Does.Contain("/Admin/"), "Nach Login sollte zur Admin-Seite navigiert werden.");
+            Assert.That(page.Url, Does.Contain("/Admin"), "Nach Login sollte zur Admin-Seite navigiert werden.");
         }
         else
         {
@@ -100,7 +99,6 @@ public sealed class LoadingIndicatorsTests : PageTest
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle Effekte werden aktuell nicht getestet.")]
     public async Task RefreshButton_ShouldShowLoadingSpinner_WhenClicked()
     {
         // Arrange - Login first
@@ -148,7 +146,6 @@ public sealed class LoadingIndicatorsTests : PageTest
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle Effekte werden aktuell nicht getestet.")]
     public async Task FormWithDataLoading_ShouldDisableSubmitButton_WhenSubmitted()
     {
         // Arrange - Login first
@@ -162,7 +159,7 @@ public sealed class LoadingIndicatorsTests : PageTest
         await page.FillAsync("input[name='Username']", "admin");
         await page.FillAsync("input[name='Password']", "admin123");
         await page.ClickAsync("button[type='submit']");
-        await page.WaitForURLAsync("**/Admin/**", new PageWaitForURLOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForURLAsync("**/Admin**", new PageWaitForURLOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
         // Navigate to CreateCampaign
         await page.GotoAsync("/Admin/CreateCampaign", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
@@ -203,7 +200,6 @@ public sealed class LoadingIndicatorsTests : PageTest
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle/Asset-Effekte werden aktuell nicht getestet.")]
     public async Task StaticFile_ShouldBeAccessible()
     {
         // Arrange
@@ -216,12 +212,11 @@ public sealed class LoadingIndicatorsTests : PageTest
         // Assert
         Assert.That(response?.Status, Is.EqualTo(200), $"JavaScript-Datei sollte unter {scriptUrl} erreichbar sein (Status: {response?.Status})");
 
-        var content = await page.ContentAsync();
+        var content = await response!.TextAsync();
         Assert.That(content, Does.Contain("showLoadingSpinner"), "JavaScript-Datei sollte den Inhalt enthalten");
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle/Asset-Effekte werden aktuell nicht getestet.")]
     public async Task LoadingIndicatorsScript_ShouldBeLoaded()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
@@ -269,7 +264,6 @@ public sealed class LoadingIndicatorsTests : PageTest
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle Effekte werden aktuell nicht getestet.")]
     public async Task ShowLoadingSpinner_ShouldDisplaySpinner()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
@@ -297,7 +291,6 @@ public sealed class LoadingIndicatorsTests : PageTest
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle Effekte werden aktuell nicht getestet.")]
     public async Task DisableButton_ShouldDisableButtonAndShowSpinner()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
@@ -326,7 +319,6 @@ public sealed class LoadingIndicatorsTests : PageTest
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle Effekte werden aktuell nicht getestet.")]
     public async Task EnableButton_ShouldReEnableButton()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet
@@ -356,7 +348,6 @@ public sealed class LoadingIndicatorsTests : PageTest
     }
 
     [Test]
-    [Ignore("Depriorisiert: rein visuelle Effekte werden aktuell nicht getestet.")]
     public async Task LoadingOverlay_ShouldBlockEntireScreen()
     {
         // Arrange - Verwende Login-Seite, die definitiv das Layout verwendet

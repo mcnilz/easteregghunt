@@ -96,6 +96,7 @@ public class AdminController : Controller
     /// <returns>Erstellungsformular</returns>
     public IActionResult CreateCampaign()
     {
+        // View erwartet CreateCampaignRequest (stark typisierte View)
         return View(new CreateCampaignRequest());
     }
 
@@ -110,6 +111,15 @@ public class AdminController : Controller
     {
         try
         {
+            // Stelle sicher, dass CreatedBy gesetzt ist (kommt nicht aus dem Formular)
+            if (string.IsNullOrWhiteSpace(request.CreatedBy))
+            {
+                request.CreatedBy = User.Identity?.Name ?? "System";
+                // Entferne evtl. vorhandene ModelState-Fehler für CreatedBy und validiere erneut
+                ModelState.Remove(nameof(request.CreatedBy));
+                TryValidateModel(request);
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(request);
