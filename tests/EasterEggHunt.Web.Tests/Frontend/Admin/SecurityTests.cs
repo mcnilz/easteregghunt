@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using EasterEggHunt.Web.Tests.Helpers;
 using Microsoft.Playwright;
 using NUnit.Framework;
