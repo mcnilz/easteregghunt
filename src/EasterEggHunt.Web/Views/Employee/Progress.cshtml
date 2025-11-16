@@ -1,4 +1,5 @@
-@model EasterEggHunt.Web.Models.ProgressViewModel
+@using System.Globalization
+@model ProgressViewModel
 
 <div class="container mt-4">
     <h2>Dein Fortschritt</h2>
@@ -26,7 +27,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Fortschritt</h5>
                     <div class="progress" role="progressbar" aria-valuenow="@Model.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
-                        <div class="progress-bar" style="width: @Model.ProgressPercent%">@Model.ProgressPercent%</div>
+                        <div class="progress-bar" style="width: @($"{Model.ProgressPercent}%")">@Model.ProgressPercent%</div>
                     </div>
                     @if (Model.IsCompleted)
                     {
@@ -51,7 +52,7 @@
             {
                 <tr>
                     <td>@f.Title</td>
-                    <td>@f.FoundAt.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture)</td>
+                    <td>@f.FoundAt.ToLocalTime().ToString("g", CultureInfo.CurrentCulture)</td>
                 </tr>
             }
             </tbody>

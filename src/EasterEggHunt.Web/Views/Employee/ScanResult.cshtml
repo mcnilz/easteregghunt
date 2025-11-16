@@ -1,4 +1,4 @@
-@model EasterEggHunt.Web.Models.ScanResultViewModel
+@model ScanResultViewModel
 @{
     ViewData["Title"] = "QR-Code gefunden!";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -18,7 +18,7 @@
                 <div class="card-body text-center p-4">
                     <!-- QR-Code Titel -->
                     <h3 class="text-success mb-3">@Model.QrCode.Title</h3>
-                    
+
                     <!-- QR-Code Beschreibung -->
                     @if (!string.IsNullOrEmpty(Model.QrCode.Description))
                     {
@@ -44,8 +44,8 @@
                                 Bereits gefunden!
                             </h5>
                             <p class="mb-0">
-                                Du hast dieses Versteck bereits am 
-                                <strong>@Model.PreviousFind!.FoundAt.ToString("dd.MM.yyyy um HH:mm")</strong> 
+                                Du hast dieses Versteck bereits am
+                                <strong>@Model.PreviousFind!.FoundAt.ToString("dd.MM.yyyy um HH:mm")</strong>
                                 gefunden!
                             </p>
                         </div>
@@ -63,10 +63,10 @@
                     <div class="mb-4">
                         <h6 class="text-center mb-2">Dein Fortschritt</h6>
                         <div class="progress" style="height: 25px;">
-                            <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: @Model.ProgressPercentage%" 
-                                 aria-valuenow="@Model.ProgressPercentage" 
-                                 aria-valuemin="0" 
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 style="width: @($"{Model.ProgressPercentage}%")"
+                                 aria-valuenow="@Model.ProgressPercentage"
+                                 aria-valuemin="0"
                                  aria-valuemax="100">
                                 @Model.UserTotalFinds von @Model.CampaignTotalQrCodes Verstecken
                             </div>

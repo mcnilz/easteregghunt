@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Claims;
 using EasterEggHunt.Domain.Entities;
@@ -28,7 +29,7 @@ public class EmployeeController : Controller
     /// <param name="qrCodeUrl">Optional: QR-Code URL für Weiterleitung nach Registrierung</param>
     /// <returns>Registrierungsformular oder Weiterleitung wenn bereits registriert</returns>
     [HttpGet]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "MVC requires string for query parameters")]
+    [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "MVC requires string for query parameters")]
     public IActionResult Register(string? qrCodeUrl)
     {
         // Prüfen ob bereits als Employee eingeloggt
@@ -44,6 +45,13 @@ public class EmployeeController : Controller
         {
             QrCodeUrl = qrCodeUrl
         };
+
+        // QR-Code-Weiterleitungsziel für den POST-Back zwischenspeichern,
+        // falls das Hidden-Feld nicht korrekt gebunden oder verloren geht
+        if (!string.IsNullOrEmpty(qrCodeUrl))
+        {
+            TempData["QrCodeUrl"] = qrCodeUrl;
+        }
 
         return View(model);
     }
@@ -111,7 +119,15 @@ public class EmployeeController : Controller
 
             TempData["SuccessMessage"] = $"Willkommen {user.Name}! Du bist jetzt registriert.";
 
-            return RedirectToQrCodeOrDashboard(model.QrCodeUrl);
+            // Fallback: Falls das Hidden-Feld QrCodeUrl nicht gebunden wurde,
+            // verwende den in TempData hinterlegten Wert aus dem GET-Aufruf
+            var redirectQrUrl = model.QrCodeUrl;
+            if (string.IsNullOrEmpty(redirectQrUrl) && TempData.ContainsKey("QrCodeUrl"))
+            {
+                redirectQrUrl = TempData["QrCodeUrl"] as string;
+            }
+
+            return RedirectToQrCodeOrDashboard(redirectQrUrl);
         }
         catch (InvalidOperationException ex)
         {

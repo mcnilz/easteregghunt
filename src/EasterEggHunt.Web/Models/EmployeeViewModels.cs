@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using EasterEggHunt.Domain.Entities;
 
 namespace EasterEggHunt.Web.Models;
@@ -13,14 +14,15 @@ public class EmployeeRegistrationViewModel
     /// </summary>
     [Required(ErrorMessage = "Name ist erforderlich")]
     [StringLength(100, MinimumLength = 2, ErrorMessage = "Name muss zwischen 2 und 100 Zeichen haben")]
-    [RegularExpression(@"^[a-zA-ZäöüÄÖÜß\s\-\.]+$", ErrorMessage = "Name darf nur Buchstaben, Leerzeichen, Bindestriche und Punkte enthalten")]
+    // Erlaube nun auch Ziffern, da Testdaten und reale Namen diese enthalten können
+    [RegularExpression(@"^[a-zA-Z0-9äöüÄÖÜß\s\-\.]+$", ErrorMessage = "Name darf nur Buchstaben, Zahlen, Leerzeichen, Bindestriche und Punkte enthalten")]
     [Display(Name = "Dein Name")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// QR-Code URL für Weiterleitung nach Registrierung
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1056:URI-like properties should not be strings", Justification = "MVC Model Binding requires string for query parameters")]
+    [SuppressMessage("Design", "CA1056:URI-like properties should not be strings", Justification = "MVC Model Binding requires string for query parameters")]
     public string? QrCodeUrl { get; set; }
 }
 

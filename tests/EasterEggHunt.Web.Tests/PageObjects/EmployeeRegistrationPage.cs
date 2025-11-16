@@ -44,10 +44,11 @@ public class EmployeeRegistrationPage
         // Klicke den Submit-Button des spezifischen Formulars
         await _page.ClickAsync("form[data-loading='true'] button[type='submit']");
 
-        // Warte auf Redirect zur QR-Code-Scan-Seite oder auf Fehler
+        // Warte auf Redirect zur QR-Code-Scan-Seite oder auf echte Fehlermeldung
+        // Hinweis: .text-danger ist zu generisch (leere Validierungs-Container existieren immer)
         await Task.WhenAny(
-            _page.WaitForURLAsync("**/qr/**", new PageWaitForURLOptions { Timeout = 15000 }),
-            _page.WaitForSelectorAsync(".alert-danger, .text-danger", new PageWaitForSelectorOptions { Timeout = 7000 })
+            _page.WaitForURLAsync("**/qr/**", new PageWaitForURLOptions { Timeout = 20000 }),
+            _page.WaitForSelectorAsync(".alert-danger, .validation-summary-errors", new PageWaitForSelectorOptions { Timeout = 7000 })
         );
     }
 
