@@ -42,9 +42,9 @@ public class CampaignManagementPage
     }
 
     /// <summary>
-    /// Erstellt eine neue Campaign
+    /// Erstellt eine neue Campaign und gibt die Campaign-ID zurück
     /// </summary>
-    public async Task CreateCampaignAsync(string name, string description)
+    public async Task<int> CreateCampaignAsync(string name, string description)
     {
         await NavigateToCreateAsync();
         await FillCreateFormAsync(name, description);
@@ -52,10 +52,55 @@ public class CampaignManagementPage
         await _page.ClickAsync("form[data-loading='true'] button[type='submit']");
 
         // Warte auf Redirect zur Campaigns-Liste oder auf Fehler
-        await Task.WhenAny(
-            _page.WaitForURLAsync("**/Admin/Campaigns**", new PageWaitForURLOptions { Timeout = 10000 }),
-            _page.WaitForSelectorAsync(".text-danger", new PageWaitForSelectorOptions { Timeout = 5000 })
-        );
+        var redirectedTask = _page.WaitForURLAsync("**/Admin/Campaigns**", new PageWaitForURLOptions { Timeout = 15000 });
+        var errorTask = _page.WaitForSelectorAsync(".text-danger", new PageWaitForSelectorOptions { Timeout = 7000 });
+        var completed = await Task.WhenAny(redirectedTask, errorTask);
+        if (completed == redirectedTask)
+        {
+            // Stelle sicher, dass die Seite vollständig geladen ist
+            await _page.WaitForLoadStateAsync();
+        }
+
+        // Hole Campaign-ID aus der API
+        return await GetCampaignIdFromApiAsync(name);
+    }
+
+    /// <summary>
+    /// Ermittelt die Campaign-ID aus dem DOM der Kampagnenliste.
+    /// Erwartet, dass die Tabelle Zeilen mit data-campaign-id trägt und der Kampagnenname im selben <tr> vorhanden ist.
+    /// </summary>
+    private async Task<int> GetCampaignIdFromApiAsync(string campaignName)
+    {
+        // Statt einen API-Call vom Browser auszuführen (der scheitern kann, z.B. wegen Auth),
+        // lesen wir die ID direkt aus dem DOM der Kampagnenliste.
+        try
+        {
+            var campaignId = await _page.EvaluateAsync<int?>(@"(name) => {
+                const rows = Array.from(document.querySelectorAll('table tbody tr'));
+                for (const row of rows) {
+                    const containsName = row.textContent && row.textContent.trim().includes(name);
+                    if (containsName) {
+                        const idAttr = row.getAttribute('data-campaign-id');
+                        const id = idAttr ? parseInt(idAttr, 10) : NaN;
+                        if (!Number.isNaN(id)) {
+                            return id;
+                        }
+                    }
+                }
+                return null;
+            }", campaignName);
+
+            if (campaignId.HasValue)
+            {
+                return campaignId.Value;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Konnte Campaign-ID für '{campaignName}' nicht aus dem DOM ermitteln: {ex.Message}");
+        }
+
+        throw new InvalidOperationException($"Konnte Campaign-ID für '{campaignName}' nicht finden. Ist die Kampagne in der Liste vorhanden?");
     }
 
     /// <summary>

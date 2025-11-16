@@ -36,7 +36,7 @@
                     <tbody>
                     @foreach (var campaign in Model)
                     {
-                        <tr>
+                        <tr data-campaign-id="@campaign.Id">
                             <td>
                                 @* Name als Text ausgeben, damit Tests ihn finden *@
                                 <span>@campaign.Name</span>

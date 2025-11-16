@@ -80,8 +80,8 @@
 
 **Hintergrund:**
 - Aktuell existieren bereits einige Playwright-Tests (`LoadingIndicatorsTests.cs`)
-- Viele Tests sind mit `[Ignore]` markiert
-- Kritische User-Workflows sind noch nicht abgesichert
+- Alle Tests sind aktiviert (keine `[Ignore]` Attribute mehr)
+- Kritische User-Workflows sind abgesichert
 - Ziel: Regressions-Schutz für alle wichtigen Features
 
 **Aufgaben:**
@@ -329,12 +329,17 @@
 
 ## 📊 Aktueller Stand (Stand: November 2025)
 
-### 🔒 Phase 0: Playwright E2E-Tests - **PRIORITÄT** (~20%)
+### 🔒 Phase 0: Playwright E2E-Tests - **PRIORITÄT** (~95%) ✅ **GROßTEILS ABGESCHLOSSEN**
 - ✅ Test-Infrastruktur vorhanden (`ApiApplicationTestHost`, `WebApplicationTestHost`)
-- ✅ Basis-Tests erstellt (`LoadingIndicatorsTests.cs`)
-- ⚠️ Viele Tests mit `[Ignore]` markiert
-- ❌ Kritische Workflows noch nicht abgesichert
-- ❌ Test-Helper und Page-Objects fehlen
+- ✅ Server-Readiness-Checks implementiert (`EnsureApiServerReadyAsync`, `EnsureWebServerReadyAsync`)
+- ✅ Test-Helper erstellt (`LoginHelper`, `NavigationHelper`)
+- ✅ Page-Object-Model implementiert (`AdminLoginPage`, `CampaignManagementPage`, `QrCodeManagementPage`, `EmployeeRegistrationPage`)
+- ✅ Kritische Admin-Workflow-Tests implementiert (Login → Campaign erstellen → QR-Code erstellen)
+- ✅ Kritische Mitarbeiter-Workflow-Tests implementiert (QR-Code scannen → Registration → Fund bestätigen)
+- ✅ Fehler-Szenarien-Tests implementiert (falsche Login-Daten, ungültige Formulare, unauthentifizierte Zugriffe)
+- ✅ Alle ignorierten Tests behoben (`AdminControllerTests.cs` - alle 5 Tests aktiviert)
+- ✅ TempData-Initialisierung für Controller-Tests implementiert
+- ⚠️ Playwright-Tests sind für CI/CD ausgeschlossen (Category "Playwright"), aber lokal aktiviert
 
 ### ⚠️ Phase 1: Loading-Indikatoren - **TEILWEISE ABGESCHLOSSEN** (~60%)
 - ✅ Komponenten erstellt (Spinner, Skeleton-Screens)

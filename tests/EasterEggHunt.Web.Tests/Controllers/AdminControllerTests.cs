@@ -1,10 +1,14 @@
+using System.Globalization;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Controllers;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
 using EasterEggHunterApi.Abstractions.Models.Campaign;
 using EasterEggHunterApi.Abstractions.Models.QrCode;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
@@ -42,6 +46,11 @@ public sealed class AdminControllerTests : IDisposable
             _mockPrintService.Object,
             _mockApiClient.Object,
             _mockLogger.Object);
+
+        // Initialize TempData for controller
+        var mockTempDataProvider = new Mock<ITempDataProvider>();
+        var tempData = new TempDataDictionary(new DefaultHttpContext(), mockTempDataProvider.Object);
+        _controller.TempData = tempData;
     }
 
     [Test]
@@ -121,7 +130,6 @@ public sealed class AdminControllerTests : IDisposable
     }
 
     [Test]
-    [Ignore("ModelState validation issue in unit tests - use integration tests instead")]
     public async Task CreateCampaign_ReturnsRedirect_WhenModelIsValid()
     {
         // Arrange
@@ -137,22 +145,20 @@ public sealed class AdminControllerTests : IDisposable
         _mockCampaignService.Setup(x => x.CreateCampaignAsync(request))
             .ReturnsAsync(campaign);
 
-        // Ensure ModelState is valid by using a different approach
+        // Ensure ModelState is valid - Controller sets CreatedBy if empty, so we need to ensure ModelState is valid
         _controller.ModelState.Clear();
-        // In unit tests, ModelState.IsValid returns false by default
-        // We need to simulate a valid model state by ensuring no errors exist
-        // and the model has been processed by the model binder
-        _controller.ModelState.SetModelValue("Name", new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult("Test Campaign", System.Globalization.CultureInfo.InvariantCulture));
-        _controller.ModelState.SetModelValue("Description", new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult("Test Description", System.Globalization.CultureInfo.InvariantCulture));
-        _controller.ModelState.SetModelValue("CreatedBy", new Microsoft.AspNetCore.Mvc.ModelBinding.ValueProviderResult("Admin", System.Globalization.CultureInfo.InvariantCulture));
+        // Simulate that the model binder has processed the request successfully
+        _controller.ModelState.SetModelValue("Name", new ValueProviderResult("Test Campaign", CultureInfo.InvariantCulture));
+        _controller.ModelState.SetModelValue("Description", new ValueProviderResult("Test Description", CultureInfo.InvariantCulture));
+        _controller.ModelState.SetModelValue("CreatedBy", new ValueProviderResult("Admin", CultureInfo.InvariantCulture));
 
-        // Force ModelState.IsValid to return true by ensuring all entries are valid
+        // Mark all entries as valid
         foreach (var key in _controller.ModelState.Keys.ToList())
         {
             var entry = _controller.ModelState[key];
-            if (entry != null && entry.Errors.Count == 0)
+            if (entry != null)
             {
-                entry.ValidationState = Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Valid;
+                entry.ValidationState = ModelValidationState.Valid;
             }
         }
 
@@ -160,7 +166,7 @@ public sealed class AdminControllerTests : IDisposable
         var result = await _controller.CreateCampaign(request);
 
         // Assert
-        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>(), $"Expected RedirectToActionResult but got {result?.GetType().Name}");
         var redirectResult = result as RedirectToActionResult;
         Assert.That(redirectResult!.ActionName, Is.EqualTo(nameof(AdminController.Campaigns)));
     }
@@ -227,21 +233,46 @@ public sealed class AdminControllerTests : IDisposable
     }
 
     [Test]
-    [Ignore("ModelState validation issue in unit tests - use integration tests instead")]
     public async Task EditCampaign_ReturnsRedirect_WhenModelIsValid()
     {
         // Arrange
+        var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin")
+        {
+            Id = campaignId
+        };
+
         var request = new UpdateCampaignRequest
         {
             Name = "Updated Campaign",
             Description = "Updated Description",
         };
 
+        _mockCampaignService.Setup(x => x.GetCampaignByIdAsync(campaignId))
+            .ReturnsAsync(campaign);
+        _mockCampaignService.Setup(x => x.UpdateCampaignAsync(campaignId, request))
+            .Returns(Task.CompletedTask);
+
+        // Ensure ModelState is valid
+        _controller.ModelState.Clear();
+        _controller.ModelState.SetModelValue("Name", new ValueProviderResult("Updated Campaign", CultureInfo.InvariantCulture));
+        _controller.ModelState.SetModelValue("Description", new ValueProviderResult("Updated Description", CultureInfo.InvariantCulture));
+
+        // Mark all entries as valid
+        foreach (var key in _controller.ModelState.Keys.ToList())
+        {
+            var entry = _controller.ModelState[key];
+            if (entry != null)
+            {
+                entry.ValidationState = ModelValidationState.Valid;
+            }
+        }
+
         // Act
-        var result = await _controller.EditCampaign(1, request);
+        var result = await _controller.EditCampaign(campaignId, request);
 
         // Assert
-        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>(), $"Expected RedirectToActionResult but got {result?.GetType().Name}");
         var redirectResult = result as RedirectToActionResult;
         Assert.That(redirectResult!.ActionName, Is.EqualTo(nameof(AdminController.Campaigns)));
     }
@@ -269,11 +300,13 @@ public sealed class AdminControllerTests : IDisposable
     }
 
     [Test]
-    [Ignore("Service mock issue - needs proper service setup")]
     public async Task DeleteCampaignConfirmed_ReturnsRedirect_WhenSuccessful()
     {
         // Arrange
         var campaignId = 1;
+
+        _mockCampaignService.Setup(x => x.DeleteCampaignAsync(campaignId))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.DeleteCampaignConfirmed(campaignId);
@@ -336,7 +369,6 @@ public sealed class AdminControllerTests : IDisposable
     }
 
     [Test]
-    [Ignore("ModelState validation issue in unit tests - use integration tests instead")]
     public async Task CreateQrCode_ReturnsRedirect_WhenModelIsValid()
     {
         // Arrange
@@ -353,29 +385,46 @@ public sealed class AdminControllerTests : IDisposable
         _mockQrCodeService.Setup(x => x.CreateQrCodeAsync(request))
             .ReturnsAsync(qrCode);
 
+        // Ensure ModelState is valid
+        _controller.ModelState.Clear();
+        _controller.ModelState.SetModelValue("Title", new ValueProviderResult("Test QR Code", CultureInfo.InvariantCulture));
+        _controller.ModelState.SetModelValue("Description", new ValueProviderResult("Test Description", CultureInfo.InvariantCulture));
+        _controller.ModelState.SetModelValue("InternalNotes", new ValueProviderResult("Test Notes", CultureInfo.InvariantCulture));
+        _controller.ModelState.SetModelValue("CampaignId", new ValueProviderResult("1", CultureInfo.InvariantCulture));
+
+        // Mark all entries as valid
+        foreach (var key in _controller.ModelState.Keys.ToList())
+        {
+            var entry = _controller.ModelState[key];
+            if (entry != null)
+            {
+                entry.ValidationState = ModelValidationState.Valid;
+            }
+        }
+
         // Act
         var result = await _controller.CreateQrCode(request);
 
         // Assert
-        Assert.That(result, Is.InstanceOf<RedirectToActionResult>());
+        Assert.That(result, Is.InstanceOf<RedirectToActionResult>(), $"Expected RedirectToActionResult but got {result?.GetType().Name}");
         var redirectResult = result as RedirectToActionResult;
         Assert.That(redirectResult!.ActionName, Is.EqualTo(nameof(AdminController.QrCodes)));
     }
 
     [Test]
-    [Ignore("Service mock issue - needs proper service setup")]
     public async Task PrintQrCodes_ReturnsView_WhenCampaignExists()
     {
         // Arrange
         var campaignId = 1;
+        var campaign = new Campaign("Test Campaign", "Test Description", "Admin") { Id = campaignId };
         var printData = new PrintLayoutViewModel
         {
-            Campaign = new Campaign("Test Campaign", "Test Description", "Admin") { Id = campaignId },
+            Campaign = campaign,
             QrCodes = new List<PrintQrCodeItem>(),
             PrintDate = DateTime.UtcNow
         };
 
-        _mockPrintService.Setup(x => x.PreparePrintLayoutAsync(campaignId))
+        _mockPrintService.Setup(x => x.PreparePrintDataAsync(campaignId))
             .ReturnsAsync(printData);
 
         // Act
@@ -459,21 +508,21 @@ public sealed class AdminControllerTests : IDisposable
     public async Task Leaderboard_ReturnsViewWithTopPerformers()
     {
         // Arrange
-        var topPerformers = new Models.TopPerformersStatisticsViewModel
+        var topPerformers = new TopPerformersStatisticsViewModel
         {
-            TopByTotalFinds = new List<Models.UserStatistics>
+            TopByTotalFinds = new List<UserStatistics>
             {
-                new Models.UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8 },
-                new Models.UserStatistics { UserId = 2, UserName = "User2", TotalFinds = 8, UniqueQrCodesFound = 7 }
+                new UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8 },
+                new UserStatistics { UserId = 2, UserName = "User2", TotalFinds = 8, UniqueQrCodesFound = 7 }
             },
-            TopByUniqueQrCodes = new List<Models.UserStatistics>
+            TopByUniqueQrCodes = new List<UserStatistics>
             {
-                new Models.UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8 },
-                new Models.UserStatistics { UserId = 2, UserName = "User2", TotalFinds = 8, UniqueQrCodesFound = 7 }
+                new UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8 },
+                new UserStatistics { UserId = 2, UserName = "User2", TotalFinds = 8, UniqueQrCodesFound = 7 }
             },
-            MostRecentActivity = new List<Models.UserStatistics>
+            MostRecentActivity = new List<UserStatistics>
             {
-                new Models.UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8, LastFindDate = DateTime.UtcNow }
+                new UserStatistics { UserId = 1, UserName = "User1", TotalFinds = 10, UniqueQrCodesFound = 8, LastFindDate = DateTime.UtcNow }
             },
             GeneratedAt = DateTime.UtcNow
         };

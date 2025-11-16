@@ -1,0 +1,71 @@
+﻿@model EasterEggHunterApi.Abstractions.Models.QrCode.CreateQrCodeRequest
+@{
+    ViewData["Title"] = "QR-Code erstellen";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <h2>Neuen QR-Code erstellen</h2>
+        <p class="text-muted">Erstellen Sie einen QR-Code für die ausgewählte Kampagne.</p>
+
+        @if (TempData["SuccessMessage"] is string success && !string.IsNullOrWhiteSpace(success))
+        {
+            <div class="alert alert-success" role="alert">@success</div>
+        }
+
+        <form asp-action="CreateQrCode" method="post" data-loading="true">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="CampaignId" />
+
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" placeholder="z.B. Eingang Ost" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Optionale Beschreibung..."></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="InternalNotes" class="form-label"></label>
+                <textarea asp-for="InternalNotes" class="form-control" rows="3" placeholder="Interne Notiz für Admins" ></textarea>
+                <span asp-validation-for="InternalNotes" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> QR-Code erstellen
+                </button>
+                <a asp-action="QrCodes" asp-route-id="@Model.CampaignId" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Hinweise</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-info-circle text-primary"></i>
+                        <strong>Titel:</strong> Wird zur Identifikation des QR-Codes angezeigt.
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-info-circle text-primary"></i>
+                        <strong>Interne Notiz:</strong> Pflichtfeld, nur für Administratoren sichtbar.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
