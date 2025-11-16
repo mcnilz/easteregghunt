@@ -11,7 +11,6 @@ EasterEggHunt/
 ├── src/
 │   ├── EasterEggHunt.Api/          # Web API (Backend)
 │   ├── EasterEggHunt.Application/  # Business Logic Layer
-│   ├── EasterEggHunt.Common/       # Shared Configuration & Utilities
 │   ├── EasterEggHunt.Domain/       # Domain Models & Interfaces
 │   ├── EasterEggHunt.Infrastructure/ # Data Access & External Services
 │   └── EasterEggHunt.Web/          # MVC Frontend (API Client)
@@ -132,7 +131,6 @@ Das Easter Egg Hunt System folgt **Clean Architecture** mit klarer Trennung zwis
 - **EasterEggHunt.Application**: Business Logic und Services
 - **EasterEggHunt.Domain**: Entities und Domain Models
 - **EasterEggHunt.Infrastructure**: Data Access und externe Services
-- **EasterEggHunt.Common**: Shared Configuration und Utilities (für zukünftige Verwendung)
 
 ### Migration-Strategie
 
