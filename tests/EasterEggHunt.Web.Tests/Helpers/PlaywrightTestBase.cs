@@ -1,5 +1,6 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
+using System.Text;
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
@@ -107,26 +108,37 @@ public abstract class PlaywrightTestBase : PageTest
 
                     // Teste auch einen kritischen Endpoint (z.B. Auth-Login)
                     var authTestUrl = new Uri(ApiHost.ServerUrl, "/api/auth/login");
-                    using var content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json");
+                    using var content = new StringContent("{}", Encoding.UTF8, "application/json");
                     var authTestResponse = await httpClient.PostAsync(authTestUrl, content);
 
-                    // 404 ist hier OK, da wir nur prüfen wollen, ob der Endpoint existiert
-                    // Unauthorized (401) oder BadRequest (400) bedeutet, dass der Endpoint existiert
-                    if (authTestResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    // Bewertung des Auth-Endpoints:
+                    //  - 200 OK: alles gut
+                    //  - 400 BadRequest / 401 Unauthorized / 403 Forbidden: Endpoint existiert und reagiert erwartbar ohne gültige Nutzlast/Token
+                    //  - 404 NotFound: Routen evtl. noch nicht initialisiert → retry
+                    //  - 5xx: Serverproblem → retry
+                    if (authTestResponse.StatusCode == HttpStatusCode.NotFound)
                     {
-                        TestContext.WriteLine($"Warnung: Auth-Endpoint gibt 404 zurück. Möglicherweise sind die Routen noch nicht vollständig initialisiert.");
-                        // Warte noch etwas länger
+                        // Nur in diesem Sonderfall loggen wir eine Hinweiszeile und versuchen es erneut
+                        TestContext.WriteLine("Hinweis: Auth-Endpoint gibt 404 zurück. Routen werden evtl. noch initialisiert – erneuter Versuch folgt.");
                         if (i < maxRetries - 1)
                         {
                             await Task.Delay(retryDelay * 2);
                             continue;
                         }
                     }
-                    else
+                    else if ((int)authTestResponse.StatusCode >= 500)
                     {
-                        TestContext.WriteLine($"API Auth-Endpoint ist erreichbar: Status {authTestResponse.StatusCode}");
-                        return; // Server ist bereit
+                        // Serverfehler: erneut versuchen (kein ausführliches Logging, um Rauschen zu vermeiden)
+                        if (i < maxRetries - 1)
+                        {
+                            await Task.Delay(retryDelay * 2);
+                            continue;
+                        }
                     }
+
+                    // Für alle anderen (erwartbaren) Statuscodes kein zusätzliches Log-Rauschen erzeugen
+                    // Der API-Server ist bereit
+                    return;
                 }
             }
             catch (HttpRequestException ex)
@@ -163,7 +175,7 @@ public abstract class PlaywrightTestBase : PageTest
             try
             {
                 var response = await httpClient.GetAsync(homeUrl);
-                if (response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Redirect)
+                if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Redirect)
                 {
                     TestContext.WriteLine($"Web-Server ist bereit: {WebHost.ServerUrl}");
 

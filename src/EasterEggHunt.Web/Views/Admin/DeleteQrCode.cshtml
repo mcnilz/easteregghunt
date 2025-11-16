@@ -1,0 +1,44 @@
+﻿@model EasterEggHunt.Domain.Entities.QrCode
+@{
+    ViewData["Title"] = "QR-Code löschen";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="text-danger">QR-Code löschen</h2>
+        <p>Möchten Sie den folgenden QR-Code wirklich löschen? Dieser Vorgang kann nicht rückgängig gemacht werden.</p>
+
+        <dl class="row">
+            <dt class="col-sm-3">Titel</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+
+            <dt class="col-sm-3">Code</dt>
+            <dd class="col-sm-9"><code>@Model.Code</code></dd>
+
+            <dt class="col-sm-3">Kampagne</dt>
+            <dd class="col-sm-9">@Model.CampaignId</dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success">Aktiv</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Inaktiv</span>
+                }
+            </dd>
+        </dl>
+
+        <form asp-action="DeleteQrCode" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Endgültig löschen
+                </button>
+                <a asp-action="QrCodes" asp-route-id="@Model.CampaignId" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
