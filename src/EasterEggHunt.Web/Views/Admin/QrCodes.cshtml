@@ -1,0 +1,93 @@
+﻿@model CampaignQrCodesViewModel
+@{
+    ViewData["Title"] = "QR-Codes verwalten";
+}
+
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-0">QR-Codes – @Model.Campaign.Name</h2>
+            <small class="text-muted">Kampagnen-ID: @Model.Campaign.Id</small>
+        </div>
+        <div class="btn-group">
+            <a class="btn btn-outline-secondary" asp-action="CampaignDetails" asp-route-id="@Model.Campaign.Id">
+                <i class="fas fa-arrow-left"></i> Zurück zu Kampagnendetails
+            </a>
+            <a class="btn btn-outline-info" asp-action="PrintQrCodes" asp-route-id="@Model.Campaign.Id">
+                <i class="fas fa-print"></i> Drucken
+            </a>
+            <a class="btn btn-primary" asp-action="CreateQrCode" asp-route-campaignId="@Model.Campaign.Id">
+                <i class="fas fa-plus"></i> Neuer QR-Code
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is string success && !string.IsNullOrWhiteSpace(success))
+{
+    <div class="alert alert-success" role="alert">@success</div>
+}
+
+@if (TempData["ErrorMessage"] is string error && !string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.QrCodes != null && Model.QrCodes.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Titel</th>
+                            <th>Code</th>
+                            <th>Status</th>
+                            <th>Erstellt</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var qr in Model.QrCodes.OrderBy(q => q.SortOrder).ThenBy(q => q.Title))
+                        {
+                            <tr>
+                                <td>@qr.Title</td>
+                                <td><code>@qr.Code</code></td>
+                                <td>
+                                    @if (qr.IsActive)
+                                    {
+                                        <span class="badge bg-success">Aktiv</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inaktiv</span>
+                                    }
+                                </td>
+                                <td>@qr.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a class="btn btn-outline-primary" asp-action="QrCodeStatistics" asp-route-id="@qr.Id">Stats</a>
+                                        <a class="btn btn-outline-secondary" asp-action="EditQrCode" asp-route-id="@qr.Id">Bearbeiten</a>
+                                        <a class="btn btn-outline-danger" asp-action="DeleteQrCode" asp-route-id="@qr.Id">Löschen</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info mb-0">
+                <h5 class="alert-heading">Noch keine QR-Codes vorhanden</h5>
+                <p>Erstellen Sie den ersten QR-Code für diese Kampagne.</p>
+                <a class="btn btn-primary" asp-action="CreateQrCode" asp-route-campaignId="@Model.Campaign.Id">
+                    <i class="fas fa-plus"></i> QR-Code erstellen
+                </a>
+            </div>
+        }
+    </div>
+}
+</div>
