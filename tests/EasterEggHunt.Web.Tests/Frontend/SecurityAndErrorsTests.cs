@@ -29,6 +29,7 @@ public sealed class SecurityAndErrorsTests : PlaywrightTestBase
     }
 
     [Test]
+    [Category("AllowHttpErrors")] // Bewusster 404-Test: globaler 4xx/5xx-Guard soll hier nicht greifen
     public async Task NonExistingRoute_ShouldReturnNotFoundView()
     {
         // Arrange

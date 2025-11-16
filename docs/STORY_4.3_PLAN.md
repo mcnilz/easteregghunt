@@ -405,6 +405,51 @@
    - 403-Seite mit Erklärung
 
 
+### Zusatz: Iteration 3 – UI‑Navigation in Playwright‑Tests (Start morgen)
+
+Ziel: Navigation in E2E‑Tests möglichst realitätsnah über UI‑Klicks statt direkter URL‑Aufrufe; defekte Links (404/500) früh erkennen und beheben; Warte‑Muster vereinheitlichen.
+
+Geplante Arbeitspakete (kurzfristig):
+- Navbar‑Smoke‑Tests ergänzen (frühe 404‑Erkennung)
+  - Employee: Klicke nacheinander „Kampagnen“, „QR‑Code scannen“, „Leaderboard“ (PageObject `EmployeeNavbar`); prüfe `h1/h2` bzw. charakteristische Elemente; globaler 4xx/5xx‑Guard bleibt aktiv.
+  - Admin: Klicke „Dashboard“, „Statistiken“, „Rangliste“, „Zeitbasierte Statistiken“, „Fund‑Historie“, „Benutzer“ (PageObject `AdminNavbar`); je Zielseite UI‑Assertion.
+  - Technisch: `ClickAndWaitAsync(page, locator, expectedUrlPattern, waitForSelector)` verwenden.
+
+- Click‑Utility verbreitern
+  - In vorhandenen PageObjects (`CampaignManagementPage`, `QrCodeManagementPage`, `ScanResultPage`, `EmployeeNavbar`, `AdminNavbar`) schrittweise `ClickAndWaitAsync` nutzen.
+  - Standard: primär `waitForSelector` (eindeutiges Ziel‑Element), sekundär `expectedUrlPattern`.
+
+- Tests von `Goto` auf UI‑Navigation migrieren
+  - Kategorie A (muss via UI): Admin‑Listen/Details/Print; Employee Progress/Dashboard/Leaderboard per Navbar/Buttons.
+  - Kategorie B (Ausnahme): Deep‑Link `/qr/{code}` bleibt (ersetzt Kamera‑Scan) – im Testcode kommentiert.
+
+- Link‑Integrität und UI‑Fixes
+  - Bei 404/Fehlrouten: Razor‑Views auf Tag‑Helper (`asp-controller`, `asp-action`, `asp-route-*`) umstellen; fehlende CTAs minimal ergänzen.
+  - Nach Fix: kleinen Regressionstest für den konkreten Link ergänzen.
+
+- Observability & Stabilität
+  - Timeouts in Playwright‑Config prüfen/vereinheitlichen.
+  - Tracing/Screenshots/Videos bei Fehlschlägen sicher aktivieren und in CI als Artefakte veröffentlichen.
+
+Deliverables:
+- Neue Smoke‑Tests: `AdminNavbarSmokeTests`, `EmployeeNavbarSmokeTests` (NUnit, Kategorie „Playwright“).
+- Migrierte Tests ohne direkte `Goto`‑Navigation in Kategorie‑A‑Fällen.
+- Evtl. kleine Razor‑Fixes (Tag‑Helper/Links) + zugehörige fokussierte Regressionstests.
+- Ergänzte Doku in `docs/TESTING.md` zum Umgang mit UI‑Navigation und Ausnahmen.
+
+Abnahmekriterien:
+- 100% der Kategorie‑A‑Navigationsfälle nutzen UI‑Klicks (keine direkten `Goto`).
+- Beide Navbar‑Smoke‑Tests grün; Guard erkennt echte 404/500.
+- Deep‑Link‑Ausnahmen dokumentiert.
+- Full‑Solution‑Testlauf grün (lokal & CI) mit aktivem Tracing bei Fehlschlägen.
+
+Nächster konkreter Schritt (morgen):
+1) `EmployeeNavbarSmokeTests` anlegen und umsetzen.  
+2) `AdminNavbarSmokeTests` anlegen (vorab Admin‑Login via `AdminLoginPage`).  
+3) 2–3 bestehende Tests migrieren (UI‑Klicks statt `Goto`), `ClickAndWaitAsync` einsetzen.  
+4) Falls 404/Fehlroute auffällt: minimaler Razor‑Fix (Tag‑Helper) + kleiner Regressionstest.
+
+
 
 
 

@@ -39,8 +39,9 @@ public sealed class PrintLayoutTests : PlaywrightTestBase
             await qrPage.CreateQrCodeAsync(campaignId, $"QR-Print-{i}", "Print Desc", "Print Notes");
         }
 
-        // Act: Drucklayout öffnen
-        await page.GotoAsync($"/Admin/PrintQrCodes/{campaignId}", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        // Act: Drucklayout per UI öffnen (statt direkter URL)
+        await qrPage.NavigateAsync(campaignId);
+        await qrPage.OpenPrintLayoutAsync(campaignId);
 
         // Assert: Seite rendert ohne Fehler und enthält erwartete Inhalte
         // Titelzeile enthält den Kampagnennamen, und Einleitungstext ist vorhanden

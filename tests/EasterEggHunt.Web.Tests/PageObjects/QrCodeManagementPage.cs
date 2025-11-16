@@ -154,6 +154,24 @@ public class QrCodeManagementPage
         await _page.ClickAsync("form[action*='DeleteQrCode'] button[type='submit']");
         await _page.WaitForURLAsync($"**/Admin/QrCodes/{campaignId}**", new PageWaitForURLOptions { Timeout = 10000 });
     }
+
+    /// <summary>
+    /// Öffnet die Druckansicht über den "Drucken"-Button auf der QR-Liste der Kampagne
+    /// </summary>
+    public async Task OpenPrintLayoutAsync(int campaignId)
+    {
+        // Sicherstellen, dass wir uns auf der Liste befinden
+        // Notwendig, falls der Aufrufer nicht vorher NavigateAsync(campaignId) genutzt hat
+        if (!_page.Url.Contains($"/Admin/QrCodes/{campaignId}", StringComparison.OrdinalIgnoreCase))
+        {
+            await NavigateAsync(campaignId);
+        }
+
+        // Klicke den "Drucken"-Button in der Toolbar und warte auf die Druckansicht
+        await _page.GetByRole(AriaRole.Link, new() { Name = "Drucken" }).ClickAsync();
+        await _page.WaitForURLAsync($"**/Admin/PrintQrCodes/{campaignId}**", new PageWaitForURLOptions { Timeout = 20000 });
+        await _page.WaitForSelectorAsync("h1, .print-header", new PageWaitForSelectorOptions { Timeout = 20000 });
+    }
 }
 
 

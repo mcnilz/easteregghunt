@@ -230,7 +230,61 @@ public abstract class PlaywrightTestBase : PageTest
     /// </summary>
     protected async Task<IPage> NewPageAsync()
     {
-        return await BrowserContext.NewPageAsync();
+        var page = await BrowserContext.NewPageAsync();
+
+        // Globale Response-Überwachung: Schlage fehl bei 4xx/5xx Document-Responses,
+        // außer der Test ist mit [Category("AllowHttpErrors")] markiert
+        if (!HasCategory("AllowHttpErrors"))
+        {
+            page.Response += (_, response) =>
+            {
+                // Bewusst ohne breites Exception-Swallowing (CA1031):
+                // Die folgenden Operationen sind sicher, da wir nur Eigenschaften lesen.
+                if (response is null) return;
+                // Nur Dokument-Navigationen betrachten (keine Assets)
+                if (response.Request.ResourceType == "document" && (int)response.Status >= 400)
+                {
+                    Assert.Fail($"HTTP-Fehlerstatus {response.Status} für URL {response.Url}");
+                }
+            };
+        }
+
+        return page;
+    }
+
+    /// <summary>
+    /// Klickt auf einen Locator und wartet optional auf ein URL-Muster und/oder das Erscheinen eines eindeutigen UI-Selectors.
+    /// Vereinheitlicht Click+Wait-Muster für stabilere Navigation.
+    /// </summary>
+    /// <param name="page">Die zugehörige Seite, auf der gewartet werden soll</param>
+    /// <param name="locator">Ziel-Element (z. B. via GetByRole)</param>
+    /// <param name="expectedUrlPattern">Optionales URL-Muster (glob) auf das nach dem Klick gewartet wird, z. B. "**/Admin/**"</param>
+    /// <param name="waitForSelector">Optionaler CSS-Selector eines eindeutigen Elements auf der Zielseite (z. B. ein h1/h2)</param>
+    [SuppressMessage("Design", "CA1054:URI parameters should not be strings", Justification = "Playwright WaitForURL verwendet Glob-Patterns, keine URIs")]
+    protected static async Task ClickAndWaitAsync(IPage page, ILocator locator, string? expectedUrlPattern = null, string? waitForSelector = null)
+    {
+        await locator.ClickAsync();
+
+        // Warte auf Navigation/State anhand der übergebenen Kriterien
+        var waits = new List<Task>();
+        if (!string.IsNullOrWhiteSpace(expectedUrlPattern))
+        {
+            waits.Add(page.WaitForURLAsync(expectedUrlPattern, new PageWaitForURLOptions { Timeout = 20000 }));
+        }
+        if (!string.IsNullOrWhiteSpace(waitForSelector))
+        {
+            waits.Add(page.WaitForSelectorAsync(waitForSelector, new PageWaitForSelectorOptions { Timeout = 20000 }));
+        }
+
+        if (waits.Count > 0)
+        {
+            await Task.WhenAll(waits);
+        }
+        else
+        {
+            // Fallback: kurze Netzwerk-/DOM-Stabilisierung
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        }
     }
 
     private static bool HasCategory(string categoryName)

@@ -21,23 +21,14 @@ public sealed class LogoutTests : PlaywrightTestBase
         // Arrange
         var page = await NewPageAsync();
         var loginPage = new AdminLoginPage(page);
+        var navbar = new AdminNavbar(page);
 
         // Login als Admin
         await loginPage.LoginAsync(LoginHelper.DefaultAdminUsername, LoginHelper.DefaultAdminPassword);
         await page.WaitForURLAsync("**/Admin**", new PageWaitForURLOptions { Timeout = 20000 });
 
-        // Act: Versuche Logout-Route aufzurufen (falls vorhanden), aber verlasse dich nicht darauf
-        try
-        {
-            await page.GotoAsync("/Auth/Logout", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
-        }
-        catch (PlaywrightException)
-        {
-            // Ignoriere Fehler, falls Route anders implementiert ist (POST o.ä.)
-        }
-
-        // Sicherheitsnetz: Session explizit invalidieren, indem Cookies gelöscht werden
-        await BrowserContext.ClearCookiesAsync();
+        // Act: Logout über UI (Dropdown → Abmelden‑Button, POST)
+        await navbar.LogoutAsync();
 
         // Assert: Zugriff auf Admin sollte auf Login umleiten
         await page.GotoAsync("/Admin", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
@@ -56,8 +47,9 @@ public sealed class LogoutTests : PlaywrightTestBase
         await loginPage.LoginAsync(LoginHelper.DefaultAdminUsername, LoginHelper.DefaultAdminPassword);
         await page.WaitForURLAsync("**/Admin**", new PageWaitForURLOptions { Timeout = 20000 });
 
-        // Logout/Session invalidieren durch Löschen der Cookies (robust und unabhängig von der Route)
-        await BrowserContext.ClearCookiesAsync();
+        // Logout per UI (Dropdown → Abmelden)
+        var navbar = new AdminNavbar(page);
+        await navbar.LogoutAsync();
 
         // Act: Versuche erneut auf Admin zuzugreifen
         await page.GotoAsync("/Admin", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });

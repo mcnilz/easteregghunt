@@ -65,8 +65,9 @@ public sealed class RegisteredScanAndProgressTests : PlaywrightTestBase
         // Assert 2: Info-Alert mit "Bereits gefunden!" sichtbar
         await Expect(page.Locator(".alert-info")).ToContainTextAsync("Bereits gefunden!");
 
-        // Act 3: Progress-View aufrufen
-        await page.GotoAsync("/Employee/Progress", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        // Act 3: Progress-View über UI aufrufen (realistische Navigation)
+        var scanResultPage = new ScanResultPage(page);
+        await scanResultPage.ClickMyProgressAsync();
 
         // Assert 3: Progress-Seite zeigt Überschrift und mindestens einen 'Letzte Funde' Eintrag mit dem Titel
         await Expect(page.Locator("h2")).ToContainTextAsync("Dein Fortschritt");
