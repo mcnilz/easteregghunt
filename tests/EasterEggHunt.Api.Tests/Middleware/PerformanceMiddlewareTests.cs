@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using EasterEggHunt.Api.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

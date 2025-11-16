@@ -1,5 +1,7 @@
-using System.Collections.Generic;
 using EasterEggHunt.Api.Hosting;
+using EasterEggHunt.Application.Services;
+using EasterEggHunt.Domain.Repositories;
+using EasterEggHunt.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -87,7 +89,7 @@ public sealed class ApiApplicationTestHost : IDisposable
         // Ensure DB created (Schema), bevor wir Requests bedienen
         using (var scope = _app.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<EasterEggHunt.Infrastructure.Data.EasterEggHuntDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<EasterEggHuntDbContext>();
             await db.Database.EnsureCreatedAsync();
         }
 
@@ -103,8 +105,8 @@ public sealed class ApiApplicationTestHost : IDisposable
                 if (env.IsEnvironment("Test"))
                 {
                     var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApiApplicationTestHost>>();
-                    var authService = scope.ServiceProvider.GetRequiredService<EasterEggHunt.Application.Services.IAuthService>();
-                    var adminRepo = scope.ServiceProvider.GetRequiredService<EasterEggHunt.Domain.Repositories.IAdminUserRepository>();
+                    var authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
+                    var adminRepo = scope.ServiceProvider.GetRequiredService<IAdminUserRepository>();
                     var existing = await adminRepo.GetByUsernameAsync("admin");
                     if (existing == null)
                     {

@@ -1,10 +1,8 @@
-using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Repositories;
 using EasterEggHunt.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests.Data;
 

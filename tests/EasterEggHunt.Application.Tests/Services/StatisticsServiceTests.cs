@@ -1,6 +1,5 @@
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
-using EasterEggHunt.Domain.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
 

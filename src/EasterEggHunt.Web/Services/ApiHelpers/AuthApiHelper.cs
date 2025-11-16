@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+using System.Net;
 using System.Text.Json;
 using EasterEggHunterApi.Abstractions.Models.Auth;
 using LoginRequest = EasterEggHunterApi.Abstractions.Models.Auth.LoginRequest;
@@ -31,7 +31,7 @@ internal class AuthApiHelper
             var response = await _httpClient.PostAsJsonAsync(
                 new Uri("/api/auth/login", UriKind.Relative), request, _jsonOptions);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 return null;
             }

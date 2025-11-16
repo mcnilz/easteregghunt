@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using System.Text.Json;
 using EasterEggHunt.Web.Models;
 
@@ -36,15 +35,15 @@ internal class StatisticsApiHelper
         return result ?? throw new InvalidOperationException("API gab keine Kampagnen-Statistiken zurück");
     }
 
-    internal async Task<Models.TopPerformersStatisticsViewModel> GetTopPerformersAsync()
+    internal async Task<TopPerformersStatisticsViewModel> GetTopPerformersAsync()
     {
         _logger.LogDebug("API-Aufruf: GET /api/statistics/top-performers");
-        var result = await _httpClient.GetFromJsonAsync<Models.TopPerformersStatisticsViewModel>(
+        var result = await _httpClient.GetFromJsonAsync<TopPerformersStatisticsViewModel>(
             new Uri("/api/statistics/top-performers", UriKind.Relative), _jsonOptions);
         return result ?? throw new InvalidOperationException("API gab keine Top-Performer-Statistiken zurück");
     }
 
-    internal async Task<Models.TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
+    internal async Task<TimeBasedStatisticsViewModel> GetTimeBasedStatisticsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
         var url = "/api/statistics/time-based";
         var queryParams = new List<string>();
@@ -62,12 +61,12 @@ internal class StatisticsApiHelper
         }
 
         _logger.LogDebug("API-Aufruf: GET {Url}", url);
-        var result = await _httpClient.GetFromJsonAsync<Models.TimeBasedStatisticsViewModel>(
+        var result = await _httpClient.GetFromJsonAsync<TimeBasedStatisticsViewModel>(
             new Uri(url, UriKind.Relative), _jsonOptions);
         return result ?? throw new InvalidOperationException("API gab keine zeitbasierten Statistiken zurück");
     }
 
-    internal async Task<Models.FindHistoryResponseViewModel> GetFindHistoryAsync(
+    internal async Task<FindHistoryResponseViewModel> GetFindHistoryAsync(
         DateTime? startDate = null,
         DateTime? endDate = null,
         int? userId = null,
@@ -124,7 +123,7 @@ internal class StatisticsApiHelper
         }
 
         _logger.LogDebug("API-Aufruf: GET {Url}", url);
-        var result = await _httpClient.GetFromJsonAsync<Models.FindHistoryResponseViewModel>(
+        var result = await _httpClient.GetFromJsonAsync<FindHistoryResponseViewModel>(
             new Uri(url, UriKind.Relative), _jsonOptions);
         return result ?? throw new InvalidOperationException("API gab keine Fund-Historie zurück");
     }

@@ -1,5 +1,4 @@
 using Microsoft.Playwright;
-using Microsoft.Playwright.NUnit;
 
 namespace EasterEggHunt.Web.Tests.Helpers;
 

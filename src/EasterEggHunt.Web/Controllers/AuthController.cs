@@ -1,10 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Claims;
 using EasterEggHunt.Web.Models;
 using EasterEggHunt.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 
 namespace EasterEggHunt.Web.Controllers;
 
@@ -27,7 +27,7 @@ public class AuthController : Controller
     /// </summary>
     /// <param name="returnUrl">URL zur Weiterleitung nach Login</param>
     /// <returns>Login-View</returns>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "URL wird als String für Redirect verwendet")]
+    [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "URL wird als String für Redirect verwendet")]
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {

@@ -1,7 +1,6 @@
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Infrastructure.Data;
 using EasterEggHunt.Integration.Tests.Helpers;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 

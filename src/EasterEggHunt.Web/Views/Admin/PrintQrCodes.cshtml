@@ -1,4 +1,4 @@
-@model EasterEggHunt.Web.Models.PrintQrCodesViewModel
+@model PrintLayoutViewModel
 @{
     ViewData["Title"] = $"QR-Codes drucken - {Model.Campaign.Name}";
     Layout = null; // Kein Layout für Druckansicht
@@ -219,14 +219,11 @@
                     <div class="qr-code-image">
                         <div id="qrcode-@qrCode.Id"
                              data-url="@qrCode.Code"
-                             data-size="@Model.Size"
+                             data-size="200"
                              title="@qrCode.Title"></div>
                     </div>
 
-                    @if (Model.ShowTitles)
-                    {
-                        <div class="qr-code-title">@qrCode.Title</div>
-                    }
+                    <div class="qr-code-title">@qrCode.Title</div>
 
                     @if (!string.IsNullOrWhiteSpace(qrCode.Description))
                     {
@@ -248,7 +245,7 @@
 
     <div class="print-footer">
         <p>Easter Egg Hunt System - QR-Code Druckansicht</p>
-        <p>Kampagne: @Model.Campaign.Name | QR-Code-Größe: @Model.Size px | Titel: @(Model.ShowTitles ? "Angezeigt" : "Ausgeblendet")</p>
+        <p>Kampagne: @Model.Campaign.Name | Anzahl QR-Codes: @Model.QrCodes.Count</p>
     </div>
 
     <script>

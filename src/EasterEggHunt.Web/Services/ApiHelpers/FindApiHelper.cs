@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+using System.Net;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Web.Models;
@@ -61,7 +61,7 @@ internal class FindApiHelper
         _logger.LogDebug("API-Aufruf: GET /api/finds/check?qrCodeId={QrCodeId}&userId={UserId}", qrCodeId, userId);
         var response = await _httpClient.GetAsync(new Uri($"/api/finds/check?qrCodeId={qrCodeId}&userId={userId}", UriKind.Relative));
 
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }

@@ -1,6 +1,5 @@
 using EasterEggHunt.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Infrastructure.Tests.Data;
 

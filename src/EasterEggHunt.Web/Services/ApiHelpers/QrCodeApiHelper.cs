@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+using System.Net;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunterApi.Abstractions.Models.QrCode;
@@ -34,7 +34,7 @@ internal class QrCodeApiHelper
         _logger.LogDebug("API-Aufruf: GET /api/qrcodes/{QrCodeId}", id);
         var response = await _httpClient.GetAsync(new Uri($"/api/qrcodes/{id}", UriKind.Relative));
 
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }
@@ -49,7 +49,7 @@ internal class QrCodeApiHelper
         _logger.LogDebug("API-Aufruf: GET /api/qrcodes/by-code/{Code}", code);
         var response = await _httpClient.GetAsync(new Uri($"/api/qrcodes/by-code/{Uri.EscapeDataString(code)}", UriKind.Relative));
 
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }

@@ -1,9 +1,9 @@
+using System.Globalization;
 using EasterEggHunt.Application.Services;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunt.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NUnit.Framework;
 
 namespace EasterEggHunt.Application.Tests.Services;
 
@@ -248,7 +248,7 @@ public sealed class GdprServiceTests
         // Prüfe dass anonymisierter Name eindeutig ist
         _mockUserRepository.Verify(x => x.UpdateAsync(It.Is<User>(u =>
             u.Name.Contains("Anonymized_User_") &&
-            u.Name.Contains(userId.ToString(System.Globalization.CultureInfo.InvariantCulture)) &&
+            u.Name.Contains(userId.ToString(CultureInfo.InvariantCulture)) &&
             u.Name.Length > "Anonymized_User_1_".Length)), Times.Once);
     }
 

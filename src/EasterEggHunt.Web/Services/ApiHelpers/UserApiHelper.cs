@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using System.Text.Json;
 using EasterEggHunt.Domain.Entities;
 using EasterEggHunterApi.Abstractions.Models.User;
