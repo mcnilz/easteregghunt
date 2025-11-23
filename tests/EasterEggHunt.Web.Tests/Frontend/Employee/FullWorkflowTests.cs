@@ -30,8 +30,18 @@ public sealed class FullWorkflowTests : PlaywrightTestBase
         var campaignName = $"E2E Full Workflow Campaign {DateTime.Now:yyyyMMddHHmmss}";
         var campaignId = await campaignPage.CreateCampaignAsync(campaignName, "Test Description");
 
-        // Zu QR-Codes navigieren
-        await page.GotoAsync($"/Admin/QrCodes/{campaignId}", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        // Zu QR-Codes navigieren: über UI statt direkter URL
+        // 1) Zur Kampagnenliste
+        await campaignPage.NavigateAsync();
+        // 2) Kampagne in der Liste anklicken → Kampagnendetails
+        await campaignPage.ClickCampaignAsync(campaignName);
+        await page.WaitForSelectorAsync("h1");
+        // 3) Von den Details per Button/Link „QR-Codes verwalten“ zur QR-Codes-Seite
+        await ClickAndWaitAsync(
+            page,
+            page.GetByRole(AriaRole.Link, new() { Name = "QR-Codes verwalten" }),
+            expectedUrlPattern: $"**/Admin/QrCodes/{campaignId}**",
+            waitForSelector: "h2:has-text('QR-Codes')");
 
         // QR-Code erstellen
         var qrCodePage = new QrCodeManagementPage(page);

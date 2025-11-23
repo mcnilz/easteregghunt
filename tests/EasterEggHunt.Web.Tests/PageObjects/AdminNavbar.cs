@@ -16,38 +16,62 @@ public sealed class AdminNavbar
 
     public async Task GoToDashboardAsync()
     {
-        await _page.GetByRole(AriaRole.Link, new() { Name = "Dashboard" }).ClickAsync();
-        await _page.WaitForURLAsync("**/Admin/Index**");
+        var navbar = _page.Locator("header nav");
+        await navbar.GetByRole(AriaRole.Link, new() { Name = "Dashboard", Exact = true }).ClickAsync();
+        await Task.WhenAll(
+            _page.WaitForURLAsync("**/Admin**", new PageWaitForURLOptions { Timeout = 20000 }),
+            _page.WaitForSelectorAsync("h1:has-text('Admin Dashboard')", new PageWaitForSelectorOptions { Timeout = 20000 })
+        );
     }
 
     public async Task GoToStatisticsAsync()
     {
-        await _page.GetByRole(AriaRole.Link, new() { Name = "Statistiken" }).ClickAsync();
-        await _page.WaitForURLAsync("**/Admin/Statistics**");
+        var navbar = _page.Locator("header nav");
+        await navbar.GetByRole(AriaRole.Link, new() { Name = "Statistiken", Exact = true }).ClickAsync();
+        await Task.WhenAll(
+            _page.WaitForURLAsync("**/Admin/Statistics**", new PageWaitForURLOptions { Timeout = 20000 }),
+            _page.WaitForSelectorAsync("h1:has-text('System-Statistiken')", new PageWaitForSelectorOptions { Timeout = 20000 })
+        );
     }
 
     public async Task GoToLeaderboardAsync()
     {
-        await _page.GetByRole(AriaRole.Link, new() { Name = "Rangliste" }).ClickAsync();
-        await _page.WaitForURLAsync("**/Admin/Leaderboard**");
+        var navbar = _page.Locator("header nav");
+        await navbar.GetByRole(AriaRole.Link, new() { Name = "Rangliste", Exact = true }).ClickAsync();
+        await Task.WhenAll(
+            _page.WaitForURLAsync("**/Admin/Leaderboard**", new PageWaitForURLOptions { Timeout = 20000 }),
+            _page.WaitForSelectorAsync("h1:has-text('Teilnehmer-Rangliste')", new PageWaitForSelectorOptions { Timeout = 20000 })
+        );
     }
 
     public async Task GoToTimeBasedStatisticsAsync()
     {
-        await _page.GetByRole(AriaRole.Link, new() { Name = "Zeitbasierte Statistiken" }).ClickAsync();
-        await _page.WaitForURLAsync("**/Admin/TimeBasedStatistics**");
+        var navbar = _page.Locator("header nav");
+        await navbar.GetByRole(AriaRole.Link, new() { Name = "Zeitbasierte Statistiken", Exact = true }).ClickAsync();
+        await Task.WhenAll(
+            _page.WaitForURLAsync("**/Admin/TimeBasedStatistics**", new PageWaitForURLOptions { Timeout = 20000 }),
+            _page.WaitForSelectorAsync("h1:has-text('Zeitbasierte Statistiken')", new PageWaitForSelectorOptions { Timeout = 20000 })
+        );
     }
 
     public async Task GoToFindHistoryAsync()
     {
-        await _page.GetByRole(AriaRole.Link, new() { Name = "Fund-Historie" }).ClickAsync();
-        await _page.WaitForURLAsync("**/Admin/FindHistory**");
+        var navbar = _page.Locator("header nav");
+        await navbar.GetByRole(AriaRole.Link, new() { Name = "Fund-Historie", Exact = true }).ClickAsync();
+        await Task.WhenAll(
+            _page.WaitForURLAsync("**/Admin/FindHistory**", new PageWaitForURLOptions { Timeout = 20000 }),
+            _page.WaitForSelectorAsync("h1:has-text('Fund-Historie')", new PageWaitForSelectorOptions { Timeout = 20000 })
+        );
     }
 
     public async Task GoToUsersAsync()
     {
-        await _page.GetByRole(AriaRole.Link, new() { Name = "Benutzer" }).ClickAsync();
-        await _page.WaitForURLAsync("**/Admin/Users**");
+        var navbar = _page.Locator("header nav");
+        await navbar.GetByRole(AriaRole.Link, new() { Name = "Benutzer", Exact = true }).ClickAsync();
+        await Task.WhenAll(
+            _page.WaitForURLAsync("**/Admin/Users**", new PageWaitForURLOptions { Timeout = 20000 }),
+            _page.WaitForSelectorAsync("h1:has-text('Benutzer-Übersicht')", new PageWaitForSelectorOptions { Timeout = 20000 })
+        );
     }
 
     public async Task LogoutAsync()
