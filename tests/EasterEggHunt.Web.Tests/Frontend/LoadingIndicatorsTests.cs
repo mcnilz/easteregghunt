@@ -95,8 +95,12 @@ public sealed class LoadingIndicatorsTests : PlaywrightTestBase
             Assert.Fail("Login-Redirect ist nicht erfolgt.");
         }
 
-        // Navigate to Statistics
-        await page.GotoAsync("/Admin/Statistics", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        // Navigate to Statistics via Navbar (UI‑Klick statt direkter URL)
+        await ClickAndWaitAsync(
+            page,
+            page.Locator("header nav").GetByRole(AriaRole.Link, new() { Name = "Statistiken", Exact = true }),
+            expectedUrlPattern: "**/Admin/Statistics**",
+            waitForSelector: "h1:has-text('System-Statistiken')");
 
         // Act
         var refreshButton = page.Locator("#refreshButton");

@@ -38,8 +38,8 @@
                     {
                         <tr data-campaign-id="@campaign.Id">
                             <td>
-                                @* Name als Text ausgeben, damit Tests ihn finden *@
-                                <span>@campaign.Name</span>
+                                @* Name als Link zu den Kampagnendetails (UI-Navigation für Tests) *@
+                                <a asp-action="CampaignDetails" asp-route-id="@campaign.Id" class="text-decoration-none">@campaign.Name</a>
                             </td>
                             <td>
                                 <span class="text-muted">@campaign.Description</span>

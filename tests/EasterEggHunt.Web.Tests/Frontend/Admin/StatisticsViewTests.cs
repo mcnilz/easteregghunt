@@ -26,8 +26,12 @@ public sealed class StatisticsViewTests : PlaywrightTestBase
         await loginPage.LoginAsync(LoginHelper.DefaultAdminUsername, LoginHelper.DefaultAdminPassword);
         await page.WaitForURLAsync("**/Admin**", new PageWaitForURLOptions { Timeout = 20000 });
 
-        // Act: Navigiere zur Statistics-Seite
-        await page.GotoAsync("/Admin/Statistics", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        // Act: Navigiere zur Statistics-Seite via Navbar (UI‑Klick, keine direkte URL)
+        await ClickAndWaitAsync(
+            page,
+            page.Locator("header nav").GetByRole(AriaRole.Link, new() { Name = "Statistiken", Exact = true }),
+            expectedUrlPattern: "**/Admin/Statistics**",
+            waitForSelector: "h1:has-text('System-Statistiken')");
 
         // Assert: KPI-Kacheln sichtbar (4 Karten erwartet: Kampagnen, Benutzer, QR-Codes, Funde)
         var cards = page.Locator(".card .card-title");

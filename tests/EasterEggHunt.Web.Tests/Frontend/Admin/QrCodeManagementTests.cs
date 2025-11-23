@@ -39,10 +39,18 @@ public sealed class QrCodeManagementTests : PlaywrightTestBase
         Assert.That(await campaignPage.HasCampaignAsync(campaignName), Is.True,
             $"Campaign '{campaignName}' sollte in der Liste erscheinen.");
 
-        // Zu QR-Codes der Campaign navigieren
-        await page.GotoAsync($"/Admin/QrCodes/{campaignId}", new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        // Zu den Kampagnendetails per UI klicken
+        await campaignPage.ClickCampaignAsync(campaignName);
+        await page.WaitForSelectorAsync("h1");
 
-        // Prüfe, ob wir auf der QR-Codes-Seite sind
-        Assert.That(page.Url, Does.Contain($"/Admin/QrCodes/{campaignId}"), "Nach Navigation sollte zur QR-Codes-Seite navigiert werden.");
+        // Von den Details zu den QR-Codes per UI (Button/Link) navigieren
+        await ClickAndWaitAsync(
+            page,
+            page.GetByRole(AriaRole.Link, new() { Name = "QR-Codes verwalten" }),
+            expectedUrlPattern: $"**/Admin/QrCodes/{campaignId}**",
+            waitForSelector: "h2:has-text('QR-Codes')");
+
+        // Prüfe, ob wir auf der QR-Codes-Seite sind (charakteristische Überschrift vorhanden)
+        Assert.That(page.Url, Does.Contain($"/Admin/QrCodes/{campaignId}"), "Nach UI-Navigation sollte die QR-Codes-Seite geladen sein.");
     }
 }
